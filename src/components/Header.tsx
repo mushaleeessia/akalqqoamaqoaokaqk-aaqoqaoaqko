@@ -22,12 +22,6 @@ export const Header = () => {
     { title: "Problemas de conexão", url: "https://mush.com.br/blog/problemas-de-conexao" },
   ];
 
-  const supportItems = [
-    { title: "Área de atendimento", url: "https://forum.mush.com.br/category/69/%C3%A1rea-de-atendimento" },
-    { title: "Suporte de vendas", url: "https://forum.mush.com.br/topic/145928/atendimento-email-de-vendas" },
-    { title: "Problemas de conexão", url: "https://mush.com.br/blog/problemas-de-conexao" },
-  ];
-
   const handleLinkClick = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -90,19 +84,6 @@ export const Header = () => {
               <MessageSquare className="w-4 h-4" />
             </button>
           </div>
-        </div>
-
-        {/* Área de suporte */}
-        <div className="hidden lg:flex justify-center space-x-6 pb-2">
-          {supportItems.map((item) => (
-            <button
-              key={item.title}
-              onClick={() => handleLinkClick(item.url)}
-              className="text-xs text-red-200 hover:text-white transition-colors cursor-pointer"
-            >
-              {item.title}
-            </button>
-          ))}
         </div>
       </div>
     </header>
