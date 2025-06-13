@@ -1,5 +1,5 @@
 
-import { ShoppingCart, Users, Trophy, Shield, HelpCircle, MessageSquare, ChevronDown, Menu, X, Flag } from "lucide-react";
+import { ShoppingCart, Users, Trophy, Shield, HelpCircle, MessageSquare, ChevronDown, Menu, X, Flag, Globe } from "lucide-react";
 import { useState } from "react";
 import {
   DropdownMenu,
@@ -114,6 +114,21 @@ export const Header = () => {
             </DropdownMenu>
           </nav>
 
+          {/* Switch de idiomas - desktop */}
+          <div className="hidden md:flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              {isEnglish ? <Globe className="w-4 h-4 text-white" /> : <Flag className="w-4 h-4 text-white" />}
+              <span className="text-white text-sm font-medium">
+                {isEnglish ? "English" : "Português"}
+              </span>
+            </div>
+            <Switch
+              checked={isEnglish}
+              onCheckedChange={toggleLanguage}
+              className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-red-600"
+            />
+          </div>
+
           {/* Menu mobile - botão */}
           <div className="md:hidden">
             <button 
@@ -132,9 +147,9 @@ export const Header = () => {
               {/* Switch de idiomas */}
               <div className="flex items-center justify-between px-4 py-3 bg-red-800/30 rounded-lg border border-red-600/30">
                 <div className="flex items-center space-x-3">
-                  <Flag className="w-4 h-4 text-white" />
+                  {isEnglish ? <Globe className="w-4 h-4 text-white" /> : <Flag className="w-4 h-4 text-white" />}
                   <span className="text-white text-sm font-medium">
-                    {isEnglish ? "🇬🇧 English" : "🇧🇷 Português"}
+                    {isEnglish ? "English" : "Português"}
                   </span>
                 </div>
                 <Switch
