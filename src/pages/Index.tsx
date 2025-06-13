@@ -1,63 +1,45 @@
 
 import { ProfileSection } from "@/components/ProfileSection";
 import { LinkCard } from "@/components/LinkCard";
-import { Award, Link, Youtube } from "lucide-react";
+import { Globe, MessageSquare } from "lucide-react";
 
 const Index = () => {
   const links = [
     {
-      title: "Gaming Portfolio",
-      description: "Showcase of my gaming achievements",
-      url: "https://example.com/portfolio",
-      icon: Award,
-      color: "from-yellow-400 to-yellow-600"
+      title: "My TikTok",
+      description: "Follow me @aleeessia_",
+      url: "https://tiktok.com/@aleeessia_",
+      icon: Globe, // Using Globe as TikTok icon since it's not in allowed icons
+      color: "from-pink-500 to-purple-600"
     },
     {
-      title: "YouTube Channel",
-      description: "Gaming content and reviews",
-      url: "https://youtube.com/@example",
-      icon: Youtube,
-      color: "from-red-500 to-red-600"
+      title: "MushMC Website",
+      description: "Official server website",
+      url: "https://mush.com.br",
+      icon: Globe,
+      color: "from-green-500 to-emerald-600"
     },
     {
-      title: "Steam Profile",
-      description: "Connect with me on Steam",
-      url: "https://steamcommunity.com/id/example",
-      icon: Link,
-      color: "from-blue-500 to-blue-600"
-    },
-    {
-      title: "Twitch Channel",
-      description: "Live gaming streams",
-      url: "https://twitch.tv/example",
-      icon: Link,
-      color: "from-purple-500 to-purple-600"
-    },
-    {
-      title: "Discord Server",
-      description: "Join our gaming community",
-      url: "https://discord.gg/example",
-      icon: Link,
-      color: "from-indigo-500 to-indigo-600"
-    },
-    {
-      title: "Gaming Blog",
-      description: "Latest gaming news and reviews",
-      url: "https://example.com/blog",
-      icon: Link,
-      color: "from-green-500 to-green-600"
+      title: "MushMC Forum",
+      description: "Community discussions and updates",
+      url: "https://forum.mush.com.br",
+      icon: MessageSquare,
+      color: "from-blue-500 to-cyan-600"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black relative overflow-hidden">
-      {/* Animated background stars */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900/20 to-black relative overflow-hidden">
+      {/* Minecraft-inspired background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-yellow-400 rounded-full animate-pulse"></div>
-        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-yellow-300 rounded-full animate-pulse delay-100"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-1 h-1 bg-yellow-400 rounded-full animate-pulse delay-200"></div>
-        <div className="absolute top-2/3 right-1/4 w-1 h-1 bg-yellow-300 rounded-full animate-pulse delay-300"></div>
-        <div className="absolute bottom-1/3 right-1/2 w-1 h-1 bg-yellow-400 rounded-full animate-pulse delay-500"></div>
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-green-400 rounded-sm animate-pulse"></div>
+        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-emerald-300 rounded-sm animate-pulse delay-100"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-green-400 rounded-sm animate-pulse delay-200"></div>
+        <div className="absolute top-2/3 right-1/4 w-1 h-1 bg-emerald-300 rounded-sm animate-pulse delay-300"></div>
+        <div className="absolute bottom-1/3 right-1/2 w-2 h-2 bg-green-400 rounded-sm animate-pulse delay-500"></div>
+        {/* Block-like decorative elements */}
+        <div className="absolute top-1/5 right-1/5 w-3 h-3 bg-green-600/20 border border-green-400/30"></div>
+        <div className="absolute bottom-1/5 left-1/5 w-4 h-4 bg-emerald-600/20 border border-emerald-400/30"></div>
       </div>
 
       {/* Main content */}
@@ -81,9 +63,9 @@ const Index = () => {
         {/* Footer */}
         <div className="text-center mt-12 mb-6">
           <p className="text-gray-400 text-sm">
-            Made with ✨ for gamers, by gamers
+            Made with 💚 for the MushMC community
           </p>
-          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-yellow-400 to-transparent opacity-30"></div>
+          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-green-400 to-transparent opacity-30"></div>
         </div>
       </div>
     </div>
