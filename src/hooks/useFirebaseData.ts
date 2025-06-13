@@ -35,35 +35,60 @@ export const useFirebaseData = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('Setting up Firebase listeners...');
+    console.log('🔥 Firebase hook iniciado - configurando listeners...');
+    console.log('🔥 Database object:', database);
+    console.log('🔥 Database URL:', database.app.options.databaseURL);
     
     // Listen for about section changes
     const aboutRef = ref(database, 'profile/about');
+    console.log('🔥 About ref criado:', aboutRef.toString());
+    
     const aboutUnsubscribe = onValue(aboutRef, (snapshot) => {
-      console.log('About data received:', snapshot.val());
+      console.log('🔥 About snapshot recebido!');
+      console.log('🔥 About snapshot existe?', snapshot.exists());
+      console.log('🔥 About snapshot key:', snapshot.key);
+      console.log('🔥 About snapshot val:', snapshot.val());
+      
       const data = snapshot.val();
       if (data) {
+        console.log('🔥 Atualizando about com:', data);
         setAbout(data);
+      } else {
+        console.log('🔥 About data é null - mantendo valor padrão');
       }
+    }, (error) => {
+      console.error('🔥 Erro no listener about:', error);
     });
 
     // Listen for blog posts changes
     const postsRef = ref(database, 'blog');
+    console.log('🔥 Posts ref criado:', postsRef.toString());
+    
     const postsUnsubscribe = onValue(postsRef, (snapshot) => {
-      console.log('Blog data received:', snapshot.val());
+      console.log('🔥 Blog snapshot recebido!');
+      console.log('🔥 Blog snapshot existe?', snapshot.exists());
+      console.log('🔥 Blog snapshot key:', snapshot.key);
+      console.log('🔥 Blog snapshot val:', snapshot.val());
+      
       const data = snapshot.val();
       if (data) {
         const postsArray = Object.keys(data).map(key => ({
           id: key,
           ...data[key]
         }));
-        console.log('Processed posts array:', postsArray);
+        console.log('🔥 Posts processados:', postsArray);
         setPosts(postsArray);
+      } else {
+        console.log('🔥 Blog data é null - mantendo posts padrão');
       }
+      setLoading(false);
+    }, (error) => {
+      console.error('🔥 Erro no listener blog:', error);
       setLoading(false);
     });
 
     return () => {
+      console.log('🔥 Limpando listeners...');
       aboutUnsubscribe();
       postsUnsubscribe();
     };
