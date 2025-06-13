@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { ProfileSection } from "@/components/ProfileSection";
 import { LinkCard } from "@/components/LinkCard";
 import { BlogSection } from "@/components/BlogSection";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Globe, MessageSquare } from "lucide-react";
+import { Globe, MessageSquare, Video } from "lucide-react";
 
 const Index = () => {
   const [isEnglish, setIsEnglish] = useState(false);
@@ -14,7 +15,7 @@ const Index = () => {
       title: isEnglish ? "My TikTok" : "Meu TikTok",
       description: isEnglish ? "Follow me @aleeessia_" : "Me segue @aleeessia_",
       url: "https://tiktok.com/@aleeessia_",
-      icon: Globe,
+      icon: Video,
       color: "from-red-900 to-red-700"
     },
     {
