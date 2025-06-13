@@ -1,36 +1,28 @@
-
 import { ProfileSection } from "@/components/ProfileSection";
 import { LinkCard } from "@/components/LinkCard";
 import { BlogSection } from "@/components/BlogSection";
 import { Globe, MessageSquare } from "lucide-react";
-
 const Index = () => {
-  const links = [
-    {
-      title: "Meu TikTok",
-      description: "Me segue @aleeessia_",
-      url: "https://tiktok.com/@aleeessia_",
-      icon: Globe,
-      color: "from-red-900 to-red-700"
-    },
-    {
-      title: "Site MushMC",
-      description: "Site oficial do servidor",
-      url: "https://mush.com.br",
-      icon: Globe,
-      color: "from-amber-900 to-red-800"
-    },
-    {
-      title: "Fórum MushMC",
-      description: "Discussões e atualizações da comunidade",
-      url: "https://forum.mush.com.br",
-      icon: MessageSquare,
-      color: "from-red-800 to-amber-900"
-    }
-  ];
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-red-950/40 to-gray-900 relative overflow-hidden">
+  const links = [{
+    title: "Meu TikTok",
+    description: "Me segue @aleeessia_",
+    url: "https://tiktok.com/@aleeessia_",
+    icon: Globe,
+    color: "from-red-900 to-red-700"
+  }, {
+    title: "Site MushMC",
+    description: "Site oficial do servidor",
+    url: "https://mush.com.br",
+    icon: Globe,
+    color: "from-amber-900 to-red-800"
+  }, {
+    title: "Fórum MushMC",
+    description: "Discussões e atualizações da comunidade",
+    url: "https://forum.mush.com.br",
+    icon: MessageSquare,
+    color: "from-red-800 to-amber-900"
+  }];
+  return <div className="min-h-screen bg-gradient-to-br from-black via-red-950/40 to-gray-900 relative overflow-hidden">
       {/* Dark red ambient background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-red-600 rounded-sm animate-pulse"></div>
@@ -39,8 +31,8 @@ const Index = () => {
         <div className="absolute top-2/3 right-1/4 w-1 h-1 bg-red-500 rounded-sm animate-pulse delay-300"></div>
         <div className="absolute bottom-1/3 right-1/2 w-2 h-2 bg-amber-700 rounded-sm animate-pulse delay-500"></div>
         {/* Block-like decorative elements */}
-        <div className="absolute top-1/5 right-1/5 w-3 h-3 bg-red-900/30 border border-red-600/40"></div>
-        <div className="absolute bottom-1/5 left-1/5 w-4 h-4 bg-amber-900/30 border border-amber-600/40"></div>
+        
+        
       </div>
 
       {/* Main content */}
@@ -48,17 +40,7 @@ const Index = () => {
         <ProfileSection />
         
         <div className="space-y-4 mt-8">
-          {links.map((link, index) => (
-            <LinkCard
-              key={index}
-              title={link.title}
-              description={link.description}
-              url={link.url}
-              icon={link.icon}
-              color={link.color}
-              delay={index * 100}
-            />
-          ))}
+          {links.map((link, index) => <LinkCard key={index} title={link.title} description={link.description} url={link.url} icon={link.icon} color={link.color} delay={index * 100} />)}
         </div>
 
         <BlogSection />
@@ -71,8 +53,6 @@ const Index = () => {
           <div className="mt-4 h-px bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30"></div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
