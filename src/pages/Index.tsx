@@ -63,14 +63,6 @@ const Index = () => {
         </div>
 
         <BlogSection />
-
-        {/* Footer */}
-        <div className="text-center mt-12 mb-6">
-          <p className="text-gray-400 text-sm">
-            Feito com ❤️ para a comunidade do Mush
-          </p>
-          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30"></div>
-        </div>
       </div>
     </div>
   );
