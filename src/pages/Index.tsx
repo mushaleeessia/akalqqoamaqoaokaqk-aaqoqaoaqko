@@ -1,27 +1,28 @@
 
 import { ProfileSection } from "@/components/ProfileSection";
 import { LinkCard } from "@/components/LinkCard";
+import { BlogSection } from "@/components/BlogSection";
 import { Globe, MessageSquare } from "lucide-react";
 
 const Index = () => {
   const links = [
     {
-      title: "My TikTok",
-      description: "Follow me @aleeessia_",
+      title: "Meu TikTok",
+      description: "Me segue @aleeessia_",
       url: "https://tiktok.com/@aleeessia_",
-      icon: Globe, // Using Globe as TikTok icon since it's not in allowed icons
+      icon: Globe,
       color: "from-red-900 to-red-700"
     },
     {
-      title: "MushMC Website",
-      description: "Official server website",
+      title: "Site MushMC",
+      description: "Site oficial do servidor",
       url: "https://mush.com.br",
       icon: Globe,
       color: "from-amber-900 to-red-800"
     },
     {
-      title: "MushMC Forum",
-      description: "Community discussions and updates",
+      title: "Fórum MushMC",
+      description: "Discussões e atualizações da comunidade",
       url: "https://forum.mush.com.br",
       icon: MessageSquare,
       color: "from-red-800 to-amber-900"
@@ -60,10 +61,12 @@ const Index = () => {
           ))}
         </div>
 
+        <BlogSection />
+
         {/* Footer */}
         <div className="text-center mt-12 mb-6">
           <p className="text-gray-400 text-sm">
-            Made with ❤️ for the MushMC community
+            Feito com ❤️ para a comunidade MushMC
           </p>
           <div className="mt-4 h-px bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30"></div>
         </div>
