@@ -1,5 +1,6 @@
 
-import { ShoppingCart, Users, Trophy, Shield, HelpCircle, MessageSquare, ChevronDown } from "lucide-react";
+import { ShoppingCart, Users, Trophy, Shield, HelpCircle, MessageSquare, ChevronDown, Menu, X } from "lucide-react";
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,6 +9,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export const Header = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const navItems = [
     { title: "Loja", url: "https://mush.com.br/loja", icon: ShoppingCart },
     { title: "Fórum", url: "https://forum.mush.com.br", icon: MessageSquare },
@@ -24,6 +27,7 @@ export const Header = () => {
 
   const handleLinkClick = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
+    setMobileMenuOpen(false);
   };
 
   return (
@@ -75,16 +79,54 @@ export const Header = () => {
             </DropdownMenu>
           </nav>
 
-          {/* Menu mobile */}
+          {/* Menu mobile - botão */}
           <div className="md:hidden">
             <button 
-              onClick={() => handleLinkClick("https://forum.mush.com.br")}
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200"
             >
-              <MessageSquare className="w-4 h-4" />
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
+
+        {/* Menu mobile - conteúdo */}
+        {mobileMenuOpen && (
+          <div className="md:hidden pb-4 border-t border-red-700/30 mt-3">
+            <nav className="flex flex-col space-y-2 pt-4">
+              {navItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <button
+                    key={item.title}
+                    onClick={() => handleLinkClick(item.url)}
+                    className="flex items-center space-x-3 px-4 py-3 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium"
+                  >
+                    <IconComponent className="w-4 h-4" />
+                    <span>{item.title}</span>
+                  </button>
+                );
+              })}
+              
+              {/* Items de ajuda no mobile */}
+              <div className="pt-2 border-t border-red-700/30">
+                <div className="flex items-center space-x-3 px-4 py-2 text-white text-sm font-medium opacity-70">
+                  <HelpCircle className="w-4 h-4" />
+                  <span>Ajuda</span>
+                </div>
+                {helpItems.map((item) => (
+                  <button
+                    key={item.title}
+                    onClick={() => handleLinkClick(item.url)}
+                    className="flex items-center space-x-3 px-8 py-2 text-white hover:bg-red-700 rounded-lg transition-all duration-200 text-sm"
+                  >
+                    <span>{item.title}</span>
+                  </button>
+                ))}
+              </div>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );
