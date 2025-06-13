@@ -11,7 +11,7 @@ export const Footer = ({ isVisible }: FooterProps) => {
       <div className="max-w-md mx-auto">
         <div className="bg-amber-900/20 border border-amber-700/40 rounded-lg p-4 text-center">
           <p className="text-amber-200 text-sm">
-            ⚠️ You are viewing this website in English. Translations in sections like "About me" or any blog post may not be 100% accurate.
+            ⚠️ You are viewing this website in English. Translations may not be 100% accurate.
           </p>
         </div>
       </div>
