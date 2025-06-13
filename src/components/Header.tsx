@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
+import { ForeignerNotice } from "@/components/ForeignerNotice";
 
 interface HeaderProps {
   onLanguageChange?: (isEnglish: boolean) => void;
@@ -146,6 +147,13 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
           </div>
         </div>
 
+        {/* Aviso para estrangeiros - desktop (abaixo do switch) */}
+        <div className="hidden md:flex justify-end pb-4">
+          <div className="max-w-sm">
+            <ForeignerNotice isVisible={isEnglish} />
+          </div>
+        </div>
+
         {/* Menu mobile - conteúdo */}
         {mobileMenuOpen && (
           <div className="md:hidden pb-4 border-t border-red-700/30 mt-3">
@@ -165,7 +173,8 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                 />
               </div>
 
-              {/* Texto informativo para estrangeiros no mobile - removido daqui */}
+              {/* Aviso para estrangeiros - mobile (abaixo do switch) */}
+              <ForeignerNotice isVisible={isEnglish} />
 
               {navItems.map((item) => {
                 const IconComponent = item.icon;
