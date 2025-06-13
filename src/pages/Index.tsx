@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ProfileSection } from "@/components/ProfileSection";
 import { LinkCard } from "@/components/LinkCard";
@@ -26,9 +25,9 @@ const Index = () => {
       color: "from-amber-900 to-red-800"
     },
     {
-      title: isEnglish ? "Mush Forum" : "Fórum Mush",
-      description: isEnglish ? "Community discussions and updates" : "Discussões e atualizações da comunidade",
-      url: "https://forum.mush.com.br",
+      title: isEnglish ? "Mush Discord" : "Discord Mush",
+      description: isEnglish ? "Join our Discord community" : "Entre no nosso Discord",
+      url: "https://discord.gg/mush",
       icon: MessageSquare,
       color: "from-red-800 to-amber-900"
     }
