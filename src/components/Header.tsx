@@ -1,21 +1,32 @@
 
-import { ExternalLink, Users, Trophy, Shield, HelpCircle, MessageSquare } from "lucide-react";
+import { ShoppingCart, Users, Trophy, Shield, HelpCircle, MessageSquare, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Header = () => {
   const navItems = [
-    { title: "Loja", url: "https://mush.com.br/loja", icon: ExternalLink },
+    { title: "Loja", url: "https://mush.com.br/loja", icon: ShoppingCart },
     { title: "Fórum", url: "https://forum.mush.com.br", icon: MessageSquare },
-    { title: "Equipe", url: "https://mush.com.br/equipe", icon: Users },
-    { title: "Leaderboard", url: "https://mush.com.br/leaderboard", icon: Trophy },
+    { title: "Equipe", url: "https://mush.com.br/staff", icon: Users },
+    { title: "Leaderboard", url: "https://mush.com.br/leaderboard/bedwars", icon: Trophy },
     { title: "Punições", url: "https://mush.com.br/punicoes", icon: Shield },
-    { title: "Ajuda", url: "https://mush.com.br/ajuda", icon: HelpCircle },
+  ];
+
+  const helpItems = [
+    { title: "Área de atendimento", url: "https://forum.mush.com.br/category/69/%C3%A1rea-de-atendimento" },
+    { title: "Suporte de vendas", url: "https://forum.mush.com.br/topic/145928/atendimento-email-de-vendas" },
+    { title: "Problemas de conexão", url: "https://mush.com.br/blog/problemas-de-conexao" },
   ];
 
   const supportItems = [
-    { title: "Área de atendimento", url: "https://mush.com.br/suporte" },
-    { title: "Suporte de vendas", url: "https://mush.com.br/vendas" },
-    { title: "Problemas de conexão", url: "https://mush.com.br/conexao" },
+    { title: "Área de atendimento", url: "https://forum.mush.com.br/category/69/%C3%A1rea-de-atendimento" },
+    { title: "Suporte de vendas", url: "https://forum.mush.com.br/topic/145928/atendimento-email-de-vendas" },
+    { title: "Problemas de conexão", url: "https://mush.com.br/blog/problemas-de-conexao" },
   ];
 
   return (
@@ -43,6 +54,35 @@ export const Header = () => {
                 </a>
               </Button>
             ))}
+            
+            {/* Dropdown menu para Ajuda */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-red-700/50 hover:text-white transition-colors"
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  <span>Ajuda</span>
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-red-900 border-red-700">
+                {helpItems.map((item) => (
+                  <DropdownMenuItem key={item.title} asChild>
+                    <a 
+                      href={item.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-white hover:bg-red-700 cursor-pointer"
+                    >
+                      {item.title}
+                    </a>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </nav>
 
           {/* Menu mobile */}
