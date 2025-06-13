@@ -1,7 +1,7 @@
 
 import { ProfileSection } from "@/components/ProfileSection";
 import { LinkCard } from "@/components/LinkCard";
-import { award, link, youtube } from "lucide-react";
+import { Award, Link, Youtube } from "lucide-react";
 
 const Index = () => {
   const links = [
@@ -9,42 +9,42 @@ const Index = () => {
       title: "Gaming Portfolio",
       description: "Showcase of my gaming achievements",
       url: "https://example.com/portfolio",
-      icon: award,
+      icon: Award,
       color: "from-yellow-400 to-yellow-600"
     },
     {
       title: "YouTube Channel",
       description: "Gaming content and reviews",
       url: "https://youtube.com/@example",
-      icon: youtube,
+      icon: Youtube,
       color: "from-red-500 to-red-600"
     },
     {
       title: "Steam Profile",
       description: "Connect with me on Steam",
       url: "https://steamcommunity.com/id/example",
-      icon: link,
+      icon: Link,
       color: "from-blue-500 to-blue-600"
     },
     {
       title: "Twitch Channel",
       description: "Live gaming streams",
       url: "https://twitch.tv/example",
-      icon: link,
+      icon: Link,
       color: "from-purple-500 to-purple-600"
     },
     {
       title: "Discord Server",
       description: "Join our gaming community",
       url: "https://discord.gg/example",
-      icon: link,
+      icon: Link,
       color: "from-indigo-500 to-indigo-600"
     },
     {
       title: "Gaming Blog",
       description: "Latest gaming news and reviews",
       url: "https://example.com/blog",
-      icon: link,
+      icon: Link,
       color: "from-green-500 to-green-600"
     }
   ];
