@@ -1,4 +1,5 @@
 
+
 import { ShoppingCart, Users, Trophy, Shield, HelpCircle, MessageSquare, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -115,3 +116,4 @@ export const Header = () => {
     </header>
   );
 };
+
