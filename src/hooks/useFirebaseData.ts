@@ -37,15 +37,23 @@ export const useFirebaseData = () => {
     const blogUnsubscribe = onValue(blogRef, (snapshot) => {
       if (snapshot.exists()) {
         const blogData = snapshot.val();
-        const processedPosts = Object.entries(blogData).map(([id, post]: [string, any]) => ({
-          id,
-          title: post.title || post['title:'] || 'Título não encontrado',
-          date: typeof post.date === 'string' ? post.date.replace(/"/g, '') : post.date,
-          excerpt: typeof post.excerpt === 'string' ? post.excerpt.replace(/"/g, '') : post.excerpt,
-          content: post.content,
-          author: post.author
-        }));
+        console.log('📝 Dados brutos do blog:', blogData);
         
+        const processedPosts = Object.entries(blogData).map(([id, post]: [string, any]) => {
+          console.log(`📝 Processando post ${id}:`, post);
+          console.log('📝 Título encontrado:', post.title);
+          
+          return {
+            id,
+            title: post.title || 'Título não encontrado',
+            date: typeof post.date === 'string' ? post.date.replace(/"/g, '') : post.date,
+            excerpt: typeof post.excerpt === 'string' ? post.excerpt.replace(/"/g, '') : post.excerpt,
+            content: post.content,
+            author: post.author
+          };
+        });
+        
+        console.log('📝 Posts processados:', processedPosts);
         setPosts(processedPosts);
       }
     });
