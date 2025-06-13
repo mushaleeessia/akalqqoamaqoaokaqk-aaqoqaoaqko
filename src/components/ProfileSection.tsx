@@ -6,7 +6,7 @@ interface ProfileSectionProps {
 }
 
 export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
-  const { about, loading } = useFirebaseData();
+  const { about, loading } = useFirebaseData(isEnglish);
 
   return (
     <div className="text-center animate-fade-in">

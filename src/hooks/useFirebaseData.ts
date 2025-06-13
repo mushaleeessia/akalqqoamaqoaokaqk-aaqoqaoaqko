@@ -14,10 +14,11 @@ interface BlogPost {
 
 interface UserData {
   about: string;
+  about_en?: string;
 }
 
-export const useFirebaseData = () => {
-  const [about, setAbout] = useState<string>('Carregando informações...');
+export const useFirebaseData = (isEnglish = false) => {
+  const [about, setAbout] = useState<string>(isEnglish ? 'Loading information...' : 'Carregando informações...');
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +29,18 @@ export const useFirebaseData = () => {
       console.log('📝 Dados do perfil:', snapshot.val());
       if (snapshot.exists()) {
         const userData = snapshot.val() as UserData;
-        setAbout(userData.about || 'Olá! Sou a aleeessia, moderadora do servidor Mush. Bem-vindos ao meu cantinho!');
+        const defaultAbout = isEnglish 
+          ? 'Hello! I\'m aleeessia, moderator of the Mush server. Welcome to my corner!'
+          : 'Olá! Sou a aleeessia, moderadora do servidor Mush. Bem-vindos ao meu cantinho!';
+        
+        // Use texto específico do idioma se disponível, senão use o texto padrão
+        if (isEnglish && userData.about_en) {
+          setAbout(userData.about_en);
+        } else if (!isEnglish && userData.about) {
+          setAbout(userData.about);
+        } else {
+          setAbout(defaultAbout);
+        }
       }
       setLoading(false);
     });
@@ -45,22 +57,58 @@ export const useFirebaseData = () => {
           console.log(`📝 Processando post ${id}:`, postData);
           
           // Extrair título - tratando o caso especial do "title:"
-          let title = 'Título não disponível';
+          let title = isEnglish ? 'Title not available' : 'Título não disponível';
           if (postData && typeof postData === 'object') {
-            if (postData.title) {
+            if (isEnglish && postData.title_en) {
+              title = postData.title_en;
+            } else if (postData.title) {
               title = postData.title;
             } else if (postData['title:']) {
               title = postData['title:'];
             }
           }
           
+          // Processar conteúdo traduzido
+          let content = isEnglish ? 'Content not available' : 'Conteúdo não disponível';
+          let excerpt = isEnglish ? 'Summary not available' : 'Resumo não disponível';
+          let author = isEnglish ? 'Author not informed' : 'Autor não informado';
+          let date = isEnglish ? 'Date not available' : 'Data não disponível';
+          
+          if (postData) {
+            // Conteúdo
+            if (isEnglish && postData.content_en) {
+              content = postData.content_en;
+            } else if (postData.content) {
+              content = postData.content;
+            }
+            
+            // Resumo
+            if (isEnglish && postData.excerpt_en) {
+              excerpt = postData.excerpt_en;
+            } else if (postData.excerpt) {
+              excerpt = String(postData.excerpt).replace(/"/g, '');
+            }
+            
+            // Autor
+            if (isEnglish && postData.author_en) {
+              author = postData.author_en;
+            } else if (postData.author) {
+              author = postData.author;
+            }
+            
+            // Data
+            if (postData.date) {
+              date = String(postData.date).replace(/"/g, '');
+            }
+          }
+          
           return {
             id,
             title: String(title).replace(/"/g, ''),
-            date: postData?.date ? String(postData.date).replace(/"/g, '') : 'Data não disponível',
-            excerpt: postData?.excerpt ? String(postData.excerpt).replace(/"/g, '') : 'Resumo não disponível',
-            content: postData?.content || 'Conteúdo não disponível',
-            author: postData?.author || 'Autor não informado'
+            date,
+            excerpt,
+            content,
+            author
           };
         });
         
@@ -79,7 +127,7 @@ export const useFirebaseData = () => {
       userUnsubscribe();
       blogUnsubscribe();
     };
-  }, []);
+  }, [isEnglish]);
 
   return { about, posts, loading };
 };

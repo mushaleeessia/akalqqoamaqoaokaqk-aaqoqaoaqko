@@ -11,8 +11,8 @@ const Index = () => {
 
   const links = [
     {
-      title: "Meu TikTok",
-      description: "Me segue @aleeessia_",
+      title: isEnglish ? "My TikTok" : "Meu TikTok",
+      description: isEnglish ? "Follow me @aleeessia_" : "Me segue @aleeessia_",
       url: "https://tiktok.com/@aleeessia_",
       icon: Globe,
       color: "from-red-900 to-red-700"

@@ -8,7 +8,7 @@ interface BlogSectionProps {
 }
 
 export const BlogSection = ({ isEnglish }: BlogSectionProps) => {
-  const { posts, loading } = useFirebaseData();
+  const { posts, loading } = useFirebaseData(isEnglish);
 
   if (loading) {
     return (
