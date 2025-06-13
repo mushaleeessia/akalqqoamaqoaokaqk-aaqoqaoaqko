@@ -64,8 +64,11 @@ export const useFirebaseData = () => {
           };
         });
         
-        console.log('📝 Posts finais processados:', processedPosts);
-        setPosts(processedPosts);
+        // Inverter a ordem dos posts (mais recentes primeiro)
+        const reversedPosts = processedPosts.reverse();
+        
+        console.log('📝 Posts finais processados (ordem invertida):', reversedPosts);
+        setPosts(reversedPosts);
       } else {
         console.log('📝 Nenhum dado encontrado em "a/blog"');
         setPosts([]);
