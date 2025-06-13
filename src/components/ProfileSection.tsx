@@ -1,5 +1,4 @@
 
-import { Pickaxe } from "lucide-react";
 import { useState } from "react";
 
 export const ProfileSection = () => {
@@ -15,8 +14,12 @@ export const ProfileSection = () => {
       {/* Profile Image */}
       <div className="relative inline-block mb-6">
         <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-red-600 via-red-700 to-amber-800 p-1 shadow-2xl shadow-red-900/40">
-          <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center">
-            <Pickaxe className="w-16 h-16 text-red-400" />
+          <div className="w-full h-full rounded-full overflow-hidden bg-gray-900 flex items-center justify-center">
+            <img 
+              src="https://mc-heads.net/avatar/80eba0b3-159a-48bf-9613-307634a45057/128" 
+              alt="aleeessia Minecraft Skin"
+              className="w-full h-full object-cover rounded-full"
+            />
           </div>
         </div>
         {/* Glow effect */}
