@@ -22,10 +22,10 @@ export const LinkCard = ({ title, description, url, icon: Icon, color, delay = 0
       style={{ animationDelay: `${delay}ms` }}
       onClick={handleClick}
     >
-      <div className="relative overflow-hidden rounded-xl bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 hover:border-yellow-400/30 transition-all duration-300 hover:shadow-xl hover:shadow-yellow-500/10 hover:-translate-y-1">
+      <div className="relative overflow-hidden rounded-xl bg-gray-900/70 backdrop-blur-sm border border-red-900/50 hover:border-red-600/50 transition-all duration-300 hover:shadow-xl hover:shadow-red-900/20 hover:-translate-y-1">
         {/* Background gradient on hover */}
         <div className={cn(
-          "absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-300",
+          "absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-15 transition-opacity duration-300",
           color
         )}></div>
         
@@ -40,7 +40,7 @@ export const LinkCard = ({ title, description, url, icon: Icon, color, delay = 0
           
           {/* Content */}
           <div className="flex-grow min-w-0">
-            <h3 className="text-white font-semibold text-lg group-hover:text-yellow-400 transition-colors duration-300">
+            <h3 className="text-white font-semibold text-lg group-hover:text-red-300 transition-colors duration-300">
               {title}
             </h3>
             <p className="text-gray-400 text-sm truncate">
@@ -49,7 +49,7 @@ export const LinkCard = ({ title, description, url, icon: Icon, color, delay = 0
           </div>
           
           {/* Arrow indicator */}
-          <div className="flex-shrink-0 text-gray-500 group-hover:text-yellow-400 group-hover:translate-x-1 transition-all duration-300">
+          <div className="flex-shrink-0 text-gray-500 group-hover:text-red-400 group-hover:translate-x-1 transition-all duration-300">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
@@ -57,7 +57,7 @@ export const LinkCard = ({ title, description, url, icon: Icon, color, delay = 0
         </div>
         
         {/* Shimmer effect */}
-        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12"></div>
+        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-red-400/10 to-transparent skew-x-12"></div>
       </div>
     </div>
   );

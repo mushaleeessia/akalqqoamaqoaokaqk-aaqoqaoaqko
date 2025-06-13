@@ -10,36 +10,36 @@ const Index = () => {
       description: "Follow me @aleeessia_",
       url: "https://tiktok.com/@aleeessia_",
       icon: Globe, // Using Globe as TikTok icon since it's not in allowed icons
-      color: "from-pink-500 to-purple-600"
+      color: "from-red-900 to-red-700"
     },
     {
       title: "MushMC Website",
       description: "Official server website",
       url: "https://mush.com.br",
       icon: Globe,
-      color: "from-green-500 to-emerald-600"
+      color: "from-amber-900 to-red-800"
     },
     {
       title: "MushMC Forum",
       description: "Community discussions and updates",
       url: "https://forum.mush.com.br",
       icon: MessageSquare,
-      color: "from-blue-500 to-cyan-600"
+      color: "from-red-800 to-amber-900"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900/20 to-black relative overflow-hidden">
-      {/* Minecraft-inspired background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-black via-red-950/40 to-gray-900 relative overflow-hidden">
+      {/* Dark red ambient background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-green-400 rounded-sm animate-pulse"></div>
-        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-emerald-300 rounded-sm animate-pulse delay-100"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-green-400 rounded-sm animate-pulse delay-200"></div>
-        <div className="absolute top-2/3 right-1/4 w-1 h-1 bg-emerald-300 rounded-sm animate-pulse delay-300"></div>
-        <div className="absolute bottom-1/3 right-1/2 w-2 h-2 bg-green-400 rounded-sm animate-pulse delay-500"></div>
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-red-600 rounded-sm animate-pulse"></div>
+        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-amber-600 rounded-sm animate-pulse delay-100"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-red-700 rounded-sm animate-pulse delay-200"></div>
+        <div className="absolute top-2/3 right-1/4 w-1 h-1 bg-red-500 rounded-sm animate-pulse delay-300"></div>
+        <div className="absolute bottom-1/3 right-1/2 w-2 h-2 bg-amber-700 rounded-sm animate-pulse delay-500"></div>
         {/* Block-like decorative elements */}
-        <div className="absolute top-1/5 right-1/5 w-3 h-3 bg-green-600/20 border border-green-400/30"></div>
-        <div className="absolute bottom-1/5 left-1/5 w-4 h-4 bg-emerald-600/20 border border-emerald-400/30"></div>
+        <div className="absolute top-1/5 right-1/5 w-3 h-3 bg-red-900/30 border border-red-600/40"></div>
+        <div className="absolute bottom-1/5 left-1/5 w-4 h-4 bg-amber-900/30 border border-amber-600/40"></div>
       </div>
 
       {/* Main content */}
@@ -63,9 +63,9 @@ const Index = () => {
         {/* Footer */}
         <div className="text-center mt-12 mb-6">
           <p className="text-gray-400 text-sm">
-            Made with 💚 for the MushMC community
+            Made with ❤️ for the MushMC community
           </p>
-          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-green-400 to-transparent opacity-30"></div>
+          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30"></div>
         </div>
       </div>
     </div>
