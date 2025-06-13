@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, get } from 'firebase/database';
 import { database } from '@/lib/firebase';
 
 interface BlogPost {
@@ -39,6 +39,34 @@ export const useFirebaseData = () => {
     console.log('🔥 Database object:', database);
     console.log('🔥 Database URL:', database.app.options.databaseURL);
     
+    // Teste direto com get() para verificar conectividade
+    const testConnection = async () => {
+      try {
+        console.log('🔥 🧪 TESTE: Tentando get() na raiz...');
+        const rootRef = ref(database, '/');
+        const rootSnapshot = await get(rootRef);
+        console.log('🔥 🧪 Root exists?', rootSnapshot.exists());
+        console.log('🔥 🧪 Root val:', rootSnapshot.val());
+        
+        console.log('🔥 🧪 TESTE: Tentando get() em profile/about...');
+        const aboutTestRef = ref(database, 'profile/about');
+        const aboutSnapshot = await get(aboutTestRef);
+        console.log('🔥 🧪 About get() exists?', aboutSnapshot.exists());
+        console.log('🔥 🧪 About get() val:', aboutSnapshot.val());
+        
+        console.log('🔥 🧪 TESTE: Tentando get() em blog...');
+        const blogTestRef = ref(database, 'blog');
+        const blogSnapshot = await get(blogTestRef);
+        console.log('🔥 🧪 Blog get() exists?', blogSnapshot.exists());
+        console.log('🔥 🧪 Blog get() val:', blogSnapshot.val());
+        
+      } catch (error) {
+        console.error('🔥 🧪 ERRO no teste:', error);
+      }
+    };
+    
+    testConnection();
+    
     // Listen for about section changes
     const aboutRef = ref(database, 'profile/about');
     console.log('🔥 About ref criado:', aboutRef.toString());
@@ -59,7 +87,7 @@ export const useFirebaseData = () => {
       console.error('🔥 Erro no listener about:', error);
     });
 
-    // Listen for blog posts changes - ajustado para a estrutura real do seu Firebase
+    // Listen for blog posts changes
     const postsRef = ref(database, 'blog');
     console.log('🔥 Posts ref criado:', postsRef.toString());
     
