@@ -1,5 +1,4 @@
 
-
 import { ShoppingCart, Users, Trophy, Shield, HelpCircle, MessageSquare, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,42 +40,39 @@ export const Header = () => {
 
           {/* Navegação principal */}
           <nav className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => (
-              <Button
-                key={item.title}
-                variant="ghost"
-                size="sm"
-                asChild
-                className="text-white hover:bg-red-700/50 hover:text-white transition-colors"
-              >
-                <a href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-1">
-                  <item.icon className="w-4 h-4" />
+            {navItems.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <a
+                  key={item.title}
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-1 px-3 py-2 text-white hover:bg-red-700/50 hover:text-white transition-colors rounded-md"
+                >
+                  <IconComponent className="w-4 h-4" />
                   <span>{item.title}</span>
                 </a>
-              </Button>
-            ))}
+              );
+            })}
             
             {/* Dropdown menu para Ajuda */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-white hover:bg-red-700/50 hover:text-white transition-colors"
-                >
+                <button className="flex items-center space-x-1 px-3 py-2 text-white hover:bg-red-700/50 hover:text-white transition-colors rounded-md">
                   <HelpCircle className="w-4 h-4" />
                   <span>Ajuda</span>
                   <ChevronDown className="w-3 h-3" />
-                </Button>
+                </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-red-900 border-red-700">
+              <DropdownMenuContent className="z-50 bg-red-900 border-red-700 min-w-[200px]">
                 {helpItems.map((item) => (
                   <DropdownMenuItem key={item.title} asChild>
                     <a 
                       href={item.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-white hover:bg-red-700 cursor-pointer"
+                      className="text-white hover:bg-red-700 cursor-pointer w-full block px-2 py-1.5"
                     >
                       {item.title}
                     </a>
@@ -88,13 +84,9 @@ export const Header = () => {
 
           {/* Menu mobile */}
           <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-red-700/50"
-            >
+            <button className="text-white hover:bg-red-700/50 p-2 rounded">
               <MessageSquare className="w-4 h-4" />
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -116,4 +108,3 @@ export const Header = () => {
     </header>
   );
 };
-
