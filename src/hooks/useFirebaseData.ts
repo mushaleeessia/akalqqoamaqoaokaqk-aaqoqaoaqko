@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { ref, onValue } from 'firebase/database';
-import { db } from '@/lib/firebase';
+import { database } from '@/lib/firebase';
 
 interface BlogPost {
   id: string;
@@ -23,7 +23,7 @@ export const useFirebaseData = () => {
 
   useEffect(() => {
     // Listen to user data changes
-    const userRef = ref(db, 'user');
+    const userRef = ref(database, 'user');
     const userUnsubscribe = onValue(userRef, (snapshot) => {
       if (snapshot.exists()) {
         const userData = snapshot.val() as UserData;
@@ -33,7 +33,7 @@ export const useFirebaseData = () => {
     });
 
     // Listen to blog posts changes
-    const blogRef = ref(db, 'blog');
+    const blogRef = ref(database, 'blog');
     const blogUnsubscribe = onValue(blogRef, (snapshot) => {
       if (snapshot.exists()) {
         const blogData = snapshot.val();
