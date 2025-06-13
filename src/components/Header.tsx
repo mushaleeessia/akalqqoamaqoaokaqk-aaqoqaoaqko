@@ -1,6 +1,5 @@
 
 import { ShoppingCart, Users, Trophy, Shield, HelpCircle, MessageSquare, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,8 +28,12 @@ export const Header = () => {
     { title: "Problemas de conexão", url: "https://mush.com.br/blog/problemas-de-conexao" },
   ];
 
+  const handleLinkClick = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
-    <header className="w-full bg-gradient-to-r from-red-900 via-red-800 to-red-900 border-b border-red-700/50">
+    <header className="w-full bg-gradient-to-r from-red-900 via-red-800 to-red-900 border-b border-red-700/50 relative z-10">
       <div className="container mx-auto px-4">
         {/* Logo e navegação principal */}
         <div className="flex items-center justify-between py-3">
@@ -43,39 +46,35 @@ export const Header = () => {
             {navItems.map((item) => {
               const IconComponent = item.icon;
               return (
-                <a
+                <button
                   key={item.title}
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium"
+                  onClick={() => handleLinkClick(item.url)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium cursor-pointer"
                 >
                   <IconComponent className="w-4 h-4" />
                   <span>{item.title}</span>
-                </a>
+                </button>
               );
             })}
             
             {/* Dropdown menu para Ajuda */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium">
+                <button className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium cursor-pointer">
                   <HelpCircle className="w-4 h-4" />
                   <span>Ajuda</span>
                   <ChevronDown className="w-3 h-3" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="z-50 bg-red-900 border-red-700 min-w-[200px]">
+              <DropdownMenuContent className="z-50 bg-red-900 border-red-700 min-w-[200px]" align="end">
                 {helpItems.map((item) => (
                   <DropdownMenuItem key={item.title} asChild>
-                    <a 
-                      href={item.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-white hover:bg-red-700 cursor-pointer w-full block px-2 py-1.5"
+                    <button 
+                      onClick={() => handleLinkClick(item.url)}
+                      className="text-white hover:bg-red-700 cursor-pointer w-full text-left px-2 py-1.5"
                     >
                       {item.title}
-                    </a>
+                    </button>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -84,7 +83,10 @@ export const Header = () => {
 
           {/* Menu mobile */}
           <div className="md:hidden">
-            <button className="p-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200">
+            <button 
+              onClick={() => handleLinkClick("https://forum.mush.com.br")}
+              className="p-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 cursor-pointer"
+            >
               <MessageSquare className="w-4 h-4" />
             </button>
           </div>
@@ -93,15 +95,13 @@ export const Header = () => {
         {/* Área de suporte */}
         <div className="hidden lg:flex justify-end space-x-4 pb-2">
           {supportItems.map((item) => (
-            <a
+            <button
               key={item.title}
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-red-200 hover:text-white transition-colors"
+              onClick={() => handleLinkClick(item.url)}
+              className="text-xs text-red-200 hover:text-white transition-colors cursor-pointer"
             >
               {item.title}
-            </a>
+            </button>
           ))}
         </div>
       </div>
