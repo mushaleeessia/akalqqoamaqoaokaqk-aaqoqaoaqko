@@ -35,9 +35,12 @@ export const useFirebaseData = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('Setting up Firebase listeners...');
+    
     // Listen for about section changes
     const aboutRef = ref(database, 'profile/about');
     const aboutUnsubscribe = onValue(aboutRef, (snapshot) => {
+      console.log('About data received:', snapshot.val());
       const data = snapshot.val();
       if (data) {
         setAbout(data);
@@ -47,12 +50,14 @@ export const useFirebaseData = () => {
     // Listen for blog posts changes
     const postsRef = ref(database, 'blog');
     const postsUnsubscribe = onValue(postsRef, (snapshot) => {
+      console.log('Blog data received:', snapshot.val());
       const data = snapshot.val();
       if (data) {
         const postsArray = Object.keys(data).map(key => ({
           id: key,
           ...data[key]
         }));
+        console.log('Processed posts array:', postsArray);
         setPosts(postsArray);
       }
       setLoading(false);
