@@ -39,7 +39,7 @@ export const Header = () => {
           </div>
 
           {/* Navegação principal */}
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav className="hidden md:flex items-center space-x-2">
             {navItems.map((item) => {
               const IconComponent = item.icon;
               return (
@@ -48,7 +48,7 @@ export const Header = () => {
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-1 px-3 py-2 text-white hover:bg-red-700/50 hover:text-white transition-colors rounded-md"
+                  className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium"
                 >
                   <IconComponent className="w-4 h-4" />
                   <span>{item.title}</span>
@@ -59,7 +59,7 @@ export const Header = () => {
             {/* Dropdown menu para Ajuda */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center space-x-1 px-3 py-2 text-white hover:bg-red-700/50 hover:text-white transition-colors rounded-md">
+                <button className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium">
                   <HelpCircle className="w-4 h-4" />
                   <span>Ajuda</span>
                   <ChevronDown className="w-3 h-3" />
@@ -84,7 +84,7 @@ export const Header = () => {
 
           {/* Menu mobile */}
           <div className="md:hidden">
-            <button className="text-white hover:bg-red-700/50 p-2 rounded">
+            <button className="p-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200">
               <MessageSquare className="w-4 h-4" />
             </button>
           </div>
