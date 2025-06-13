@@ -39,7 +39,7 @@ export const useFirebaseData = () => {
     console.log('🔥 Database object:', database);
     console.log('🔥 Database URL:', database.app.options.databaseURL);
     
-    // Teste direto com get() para verificar conectividade
+    // Teste direto com get() para verificar conectividade - CAMINHOS CORRIGIDOS
     const testConnection = async () => {
       try {
         console.log('🔥 🧪 TESTE: Tentando get() na raiz...');
@@ -48,14 +48,14 @@ export const useFirebaseData = () => {
         console.log('🔥 🧪 Root exists?', rootSnapshot.exists());
         console.log('🔥 🧪 Root val:', rootSnapshot.val());
         
-        console.log('🔥 🧪 TESTE: Tentando get() em profile/about...');
-        const aboutTestRef = ref(database, 'profile/about');
+        console.log('🔥 🧪 TESTE: Tentando get() em a/profile/about...');
+        const aboutTestRef = ref(database, 'a/profile/about');
         const aboutSnapshot = await get(aboutTestRef);
         console.log('🔥 🧪 About get() exists?', aboutSnapshot.exists());
         console.log('🔥 🧪 About get() val:', aboutSnapshot.val());
         
-        console.log('🔥 🧪 TESTE: Tentando get() em blog...');
-        const blogTestRef = ref(database, 'blog');
+        console.log('🔥 🧪 TESTE: Tentando get() em a/blog...');
+        const blogTestRef = ref(database, 'a/blog');
         const blogSnapshot = await get(blogTestRef);
         console.log('🔥 🧪 Blog get() exists?', blogSnapshot.exists());
         console.log('🔥 🧪 Blog get() val:', blogSnapshot.val());
@@ -67,8 +67,8 @@ export const useFirebaseData = () => {
     
     testConnection();
     
-    // Listen for about section changes
-    const aboutRef = ref(database, 'profile/about');
+    // Listen for about section changes - CAMINHO CORRIGIDO
+    const aboutRef = ref(database, 'a/profile/about');
     console.log('🔥 About ref criado:', aboutRef.toString());
     
     const aboutUnsubscribe = onValue(aboutRef, (snapshot) => {
@@ -87,8 +87,8 @@ export const useFirebaseData = () => {
       console.error('🔥 Erro no listener about:', error);
     });
 
-    // Listen for blog posts changes
-    const postsRef = ref(database, 'blog');
+    // Listen for blog posts changes - CAMINHO CORRIGIDO
+    const postsRef = ref(database, 'a/blog');
     console.log('🔥 Posts ref criado:', postsRef.toString());
     
     const postsUnsubscribe = onValue(postsRef, (snapshot) => {
