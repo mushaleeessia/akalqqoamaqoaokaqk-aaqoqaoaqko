@@ -147,12 +147,12 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
           </div>
         </div>
 
-        {/* Aviso para estrangeiros - desktop (abaixo do switch) */}
-        <div className="hidden md:flex justify-end pb-4">
-          <div className="max-w-sm">
+        {/* Aviso para estrangeiros - desktop (posicionado no canto direito) */}
+        {isEnglish && (
+          <div className="hidden md:block absolute top-16 right-4 z-50">
             <ForeignerNotice isVisible={isEnglish} />
           </div>
-        </div>
+        )}
 
         {/* Menu mobile - conteúdo */}
         {mobileMenuOpen && (
