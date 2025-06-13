@@ -18,15 +18,15 @@ const Index = () => {
       color: "from-red-900 to-red-700"
     },
     {
-      title: "Site Mush",
-      description: "Site oficial do servidor",
+      title: isEnglish ? "Mush Website" : "Site Mush",
+      description: isEnglish ? "Official server website" : "Site oficial do servidor",
       url: "https://mush.com.br",
       icon: Globe,
       color: "from-amber-900 to-red-800"
     },
     {
-      title: "Fórum Mush",
-      description: "Discussões e atualizações da comunidade",
+      title: isEnglish ? "Mush Forum" : "Fórum Mush",
+      description: isEnglish ? "Community discussions and updates" : "Discussões e atualizações da comunidade",
       url: "https://forum.mush.com.br",
       icon: MessageSquare,
       color: "from-red-800 to-amber-900"
@@ -53,7 +53,7 @@ const Index = () => {
 
       {/* Main content */}
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-md">
-        <ProfileSection />
+        <ProfileSection isEnglish={isEnglish} />
         
         <div className="space-y-4 mt-8">
           {links.map((link, index) => (
@@ -69,7 +69,7 @@ const Index = () => {
           ))}
         </div>
 
-        <BlogSection />
+        <BlogSection isEnglish={isEnglish} />
       </div>
     </div>
   );

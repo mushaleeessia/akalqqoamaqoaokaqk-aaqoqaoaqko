@@ -1,7 +1,11 @@
 
 import { useFirebaseData } from "@/hooks/useFirebaseData";
 
-export const ProfileSection = () => {
+interface ProfileSectionProps {
+  isEnglish: boolean;
+}
+
+export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
   const { about, loading } = useFirebaseData();
 
   return (
@@ -27,13 +31,13 @@ export const ProfileSection = () => {
       </h1>
       
       <p className="text-gray-300 text-lg mb-4">
-        Moderadora do Mush
+        {isEnglish ? "Mush Moderator" : "Moderadora do Mush"}
       </p>
       
       {/* About Section */}
       <div className="max-w-xs mx-auto mb-4">
         {loading ? (
-          <p className="text-gray-400 text-sm">Carregando...</p>
+          <p className="text-gray-400 text-sm">{isEnglish ? "Loading..." : "Carregando..."}</p>
         ) : (
           <p className="text-gray-200 text-sm leading-relaxed bg-gray-800/40 p-3 rounded-lg border border-red-900/30">
             {about}

@@ -3,7 +3,11 @@ import { Calendar, User } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useFirebaseData } from "@/hooks/useFirebaseData";
 
-export const BlogSection = () => {
+interface BlogSectionProps {
+  isEnglish: boolean;
+}
+
+export const BlogSection = ({ isEnglish }: BlogSectionProps) => {
   const { posts, loading } = useFirebaseData();
 
   if (loading) {
@@ -11,12 +15,12 @@ export const BlogSection = () => {
       <div className="mt-8 animate-fade-in" style={{ animationDelay: "200ms" }}>
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-amber-600 mb-2">
-            Blog & Novidades
+            {isEnglish ? "Blog & News" : "Blog & Novidades"}
           </h2>
           <div className="mx-auto w-16 h-px bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
         </div>
         <div className="text-center text-gray-400">
-          Carregando posts...
+          {isEnglish ? "Loading posts..." : "Carregando posts..."}
         </div>
       </div>
     );
@@ -26,7 +30,7 @@ export const BlogSection = () => {
     <div className="mt-8 animate-fade-in" style={{ animationDelay: "200ms" }}>
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-amber-600 mb-2">
-          Blog & Novidades
+          {isEnglish ? "Blog & News" : "Blog & Novidades"}
         </h2>
         <div className="mx-auto w-16 h-px bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
       </div>
