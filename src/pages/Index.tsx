@@ -1,11 +1,15 @@
 
+import { useState } from "react";
 import { ProfileSection } from "@/components/ProfileSection";
 import { LinkCard } from "@/components/LinkCard";
 import { BlogSection } from "@/components/BlogSection";
 import { Header } from "@/components/Header";
+import { ForeignerNotice } from "@/components/ForeignerNotice";
 import { Globe, MessageSquare } from "lucide-react";
 
 const Index = () => {
+  const [isEnglish, setIsEnglish] = useState(false);
+
   const links = [
     {
       title: "Meu TikTok",
@@ -30,10 +34,14 @@ const Index = () => {
     }
   ];
 
+  const handleLanguageChange = (newIsEnglish: boolean) => {
+    setIsEnglish(newIsEnglish);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-red-950/40 to-gray-900 relative overflow-hidden">
       {/* Header do Mush */}
-      <Header />
+      <Header onLanguageChange={handleLanguageChange} />
 
       {/* Dark red ambient background elements */}
       <div className="absolute inset-0 overflow-hidden">
@@ -47,6 +55,9 @@ const Index = () => {
       {/* Main content */}
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-md">
         <ProfileSection />
+        
+        {/* Aviso para estrangeiros */}
+        <ForeignerNotice isVisible={isEnglish} />
         
         <div className="space-y-4 mt-8">
           {links.map((link, index) => (

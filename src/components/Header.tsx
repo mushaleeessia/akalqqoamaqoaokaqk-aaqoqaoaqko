@@ -9,7 +9,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 
-export const Header = () => {
+interface HeaderProps {
+  onLanguageChange?: (isEnglish: boolean) => void;
+}
+
+export const Header = ({ onLanguageChange }: HeaderProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isEnglish, setIsEnglish] = useState(false);
 
@@ -62,7 +66,9 @@ export const Header = () => {
   };
 
   const toggleLanguage = () => {
-    setIsEnglish(!isEnglish);
+    const newLanguageState = !isEnglish;
+    setIsEnglish(newLanguageState);
+    onLanguageChange?.(newLanguageState);
   };
 
   return (
@@ -159,18 +165,7 @@ export const Header = () => {
                 />
               </div>
 
-              {/* Texto informativo para estrangeiros */}
-              {isEnglish && (
-                <div className="px-4 py-3 bg-amber-900/50 rounded-lg border border-amber-600/30 text-white text-xs leading-relaxed">
-                  <p className="font-medium mb-2">Are you a foreigner and want to play in MushMC? Read below.</p>
-                  <p className="mb-2">
-                    <strong>For Premium Accounts:</strong> Send an e-mail to contas@mush.com.br with your IGN and explain that you cannot login due to country restrictions;
-                  </p>
-                  <p>
-                    <strong>For Cracked Accounts:</strong> Send an e-mail to contas@mush.com.br with the desired IGN and explain that you are unable to create accounts due to country restrictions.
-                  </p>
-                </div>
-              )}
+              {/* Texto informativo para estrangeiros no mobile - removido daqui */}
 
               {navItems.map((item) => {
                 const IconComponent = item.icon;
