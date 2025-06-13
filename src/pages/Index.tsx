@@ -1,3 +1,4 @@
+
 import { ProfileSection } from "@/components/ProfileSection";
 import { LinkCard } from "@/components/LinkCard";
 import { BlogSection } from "@/components/BlogSection";
@@ -10,13 +11,13 @@ const Index = () => {
     icon: Globe,
     color: "from-red-900 to-red-700"
   }, {
-    title: "Site MushMC",
+    title: "Site Mush",
     description: "Site oficial do servidor",
     url: "https://mush.com.br",
     icon: Globe,
     color: "from-amber-900 to-red-800"
   }, {
-    title: "Fórum MushMC",
+    title: "Fórum Mush",
     description: "Discussões e atualizações da comunidade",
     url: "https://forum.mush.com.br",
     icon: MessageSquare,
@@ -48,7 +49,7 @@ const Index = () => {
         {/* Footer */}
         <div className="text-center mt-12 mb-6">
           <p className="text-gray-400 text-sm">
-            Feito com ❤️ para a comunidade MushMC
+            Feito com ❤️ para a comunidade do Mush
           </p>
           <div className="mt-4 h-px bg-gradient-to-r from-transparent via-red-600 to-transparent opacity-30"></div>
         </div>
