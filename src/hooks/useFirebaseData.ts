@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { database } from '@/lib/firebase';
@@ -28,7 +27,6 @@ export const useFirebaseData = (isEnglish = false) => {
     // Listen to user data changes
     const userRef = ref(database, 'a/profile');
     const userUnsubscribe = onValue(userRef, async (snapshot) => {
-      console.log('📝 Dados do perfil:', snapshot.val());
       if (snapshot.exists()) {
         const userData = snapshot.val() as UserData;
         const defaultAbout = isEnglish 
@@ -47,7 +45,6 @@ export const useFirebaseData = (isEnglish = false) => {
             const translatedAbout = await translateText(userData.about, 'en');
             setAbout(translatedAbout);
           } catch (error) {
-            console.warn('Translation failed for about:', error);
             setAbout(userData.about);
           }
           setTranslating(false);
@@ -61,15 +58,11 @@ export const useFirebaseData = (isEnglish = false) => {
     // Listen to blog posts changes
     const blogRef = ref(database, 'a/blog');
     const blogUnsubscribe = onValue(blogRef, async (snapshot) => {
-      console.log('📝 Verificando caminho "a/blog"...');
       if (snapshot.exists()) {
         const blogData = snapshot.val();
-        console.log('📝 Dados encontrados em "a/blog":', JSON.stringify(blogData, null, 2));
         
         const processedPosts = await Promise.all(
           Object.entries(blogData).map(async ([id, postData]: [string, any]) => {
-            console.log(`📝 Processando post ${id}:`, postData);
-            
             // Extrair dados originais
             let title = 'Título não disponível';
             let content = 'Conteúdo não disponível';
@@ -112,7 +105,7 @@ export const useFirebaseData = (isEnglish = false) => {
                   author = await translateText(postData.author, 'en');
                 }
               } catch (error) {
-                console.warn('Translation failed for post:', id, error);
+                // Translation failed, keep original values
               }
             }
             
@@ -130,10 +123,8 @@ export const useFirebaseData = (isEnglish = false) => {
         // Inverter a ordem dos posts (mais recentes primeiro)
         const reversedPosts = processedPosts.reverse();
         
-        console.log('📝 Posts finais processados (ordem invertida):', reversedPosts);
         setPosts(reversedPosts);
       } else {
-        console.log('📝 Nenhum dado encontrado em "a/blog"');
         setPosts([]);
       }
     });
