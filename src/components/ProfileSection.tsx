@@ -27,7 +27,7 @@ export const ProfileSection = () => {
       </h1>
       
       <p className="text-gray-300 text-lg mb-4">
-        Moderadora MushMC
+        Moderadora do Mush
       </p>
       
       {/* About Section */}
