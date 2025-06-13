@@ -56,7 +56,7 @@ const Index = () => {
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-md">
         <ProfileSection />
         
-        {/* Aviso para estrangeiros */}
+        {/* Aviso para estrangeiros - movido para antes dos links */}
         <ForeignerNotice isVisible={isEnglish} />
         
         <div className="space-y-4 mt-8">
