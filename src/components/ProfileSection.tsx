@@ -1,13 +1,8 @@
 
-import { useState } from "react";
+import { useFirebaseData } from "@/hooks/useFirebaseData";
 
 export const ProfileSection = () => {
-  const [about, setAbout] = useState("Moderadora apaixonada do MushMC, mantendo nossa comunidade segura e divertida! Amo construir, explorar e ajudar outros jogadores.");
-  const [isEditing, setIsEditing] = useState(false);
-
-  const handleSave = () => {
-    setIsEditing(false);
-  };
+  const { about } = useFirebaseData();
 
   return (
     <div className="text-center animate-fade-in">
@@ -35,39 +30,11 @@ export const ProfileSection = () => {
         Moderadora MushMC
       </p>
       
-      {/* About Section - Hidden edit functionality */}
+      {/* About Section */}
       <div className="max-w-xs mx-auto mb-4">
-        <div className="space-y-2">
-          <p className="text-gray-200 text-sm leading-relaxed bg-gray-800/40 p-3 rounded-lg border border-red-900/30">
-            {about}
-          </p>
-          {/* Edit functionality hidden from public view */}
-          <div className="hidden">
-            {isEditing ? (
-              <div className="space-y-3">
-                <textarea
-                  value={about}
-                  onChange={(e) => setAbout(e.target.value)}
-                  className="w-full p-3 text-sm bg-gray-800 text-gray-300 rounded-lg border border-red-800 focus:border-red-600 focus:outline-none resize-none"
-                  rows={3}
-                />
-                <button
-                  onClick={handleSave}
-                  className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-600 transition-colors text-sm"
-                >
-                  Salvar
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="text-red-400 hover:text-red-300 text-xs underline"
-              >
-                Editar sobre mim
-              </button>
-            )}
-          </div>
-        </div>
+        <p className="text-gray-200 text-sm leading-relaxed bg-gray-800/40 p-3 rounded-lg border border-red-900/30">
+          {about}
+        </p>
       </div>
 
       {/* Decorative line */}

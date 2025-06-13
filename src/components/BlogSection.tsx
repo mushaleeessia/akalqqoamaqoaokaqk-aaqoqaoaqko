@@ -1,36 +1,26 @@
 
-import { ChevronDown, Calendar, User } from "lucide-react";
-import { useState } from "react";
+import { Calendar, User } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-
-interface BlogPost {
-  id: string;
-  title: string;
-  date: string;
-  excerpt: string;
-  content: string;
-  author: string;
-}
+import { useFirebaseData } from "@/hooks/useFirebaseData";
 
 export const BlogSection = () => {
-  const [posts] = useState<BlogPost[]>([
-    {
-      id: "1",
-      title: "Bem-vindos ao MushMC!",
-      date: "13 de Junho, 2025",
-      excerpt: "Uma nova jornada começou no servidor mais incrível do Minecraft Brasil...",
-      content: "Olá, pessoal! Estou muito animada para compartilhar com vocês algumas novidades incríveis que estão acontecendo no MushMC. Como moderadora, tenho visto nossa comunidade crescer de forma incrível, e cada dia traz novas aventuras e amizades. Temos novos mundos para explorar, eventos especiais toda semana, e uma comunidade que realmente se importa uns com os outros. Se você ainda não faz parte da nossa família MushMC, este é o momento perfeito para se juntar a nós!",
-      author: "aleeessia"
-    },
-    {
-      id: "2",
-      title: "Evento de Construção - Resultados",
-      date: "10 de Junho, 2025", 
-      excerpt: "Os resultados do nosso último evento de construção estão aqui...",
-      content: "Wow! O evento de construção desta semana foi absolutamente incrível. Vimos algumas das construções mais criativas que já passaram pelo servidor. Desde castelos medievais até cidades futuristas, nossa comunidade realmente mostrou do que é capaz. Parabéns a todos os participantes e um agradecimento especial aos nossos juízes voluntários. O próximo evento já está sendo planejado - fiquem atentos aos anúncios!",
-      author: "aleeessia"
-    }
-  ]);
+  const { posts, loading } = useFirebaseData();
+
+  if (loading) {
+    return (
+      <div className="mt-8 animate-fade-in" style={{ animationDelay: "200ms" }}>
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-amber-600 mb-2">
+            Blog & Novidades
+          </h2>
+          <div className="mx-auto w-16 h-px bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
+        </div>
+        <div className="text-center text-gray-400">
+          Carregando posts...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-8 animate-fade-in" style={{ animationDelay: "200ms" }}>
