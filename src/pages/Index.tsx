@@ -4,6 +4,7 @@ import { ProfileSection } from "@/components/ProfileSection";
 import { LinkCard } from "@/components/LinkCard";
 import { BlogSection } from "@/components/BlogSection";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { Globe, MessageSquare } from "lucide-react";
 
 const Index = () => {
@@ -70,6 +71,8 @@ const Index = () => {
         </div>
 
         <BlogSection isEnglish={isEnglish} />
+        
+        <Footer isVisible={isEnglish} />
       </div>
     </div>
   );
