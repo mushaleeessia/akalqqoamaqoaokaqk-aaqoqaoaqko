@@ -19,9 +19,8 @@ export const BlogSection = ({ isEnglish }: BlogSectionProps) => {
           </h2>
           <div className="mx-auto w-16 h-px bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
         </div>
-        <div className="text-center text-gray-400 flex items-center justify-center gap-2">
-          <div className="animate-spin w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full"></div>
-          {isEnglish ? "Translating posts..." : "Traduzindo posts..."}
+        <div className="text-center text-gray-400">
+          {isEnglish ? "Loading posts..." : "Carregando posts..."}
         </div>
       </div>
     );

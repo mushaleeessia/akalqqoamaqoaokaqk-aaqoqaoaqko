@@ -37,10 +37,7 @@ export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
       {/* About Section */}
       <div className="max-w-xs mx-auto mb-4">
         {loading ? (
-          <div className="text-gray-400 text-sm flex items-center justify-center gap-2">
-            <div className="animate-spin w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full"></div>
-            {isEnglish ? "Translating..." : "Traduzindo..."}
-          </div>
+          <p className="text-gray-400 text-sm">{isEnglish ? "Loading..." : "Carregando..."}</p>
         ) : (
           <p className="text-gray-200 text-sm leading-relaxed bg-gray-800/40 p-3 rounded-lg border border-red-900/30">
             {about}
