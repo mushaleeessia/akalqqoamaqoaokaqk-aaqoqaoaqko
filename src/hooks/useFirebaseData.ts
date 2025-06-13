@@ -37,24 +37,51 @@ export const useFirebaseData = () => {
     const blogUnsubscribe = onValue(blogRef, (snapshot) => {
       if (snapshot.exists()) {
         const blogData = snapshot.val();
-        console.log('📝 Dados brutos do blog:', blogData);
+        console.log('📝 Estrutura completa do Firebase:', JSON.stringify(blogData, null, 2));
         
-        const processedPosts = Object.entries(blogData).map(([id, post]: [string, any]) => {
-          console.log(`📝 Processando post ${id}:`, post);
-          console.log('📝 Título encontrado:', post.title);
+        const processedPosts = Object.entries(blogData).map(([id, postData]: [string, any]) => {
+          console.log(`📝 Post ID: ${id}`);
+          console.log(`📝 Dados do post:`, postData);
+          
+          // Tenta diferentes formas de acessar o título
+          let title = 'Título não disponível';
+          if (postData && typeof postData === 'object') {
+            // Verifica se há uma propriedade title diretamente
+            if (postData.title) {
+              title = postData.title;
+            }
+            // Verifica se há uma propriedade com sufixo
+            else if (postData['title:']) {
+              title = postData['title:'];
+            }
+            // Verifica outras variações possíveis
+            else {
+              const keys = Object.keys(postData);
+              console.log(`📝 Chaves disponíveis para ${id}:`, keys);
+              const titleKey = keys.find(key => key.toLowerCase().includes('title') || key.toLowerCase().includes('titulo'));
+              if (titleKey) {
+                title = postData[titleKey];
+              }
+            }
+          }
+          
+          console.log(`📝 Título final extraído para ${id}:`, title);
           
           return {
             id,
-            title: post.title || 'Título não encontrado',
-            date: typeof post.date === 'string' ? post.date.replace(/"/g, '') : post.date,
-            excerpt: typeof post.excerpt === 'string' ? post.excerpt.replace(/"/g, '') : post.excerpt,
-            content: post.content,
-            author: post.author
+            title: String(title).replace(/"/g, ''),
+            date: postData?.date ? String(postData.date).replace(/"/g, '') : 'Data não disponível',
+            excerpt: postData?.excerpt ? String(postData.excerpt).replace(/"/g, '') : 'Resumo não disponível',
+            content: postData?.content || 'Conteúdo não disponível',
+            author: postData?.author || 'Autor não informado'
           };
         });
         
-        console.log('📝 Posts processados:', processedPosts);
+        console.log('📝 Posts processados finais:', processedPosts);
         setPosts(processedPosts);
+      } else {
+        console.log('📝 Nenhum dado encontrado no Firebase blog');
+        setPosts([]);
       }
     });
 
