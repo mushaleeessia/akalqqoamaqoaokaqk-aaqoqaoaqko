@@ -1,4 +1,3 @@
-
 import { ShoppingCart, Users, Trophy, Shield, HelpCircle, MessageSquare, ChevronDown, Menu, X, Flag, Globe } from "lucide-react";
 import { useState } from "react";
 import {
@@ -62,7 +61,13 @@ export const Header = () => {
   };
 
   const toggleLanguage = () => {
-    setIsEnglish(!isEnglish);
+    const newLanguage = !isEnglish;
+    setIsEnglish(newLanguage);
+    
+    // Emit custom event to notify other components
+    window.dispatchEvent(new CustomEvent('languageChange', {
+      detail: { isEnglish: newLanguage }
+    }));
   };
 
   return (
