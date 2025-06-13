@@ -34,22 +34,22 @@ export const Header = () => {
 
   return (
     <header className="w-full bg-gradient-to-r from-red-900 via-red-800 to-red-900 border-b border-red-700/50 relative z-10">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 max-w-6xl">
         {/* Logo e navegação principal */}
         <div className="flex items-center justify-between py-3">
           <div className="flex items-center space-x-1">
             <div className="text-white font-bold text-xl tracking-wider">MUSH</div>
           </div>
 
-          {/* Navegação principal */}
-          <nav className="hidden md:flex items-center space-x-2">
+          {/* Navegação principal - centralizada */}
+          <nav className="hidden md:flex items-center justify-center space-x-3 flex-1 max-w-4xl mx-8">
             {navItems.map((item) => {
               const IconComponent = item.icon;
               return (
                 <button
                   key={item.title}
                   onClick={() => handleLinkClick(item.url)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium cursor-pointer"
+                  className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium cursor-pointer whitespace-nowrap"
                 >
                   <IconComponent className="w-4 h-4" />
                   <span>{item.title}</span>
@@ -60,7 +60,7 @@ export const Header = () => {
             {/* Dropdown menu para Ajuda */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium cursor-pointer">
+                <button className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium cursor-pointer whitespace-nowrap">
                   <HelpCircle className="w-4 h-4" />
                   <span>Ajuda</span>
                   <ChevronDown className="w-3 h-3" />
@@ -93,7 +93,7 @@ export const Header = () => {
         </div>
 
         {/* Área de suporte */}
-        <div className="hidden lg:flex justify-end space-x-4 pb-2">
+        <div className="hidden lg:flex justify-center space-x-6 pb-2">
           {supportItems.map((item) => (
             <button
               key={item.title}
