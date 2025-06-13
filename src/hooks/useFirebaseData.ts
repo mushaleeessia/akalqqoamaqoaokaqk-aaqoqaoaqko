@@ -46,40 +46,43 @@ export const useFirebaseData = () => {
     const aboutUnsubscribe = onValue(aboutRef, (snapshot) => {
       console.log('🔥 About snapshot recebido!');
       console.log('🔥 About snapshot existe?', snapshot.exists());
-      console.log('🔥 About snapshot key:', snapshot.key);
       console.log('🔥 About snapshot val:', snapshot.val());
       
       const data = snapshot.val();
-      if (data) {
+      if (data !== null && data !== undefined) {
         console.log('🔥 Atualizando about com:', data);
         setAbout(data);
       } else {
-        console.log('🔥 About data é null - mantendo valor padrão');
+        console.log('🔥 About data é null/undefined - mantendo valor padrão');
       }
     }, (error) => {
       console.error('🔥 Erro no listener about:', error);
     });
 
-    // Listen for blog posts changes
+    // Listen for blog posts changes - ajustado para a estrutura real do seu Firebase
     const postsRef = ref(database, 'blog');
     console.log('🔥 Posts ref criado:', postsRef.toString());
     
     const postsUnsubscribe = onValue(postsRef, (snapshot) => {
       console.log('🔥 Blog snapshot recebido!');
       console.log('🔥 Blog snapshot existe?', snapshot.exists());
-      console.log('🔥 Blog snapshot key:', snapshot.key);
       console.log('🔥 Blog snapshot val:', snapshot.val());
       
       const data = snapshot.val();
-      if (data) {
+      if (data && typeof data === 'object') {
+        // Converter a estrutura do Firebase para array de posts
         const postsArray = Object.keys(data).map(key => ({
           id: key,
-          ...data[key]
+          title: data[key].title || 'Título não encontrado',
+          date: data[key].date || 'Data não encontrada',
+          excerpt: data[key].excerpt || 'Resumo não encontrado',
+          content: data[key].content || 'Conteúdo não encontrado',
+          author: data[key].author || 'aleeessia'
         }));
         console.log('🔥 Posts processados:', postsArray);
         setPosts(postsArray);
       } else {
-        console.log('🔥 Blog data é null - mantendo posts padrão');
+        console.log('🔥 Blog data é null/undefined - mantendo posts padrão');
       }
       setLoading(false);
     }, (error) => {
