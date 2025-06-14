@@ -28,19 +28,21 @@ export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
       {/* Profile Image */}
       <div className="relative inline-block mb-6">
         <div 
-          className={`w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-red-600 via-red-700 to-amber-800 p-1 shadow-2xl shadow-red-900/40 cursor-pointer ${isShaking ? 'animate-shake' : ''}`}
+          className={`w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-red-600 via-red-700 to-amber-800 p-1 shadow-2xl shadow-red-900/40 cursor-pointer select-none ${isShaking ? 'animate-shake' : ''}`}
           onClick={handleImageClick}
+          onTouchStart={handleImageClick}
         >
-          <div className="w-full h-full rounded-full overflow-hidden bg-gray-900 flex items-center justify-center">
+          <div className="w-full h-full rounded-full overflow-hidden bg-gray-900 flex items-center justify-center pointer-events-none">
             <img 
               src="https://mc-heads.net/avatar/80eba0b3-159a-48bf-9613-307634a45057/128" 
               alt="aleeessia Minecraft Skin"
-              className="w-full h-full object-cover rounded-full"
+              className="w-full h-full object-cover rounded-full pointer-events-none"
+              draggable="false"
             />
           </div>
         </div>
         {/* Glow effect */}
-        <div className="absolute inset-0 rounded-full bg-red-600 opacity-20 blur-xl animate-pulse"></div>
+        <div className="absolute inset-0 rounded-full bg-red-600 opacity-20 blur-xl animate-pulse pointer-events-none"></div>
       </div>
 
       {/* Name and Title */}
