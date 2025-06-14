@@ -116,18 +116,21 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                     onClick={() => handleLinkClick(item.url, item.title)}
                     onMouseEnter={() => handleMouseEnter(item.title)}
                     onMouseLeave={handleMouseLeave}
-                    className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium overflow-hidden relative"
+                    className="flex items-center space-x-2 px-4 py-2 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium overflow-hidden relative"
+                    style={{
+                      backgroundColor: isHovered || isClicking ? 'transparent' : 'rgba(153, 27, 27, 0.5)'
+                    }}
                   >
-                    <IconComponent className="w-4 h-4 relative z-10" />
-                    <span className="relative z-10">{item.title}</span>
+                    <IconComponent className="w-4 h-4 relative z-20" />
+                    <span className="relative z-20">{item.title}</span>
                     
                     {/* Overlay verde que cresce da esquerda para direita */}
                     <div 
-                      className={`absolute inset-0 bg-green-500 rounded-lg transition-all ease-out origin-left z-0 ${
+                      className={`absolute inset-0 bg-green-500 rounded-lg transition-all ease-out origin-left z-10 ${
                         isClicking 
-                          ? 'scale-x-100 bg-green-400 opacity-80' 
+                          ? 'scale-x-100 bg-green-400 opacity-90' 
                           : isHovered 
-                            ? 'scale-x-100 opacity-40'
+                            ? 'scale-x-100 opacity-60'
                             : 'scale-x-0 opacity-0'
                       }`}
                       style={{
@@ -145,18 +148,21 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
               <DropdownMenuTrigger asChild>
                 <div className="relative">
                   <button 
-                    className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium overflow-hidden relative"
+                    className="flex items-center space-x-2 px-4 py-2 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium overflow-hidden relative"
                     onMouseEnter={() => handleMouseEnter('help')}
                     onMouseLeave={handleMouseLeave}
+                    style={{
+                      backgroundColor: hoveredItem === 'help' ? 'transparent' : 'rgba(153, 27, 27, 0.5)'
+                    }}
                   >
-                    <HelpCircle className="w-4 h-4 relative z-10" />
-                    <span className="relative z-10">{isEnglish ? "Help" : "Ajuda"}</span>
-                    <ChevronDown className="w-3 h-3 relative z-10" />
+                    <HelpCircle className="w-4 h-4 relative z-20" />
+                    <span className="relative z-20">{isEnglish ? "Help" : "Ajuda"}</span>
+                    <ChevronDown className="w-3 h-3 relative z-20" />
                     
                     {/* Overlay verde para o dropdown */}
                     <div 
-                      className={`absolute inset-0 bg-green-500 rounded-lg transition-all duration-300 ease-out origin-left z-0 ${
-                        hoveredItem === 'help' ? 'opacity-40 scale-x-100' : 'opacity-0 scale-x-0'
+                      className={`absolute inset-0 bg-green-500 rounded-lg transition-all duration-300 ease-out origin-left z-10 ${
+                        hoveredItem === 'help' ? 'opacity-60 scale-x-100' : 'opacity-0 scale-x-0'
                       }`}
                       style={{
                         transformOrigin: 'left center'
