@@ -1,6 +1,5 @@
-
 import { useFirebaseData } from "@/hooks/useFirebaseData";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 interface ProfileSectionProps {
   isEnglish: boolean;
@@ -9,12 +8,25 @@ interface ProfileSectionProps {
 export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
   const { about, loading } = useFirebaseData(isEnglish);
   const [isShaking, setIsShaking] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleImageClick = () => {
-    setIsShaking(true);
+    // Cancela a animação atual se estiver rodando
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    // Para a animação atual e inicia uma nova
+    setIsShaking(false);
+    
+    // Pequeno delay para garantir que o estado seja atualizado
     setTimeout(() => {
-      setIsShaking(false);
-    }, 600);
+      setIsShaking(true);
+      timeoutRef.current = setTimeout(() => {
+        setIsShaking(false);
+        timeoutRef.current = null;
+      }, 600);
+    }, 10);
   };
 
   return (
