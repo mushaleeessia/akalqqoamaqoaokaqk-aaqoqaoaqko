@@ -24,8 +24,8 @@ export const CartoonDialog = ({ message, isVisible, onClose }: CartoonDialogProp
     <div className="fixed inset-0 z-50 pointer-events-none">
       {/* Position the dialog relative to the profile section */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        {/* Offset to appear to the right of the profile image */}
-        <div className="relative -mt-16 ml-24">
+        {/* Offset to appear closer to the profile image */}
+        <div className="relative -mt-8 ml-12">
           <div className="bg-white border-4 border-black rounded-lg p-3 shadow-2xl animate-scale-in pointer-events-auto max-w-xs">
             {/* Speech bubble tail pointing left to the profile image */}
             <div className="absolute top-4 -left-3 w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-r-[12px] border-r-black"></div>
