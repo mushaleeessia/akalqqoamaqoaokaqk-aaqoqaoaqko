@@ -108,10 +108,10 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                 >
                   {/* Slider verde com animação */}
                   <div 
-                    className={`absolute top-0 left-0 h-full bg-green-500 transition-all duration-300 ease-out rounded-lg ${
+                    className={`absolute top-0 left-0 h-full transition-all duration-300 ease-out rounded-lg ${
                       isClicking 
-                        ? 'w-full' 
-                        : 'w-0 group-hover:w-4/5'
+                        ? 'w-full bg-green-500' 
+                        : 'w-0 group-hover:w-4/5 bg-green-500/30'
                     }`}
                   />
                   <IconComponent className="w-4 h-4 relative z-10" />
@@ -120,18 +120,11 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
               );
             })}
             
-            {/* Dropdown menu para Ajuda */}
+            {/* Dropdown menu para Ajuda - SEM efeito slider */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className={getButtonClasses('help')}>
-                  {/* Slider verde com animação para botão de ajuda */}
-                  <div 
-                    className={`absolute top-0 left-0 h-full bg-green-500 transition-all duration-300 ease-out rounded-lg ${
-                      clickingItem === 'help'
-                        ? 'w-full' 
-                        : 'w-0 group-hover:w-4/5'
-                    }`}
-                  />
+                  {/* Sem slider para o botão de ajuda */}
                   <HelpCircle className="w-4 h-4 relative z-10" />
                   <span className="relative z-10">{isEnglish ? "Help" : "Ajuda"}</span>
                   <ChevronDown className="w-3 h-3 relative z-10" />
