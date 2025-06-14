@@ -1,3 +1,4 @@
+
 import { ShoppingCart, Users, Trophy, Shield, HelpCircle, MessageSquare, ChevronDown, Menu, X, Flag, Globe } from "lucide-react";
 import { useState } from "react";
 import {
@@ -16,6 +17,8 @@ interface HeaderProps {
 export const Header = ({ onLanguageChange }: HeaderProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isEnglish, setIsEnglish] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [clickingItem, setClickingItem] = useState<string | null>(null);
 
   const navItems = [
     { 
@@ -60,9 +63,15 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
     },
   ];
 
-  const handleLinkClick = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-    setMobileMenuOpen(false);
+  const handleLinkClick = (url: string, itemTitle: string) => {
+    setClickingItem(itemTitle);
+    
+    // Delay para mostrar a animação de completar
+    setTimeout(() => {
+      window.open(url, '_blank', 'noopener,noreferrer');
+      setMobileMenuOpen(false);
+      setClickingItem(null);
+    }, 300);
   };
 
   const toggleLanguage = () => {
@@ -84,32 +93,62 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
           <nav className="hidden md:flex items-center space-x-4 flex-1 justify-center max-w-4xl">
             {navItems.map((item) => {
               const IconComponent = item.icon;
+              const isHovered = hoveredItem === item.title;
+              const isClicking = clickingItem === item.title;
+              
               return (
-                <button
-                  key={item.title}
-                  onClick={() => handleLinkClick(item.url)}
-                  className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium"
-                >
-                  <IconComponent className="w-4 h-4" />
-                  <span>{item.title}</span>
-                </button>
+                <div key={item.title} className="relative">
+                  <button
+                    onClick={() => handleLinkClick(item.url, item.title)}
+                    onMouseEnter={() => setHoveredItem(item.title)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium overflow-hidden relative"
+                  >
+                    <IconComponent className="w-4 h-4 relative z-10" />
+                    <span className="relative z-10">{item.title}</span>
+                    
+                    {/* Barra de progresso verde */}
+                    <div 
+                      className={`absolute bottom-0 left-0 h-1 bg-green-500 transition-all duration-1000 ease-out ${
+                        isClicking 
+                          ? 'w-full' 
+                          : isHovered 
+                            ? 'w-4/5' 
+                            : 'w-0'
+                      }`}
+                    />
+                  </button>
+                </div>
               );
             })}
             
             {/* Dropdown menu para Ajuda */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium">
-                  <HelpCircle className="w-4 h-4" />
-                  <span>{isEnglish ? "Help" : "Ajuda"}</span>
-                  <ChevronDown className="w-3 h-3" />
-                </button>
+                <div className="relative">
+                  <button 
+                    className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium overflow-hidden relative"
+                    onMouseEnter={() => setHoveredItem('help')}
+                    onMouseLeave={() => setHoveredItem(null)}
+                  >
+                    <HelpCircle className="w-4 h-4 relative z-10" />
+                    <span className="relative z-10">{isEnglish ? "Help" : "Ajuda"}</span>
+                    <ChevronDown className="w-3 h-3 relative z-10" />
+                    
+                    {/* Barra de progresso verde para o dropdown */}
+                    <div 
+                      className={`absolute bottom-0 left-0 h-1 bg-green-500 transition-all duration-1000 ease-out ${
+                        hoveredItem === 'help' ? 'w-4/5' : 'w-0'
+                      }`}
+                    />
+                  </button>
+                </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="z-50 bg-red-900 border-red-700 min-w-[200px]" align="end">
                 {helpItems.map((item) => (
                   <DropdownMenuItem key={item.title} asChild>
                     <button 
-                      onClick={() => handleLinkClick(item.url)}
+                      onClick={() => handleLinkClick(item.url, item.title)}
                       className="text-white hover:bg-red-700 cursor-pointer w-full text-left px-2 py-1.5"
                     >
                       {item.title}
@@ -177,15 +216,25 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
 
               {navItems.map((item) => {
                 const IconComponent = item.icon;
+                const isClicking = clickingItem === item.title;
+                
                 return (
-                  <button
-                    key={item.title}
-                    onClick={() => handleLinkClick(item.url)}
-                    className="flex items-center space-x-3 px-4 py-3 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium"
-                  >
-                    <IconComponent className="w-4 h-4" />
-                    <span>{item.title}</span>
-                  </button>
+                  <div key={item.title} className="relative">
+                    <button
+                      onClick={() => handleLinkClick(item.url, item.title)}
+                      className="flex items-center space-x-3 px-4 py-3 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium w-full overflow-hidden relative"
+                    >
+                      <IconComponent className="w-4 h-4 relative z-10" />
+                      <span className="relative z-10">{item.title}</span>
+                      
+                      {/* Barra de progresso verde no mobile */}
+                      <div 
+                        className={`absolute bottom-0 left-0 h-1 bg-green-500 transition-all duration-300 ease-out ${
+                          isClicking ? 'w-full' : 'w-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
                 );
               })}
               
@@ -196,13 +245,21 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                   <span>{isEnglish ? "Help" : "Ajuda"}</span>
                 </div>
                 {helpItems.map((item) => (
-                  <button
-                    key={item.title}
-                    onClick={() => handleLinkClick(item.url)}
-                    className="flex items-center space-x-3 px-8 py-2 text-white hover:bg-red-700 rounded-lg transition-all duration-200 text-sm"
-                  >
-                    <span>{item.title}</span>
-                  </button>
+                  <div key={item.title} className="relative">
+                    <button
+                      onClick={() => handleLinkClick(item.url, item.title)}
+                      className="flex items-center space-x-3 px-8 py-2 text-white hover:bg-red-700 rounded-lg transition-all duration-200 text-sm w-full overflow-hidden relative"
+                    >
+                      <span className="relative z-10">{item.title}</span>
+                      
+                      {/* Barra de progresso verde para itens de ajuda no mobile */}
+                      <div 
+                        className={`absolute bottom-0 left-0 h-1 bg-green-500 transition-all duration-300 ease-out ${
+                          clickingItem === item.title ? 'w-full' : 'w-0'
+                        }`}
+                      />
+                    </button>
+                  </div>
                 ))}
               </div>
             </nav>
