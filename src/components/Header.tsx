@@ -1,4 +1,3 @@
-
 import { ShoppingCart, Users, Trophy, Shield, HelpCircle, MessageSquare, ChevronDown, Menu, X, Flag, Globe } from "lucide-react";
 import { useState } from "react";
 import {
@@ -82,7 +81,7 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
     const isClicking = clickingItem === itemTitle;
     
     return `relative overflow-hidden flex items-center space-x-2 px-4 py-2 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-300 text-sm font-medium bg-red-900/50 group ${
-      isClicking ? 'bg-green-400' : ''
+      isClicking ? '' : ''
     }`;
   };
 
@@ -107,12 +106,12 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                   onClick={() => handleLinkClick(item.url, item.title)}
                   className={getButtonClasses(item.title)}
                 >
-                  {/* Background verde com animação */}
+                  {/* Slider verde com animação */}
                   <div 
-                    className={`absolute inset-0 bg-green-500 transition-all duration-300 ${
+                    className={`absolute top-0 left-0 h-full bg-green-500 transition-all duration-300 ease-out rounded-lg ${
                       isClicking 
-                        ? 'w-full h-full opacity-100' 
-                        : 'w-4/5 h-4/5 opacity-0 group-hover:opacity-60 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-lg'
+                        ? 'w-full' 
+                        : 'w-0 group-hover:w-4/5'
                     }`}
                   />
                   <IconComponent className="w-4 h-4 relative z-10" />
@@ -125,12 +124,12 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className={getButtonClasses('help')}>
-                  {/* Background verde com animação para botão de ajuda */}
+                  {/* Slider verde com animação para botão de ajuda */}
                   <div 
-                    className={`absolute inset-0 bg-green-500 transition-all duration-300 ${
+                    className={`absolute top-0 left-0 h-full bg-green-500 transition-all duration-300 ease-out rounded-lg ${
                       clickingItem === 'help'
-                        ? 'w-full h-full opacity-100' 
-                        : 'w-4/5 h-4/5 opacity-0 group-hover:opacity-60 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-lg'
+                        ? 'w-full' 
+                        : 'w-0 group-hover:w-4/5'
                     }`}
                   />
                   <HelpCircle className="w-4 h-4 relative z-10" />
