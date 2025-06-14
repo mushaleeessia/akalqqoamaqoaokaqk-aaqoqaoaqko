@@ -20,85 +20,12 @@ export const translateText = async (text: string, targetLang: string = 'en'): Pr
     let result = translatedText;
     colorCodes.forEach((colorCode, index) => {
       const placeholder = `__MCCOLOR${index}__`;
-      result = result.replace(new RegExp(placeholder, 'g'), colorCode);
+      result = result.replace(new RegExp(placeholder, 'gi'), colorCode);
     });
     return result;
   };
 
-  const encodedText = encodeURIComponent(processedText);
-  
-  // API 1: MyMemory
-  try {
-    const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodedText}&langpair=pt|${targetLang}`);
-    if (response.ok) {
-      const data = await response.json();
-      if (data.responseStatus === 200 && data.responseData?.translatedText) {
-        return restoreColorCodes(data.responseData.translatedText);
-      }
-    }
-  } catch (error) {
-    console.log('MyMemory API failed, trying next...');
-  }
-
-  // API 2: LibreTranslate (public instance)
-  try {
-    const response = await fetch('https://libretranslate.de/translate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        q: processedText,
-        source: 'pt',
-        target: targetLang,
-        format: 'text'
-      })
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (data.translatedText) {
-        return restoreColorCodes(data.translatedText);
-      }
-    }
-  } catch (error) {
-    console.log('LibreTranslate API failed, trying next...');
-  }
-
-  // API 3: Google Translate (unofficial)
-  try {
-    const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=pt&tl=${targetLang}&dt=t&q=${encodedText}`);
-    if (response.ok) {
-      const data = await response.json();
-      if (data && data[0] && data[0][0] && data[0][0][0]) {
-        return restoreColorCodes(data[0][0][0]);
-      }
-    }
-  } catch (error) {
-    console.log('Google Translate API failed, trying next...');
-  }
-
-  // API 4: Microsoft Translator (public endpoint)
-  try {
-    const response = await fetch(`https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=pt&to=${targetLang}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify([{ text: processedText }])
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (data && data[0] && data[0].translations && data[0].translations[0]) {
-        return restoreColorCodes(data[0].translations[0].text);
-      }
-    }
-  } catch (error) {
-    console.log('Microsoft Translator API failed, trying next...');
-  }
-
-  // Fallback: Simple translations for common words
+  // Fallback: Simple translations for common words/phrases
   const simpleTranslations: { [key: string]: string } = {
     'Moderadora Secundária': 'Secondary Moderator',
     'Staff desde': 'Staff since',
@@ -119,17 +46,57 @@ export const translateText = async (text: string, targetLang: string = 'en'): Pr
     'Até parece que eu faria isso': 'As if I would do that',
     'até parece...': 'as if...',
     'Olha que legal': 'Look how cool',
-    'É verdade né...': 'It\'s true right...'
+    'É verdade né...': 'It\'s true right...',
+    'da rede de servidores': 'from the server network',
+    'Mush': 'Mush'
   };
 
-  // Try simple word-by-word translation
+  // Try simple word-by-word translation first
   let simpleTranslation = processedText;
   for (const [portuguese, english] of Object.entries(simpleTranslations)) {
     simpleTranslation = simpleTranslation.replace(new RegExp(portuguese, 'gi'), english);
   }
 
   if (simpleTranslation !== processedText) {
+    console.log('Using simple translation fallback');
     return restoreColorCodes(simpleTranslation);
+  }
+
+  const encodedText = encodeURIComponent(processedText);
+  
+  // API 1: Google Translate (most reliable for our use case)
+  try {
+    const response = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=pt&tl=${targetLang}&dt=t&q=${encodedText}`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data[0] && data[0][0] && data[0][0][0]) {
+        // Google Translate sometimes returns multiple segments, join them
+        let translatedText = '';
+        if (Array.isArray(data[0])) {
+          translatedText = data[0].map((segment: any) => segment[0] || '').join('');
+        } else {
+          translatedText = data[0][0][0];
+        }
+        console.log('Google Translate success');
+        return restoreColorCodes(translatedText);
+      }
+    }
+  } catch (error) {
+    console.log('Google Translate API failed, trying fallback...');
+  }
+
+  // API 2: MyMemory (fallback)
+  try {
+    const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodedText}&langpair=pt|${targetLang}`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.responseStatus === 200 && data.responseData?.translatedText) {
+        console.log('MyMemory success');
+        return restoreColorCodes(data.responseData.translatedText);
+      }
+    }
+  } catch (error) {
+    console.log('MyMemory API failed');
   }
 
   // If all APIs fail, return original text
