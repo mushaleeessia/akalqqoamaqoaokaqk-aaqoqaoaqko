@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { checkStreamStatus } from '@/services/twitchService';
 import { X } from 'lucide-react';
@@ -72,7 +71,7 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
   };
 
   return (
-    <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-40 w-80 h-48 bg-black overflow-hidden shadow-2xl border border-red-600/50 hidden lg:block">
+    <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-40 w-80 bg-black overflow-hidden shadow-2xl border border-red-600/50 hidden lg:block">
       {/* Header com nome do streamer/VOD e botão fechar */}
       <div className="bg-red-900/90 px-3 py-2 flex items-center justify-between">
         <div className="flex items-center space-x-2">
@@ -89,16 +88,14 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
         </button>
       </div>
       
-      {/* Embed da Twitch */}
-      <div className="w-full bg-black" style={{ height: 'calc(100% - 40px)' }}>
+      {/* Embed da Twitch - usando aspect ratio 16:9 */}
+      <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
         <iframe
           src={getEmbedUrl()}
-          width="100%"
-          height="100%"
+          className="absolute top-0 left-0 w-full h-full"
           frameBorder="0"
           scrolling="no"
           allowFullScreen
-          className="w-full h-full"
           allow="autoplay; fullscreen"
           style={{ 
             border: 'none',
