@@ -72,7 +72,7 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
   };
 
   return (
-    <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-40 w-96 h-64 bg-black rounded-lg overflow-hidden shadow-2xl border border-red-600/50 hidden md:block">
+    <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-40 w-[480px] h-[320px] bg-black rounded-lg overflow-hidden shadow-2xl border border-red-600/50 hidden lg:block">
       {/* Header com nome do streamer/VOD e botão fechar */}
       <div className="bg-red-900/90 px-3 py-2 flex items-center justify-between">
         <div className="flex items-center space-x-2">
@@ -89,8 +89,8 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
         </button>
       </div>
       
-      {/* Embed da Twitch - ajustado para preencher completamente */}
-      <div className="relative w-full" style={{ height: 'calc(100% - 44px)' }}>
+      {/* Embed da Twitch - sem bordas pretas */}
+      <div className="w-full bg-black" style={{ height: 'calc(100% - 44px)' }}>
         <iframe
           src={getEmbedUrl()}
           width="100%"
@@ -98,9 +98,13 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
           frameBorder="0"
           scrolling="no"
           allowFullScreen
-          className="absolute inset-0 w-full h-full object-cover"
+          className="w-full h-full"
           allow="autoplay; fullscreen"
-          style={{ aspectRatio: 'auto' }}
+          style={{ 
+            border: 'none',
+            outline: 'none',
+            background: 'black'
+          }}
         />
       </div>
     </div>
