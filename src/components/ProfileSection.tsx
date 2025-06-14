@@ -2,6 +2,7 @@
 import { useFirebaseData } from "@/hooks/useFirebaseData";
 import { useState, useRef } from "react";
 import { CartoonDialog } from "./CartoonDialog";
+import { renderMinecraftText } from "@/utils/minecraftFormatter";
 
 interface ProfileSectionProps {
   isEnglish: boolean;
@@ -99,9 +100,9 @@ export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
           {loading ? (
             <p className="text-gray-400 text-sm">{isEnglish ? "Loading..." : "Carregando..."}</p>
           ) : (
-            <p className="text-gray-200 text-sm leading-relaxed bg-gray-800/40 p-3 rounded-lg border border-red-900/30">
-              {about}
-            </p>
+            <div className="text-sm leading-relaxed bg-gray-800/40 p-3 rounded-lg border border-red-900/30">
+              {renderMinecraftText(about)}
+            </div>
           )}
         </div>
 
