@@ -56,8 +56,8 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
     if (currentStreamer) {
       return `https://player.twitch.tv/?channel=${currentStreamer}&parent=${window.location.hostname}&muted=true`;
     } else if (showingVOD) {
-      // Para VODs, removemos o muted e habilitamos controles interativos
-      return `https://player.twitch.tv/?video=2457385170&parent=${window.location.hostname}&autoplay=false&muted=false`;
+      // Para VODs, usamos time=0 para começar do início, autoplay=false para pausado, allowfullscreen=true para controles
+      return `https://player.twitch.tv/?video=2457385170&parent=${window.location.hostname}&time=0&autoplay=false&allowfullscreen=true&muted=false`;
     }
     return '';
   };
@@ -72,7 +72,7 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
   };
 
   return (
-    <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-40 w-80 h-48 bg-black rounded-lg overflow-hidden shadow-2xl border border-red-600/50">
+    <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-40 w-96 h-64 bg-black rounded-lg overflow-hidden shadow-2xl border border-red-600/50 hidden md:block">
       {/* Header com nome do streamer/VOD e botão fechar */}
       <div className="bg-red-900/90 px-3 py-2 flex items-center justify-between">
         <div className="flex items-center space-x-2">
@@ -98,6 +98,7 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
         scrolling="no"
         allowFullScreen
         className="w-full h-full"
+        allow="autoplay; fullscreen"
       />
     </div>
   );
