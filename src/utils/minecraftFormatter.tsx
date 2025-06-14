@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 // Mapeamento dos códigos de cor do Minecraft para classes Tailwind
@@ -102,8 +101,7 @@ export const renderMinecraftText = (text: string): React.ReactNode => {
   const lines = text.split('\\n');
   
   return lines.map((line, lineIndex) => (
-    <React.Fragment key={lineIndex}>
-      {lineIndex > 0 && <br />}
+    <div key={lineIndex}>
       {parseMinecraftText(line).map((segment, segmentIndex) => (
         <span
           key={`${lineIndex}-${segmentIndex}`}
@@ -112,6 +110,6 @@ export const renderMinecraftText = (text: string): React.ReactNode => {
           {segment.text}
         </span>
       ))}
-    </React.Fragment>
+    </div>
   ));
 };
