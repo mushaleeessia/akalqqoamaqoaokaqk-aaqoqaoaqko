@@ -156,7 +156,7 @@ const Index = () => {
       </div>
 
       {/* Help Assistant */}
-      <HelpAssistant />
+      <HelpAssistant isEnglish={isEnglish} />
     </div>
   );
 };
