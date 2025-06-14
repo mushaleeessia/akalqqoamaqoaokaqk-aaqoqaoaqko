@@ -56,7 +56,8 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
     if (currentStreamer) {
       return `https://player.twitch.tv/?channel=${currentStreamer}&parent=${window.location.hostname}&muted=true`;
     } else if (showingVOD) {
-      return `https://player.twitch.tv/?video=2457385170&parent=${window.location.hostname}&muted=true`;
+      // Para VODs, removemos o muted e habilitamos controles interativos
+      return `https://player.twitch.tv/?video=2457385170&parent=${window.location.hostname}&autoplay=false&muted=false`;
     }
     return '';
   };
