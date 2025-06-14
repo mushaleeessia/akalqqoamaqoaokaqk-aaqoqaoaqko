@@ -7,11 +7,11 @@ interface ProfileSectionProps {
 }
 
 export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isShaking, setIsShaking] = useState(false);
 
   const handleAvatarClick = () => {
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 600); // Duração da animação
+    setIsShaking(true);
+    setTimeout(() => setIsShaking(false), 500);
   };
 
   return (
@@ -19,12 +19,15 @@ export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
       <div className="relative inline-block mb-4">
         <Avatar 
           className={`w-24 h-24 mx-auto border-4 border-red-600 cursor-pointer transition-all duration-300 hover:scale-105 ${
-            isAnimating ? 'animate-bounce' : ''
+            isShaking ? 'animate-pulse' : ''
           }`}
           onClick={handleAvatarClick}
           style={{
-            transform: isAnimating ? 'rotate(360deg)' : 'rotate(0deg)',
-            transition: 'transform 0.6s ease-in-out'
+            transform: isShaking ? 'scale(1.1)' : 'scale(1)',
+            filter: isShaking ? 'brightness(1.3) saturate(1.2)' : 'brightness(1) saturate(1)',
+            boxShadow: isShaking ? '0 0 20px rgba(239, 68, 68, 0.6)' : 'none',
+            transition: 'all 0.5s ease-in-out',
+            animation: isShaking ? 'shake 0.5s ease-in-out' : 'none'
           }}
         >
           <AvatarImage 
@@ -37,13 +40,11 @@ export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
           </AvatarFallback>
         </Avatar>
         
-        {/* Efeito de partículas quando clica */}
-        {isAnimating && (
+        {/* Efeito de brilho quando clica */}
+        {isShaking && (
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-0 left-1/2 w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
-            <div className="absolute top-1/4 right-0 w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping delay-100"></div>
-            <div className="absolute bottom-0 left-1/4 w-1 h-1 bg-red-400 rounded-full animate-ping delay-200"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-1.5 h-1.5 bg-amber-600 rounded-full animate-ping delay-300"></div>
+            <div className="absolute -top-2 -left-2 -right-2 -bottom-2 border-2 border-red-400 rounded-full animate-ping opacity-75"></div>
+            <div className="absolute -top-1 -left-1 -right-1 -bottom-1 border border-amber-400 rounded-full animate-ping delay-100 opacity-50"></div>
           </div>
         )}
       </div>
