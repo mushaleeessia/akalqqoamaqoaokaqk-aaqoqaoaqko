@@ -1,5 +1,6 @@
 
 import { useFirebaseData } from "@/hooks/useFirebaseData";
+import { useState } from "react";
 
 interface ProfileSectionProps {
   isEnglish: boolean;
@@ -7,12 +8,21 @@ interface ProfileSectionProps {
 
 export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
   const { about, loading } = useFirebaseData(isEnglish);
+  const [isShaking, setIsShaking] = useState(false);
+
+  const handleImageClick = () => {
+    setIsShaking(true);
+    setTimeout(() => setIsShaking(false), 600);
+  };
 
   return (
     <div className="text-center animate-fade-in">
       {/* Profile Image */}
       <div className="relative inline-block mb-6">
-        <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-red-600 via-red-700 to-amber-800 p-1 shadow-2xl shadow-red-900/40">
+        <div 
+          className={`w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-red-600 via-red-700 to-amber-800 p-1 shadow-2xl shadow-red-900/40 cursor-pointer ${isShaking ? 'animate-shake' : ''}`}
+          onClick={handleImageClick}
+        >
           <div className="w-full h-full rounded-full overflow-hidden bg-gray-900 flex items-center justify-center">
             <img 
               src="https://mc-heads.net/avatar/80eba0b3-159a-48bf-9613-307634a45057/128" 
