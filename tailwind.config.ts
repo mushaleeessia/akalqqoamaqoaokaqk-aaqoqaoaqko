@@ -93,25 +93,25 @@ export default {
 				},
 				'ripple': {
 					'0%': {
-						transform: 'scale(0.8)',
+						transform: 'scale(1)',
 						opacity: '0.8'
 					},
 					'100%': {
-						transform: 'scale(3)',
+						transform: 'scale(2.5)',
 						opacity: '0'
 					}
 				},
 				'ripple-delay': {
 					'0%': {
-						transform: 'scale(0.8)',
+						transform: 'scale(1)',
 						opacity: '0.6'
 					},
 					'50%': {
-						transform: 'scale(1.2)',
-						opacity: '0.6'
+						transform: 'scale(1.3)',
+						opacity: '0.4'
 					},
 					'100%': {
-						transform: 'scale(3)',
+						transform: 'scale(2.5)',
 						opacity: '0'
 					}
 				}
@@ -120,8 +120,8 @@ export default {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'shake': 'shake 0.6s ease-in-out',
-				'ripple': 'ripple 2.5s infinite ease-out',
-				'ripple-delay': 'ripple-delay 2.5s infinite ease-out 0.3s'
+				'ripple': 'ripple 2s infinite ease-out',
+				'ripple-delay': 'ripple-delay 2s infinite ease-out 0.4s'
 			}
 		}
 	},
