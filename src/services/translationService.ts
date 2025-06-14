@@ -1,4 +1,3 @@
-
 // Translation service with reliable free API
 export const translateText = async (text: string, targetLang: string = 'en'): Promise<string> => {
   if (!text || text.trim() === '') return text;
@@ -27,10 +26,10 @@ export const translateText = async (text: string, targetLang: string = 'en'): Pr
 
   // Enhanced simple translations with more complete phrases
   const simpleTranslations: { [key: string]: string } = {
-    'Secondary Moderator da rede de serveres Mush.': 'Secondary Moderator of the Mush server network.',
-    'Moderadora Secundária da rede de serveres Mush.': 'Secondary Moderator of the Mush server network.',
-    'Secondary Moderator da rede de servidores Mush.': 'Secondary Moderator of the Mush server network.',
-    'Moderadora Secundária da rede de servidores Mush.': 'Secondary Moderator of the Mush server network.',
+    'Secondary Moderator da rede de serveres Mush.': 'Secondary Moderator of the Mush server network',
+    'Moderadora Secundária da rede de serveres Mush.': 'Secondary Moderator of the Mush server network',
+    'Secondary Moderator da rede de servidores Mush.': 'Secondary Moderator of the Mush server network',
+    'Moderadora Secundária da rede de servidores Mush.': 'Secondary Moderator of the Mush server network',
     'Esse é o primeiro post no meu blog!': 'This is the first post on my blog!',
     'Esse é o first post no meu blog!': 'This is the first post on my blog!',
     'Esse é o First post no meu blog!': 'This is the first post on my blog!',
