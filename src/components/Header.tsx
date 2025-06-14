@@ -1,4 +1,3 @@
-
 import { ShoppingCart, Users, Trophy, Shield, HelpCircle, MessageSquare, ChevronDown, Menu, X, Flag, Globe } from "lucide-react";
 import { useState } from "react";
 import {
@@ -161,7 +160,7 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
               {/* Switch de idiomas */}
               <div className="flex items-center justify-between px-4 py-3 bg-red-800/30 rounded-lg border border-red-600/30">
                 <div className="flex items-center space-x-3">
-                  {isEnglish ? <Globe className="w-4 h-4 text-white" /> : <Flag className="w-4 h-4 text-white" />}
+                  <span className="text-lg">{isEnglish ? "🇺🇸" : "🇧🇷"}</span>
                   <span className="text-white text-sm font-medium">
                     {isEnglish ? "English" : "Português"}
                   </span>
