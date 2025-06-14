@@ -7,79 +7,103 @@ import { Button } from "@/components/ui/button";
 interface HelpOption {
   id: string;
   title: string;
+  title_en: string;
   description?: string;
   response: string;
+  response_en: string;
   link?: string;
   category?: string;
+}
+
+interface HelpAssistantProps {
+  isEnglish?: boolean;
 }
 
 const helpOptions: HelpOption[] = [
   {
     id: "staff",
     title: "Como entrar na Staff?",
+    title_en: "How to join the Staff?",
     response: "Para entrar na staff do Mush, você precisa seguir algumas dicas importantes. Confira o guia completo no fórum:",
+    response_en: "To join the Mush staff, you need to follow some important tips. Check out the complete guide on the forum:",
     link: "https://forum.mush.com.br/topic/67550/dicas-para-entrar-na-staff",
     category: "staff"
   },
   {
     id: "migration",
     title: "Problemas com contas",
+    title_en: "Account Problems",
     response: "Se você está com problemas com sua conta, confira o tópico oficial no fórum:",
+    response_en: "If you're having problems with your account, check the official topic on the forum:",
     link: "https://forum.mush.com.br/topic/43053/migra%C3%A7%C3%A3o-de-contas",
     category: "conta"
   },
   {
     id: "forum",
     title: "Como criar conta no fórum?",
+    title_en: "How to create a forum account?",
     response: "Para criar uma conta no fórum do Mush, siga este tutorial passo a passo:",
+    response_en: "To create an account on the Mush forum, follow this step-by-step tutorial:",
     link: "https://forum.mush.com.br/topic/50214/como-criar-uma-conta-no-f%C3%B3rum",
     category: "forum"
   },
   {
     id: "support",
     title: "Atendimento de vendas",
+    title_en: "Sales Support",
     response: "Para entrar em contato com o suporte de vendas, acesse:",
+    response_en: "To contact sales support, access:",
     link: "https://forum.mush.com.br/topic/145928/atendimento-email-de-vendas",
     category: "suporte"
   },
   {
     id: "report",
     title: "Fazer Denúncia",
+    title_en: "Make a Report",
     response: "Para fazer uma denúncia, acesse a área específica no fórum:",
+    response_en: "To make a report, access the specific area on the forum:",
     link: "https://forum.mush.com.br/category/16/den%C3%BAncias",
     category: "denuncia"
   },
   {
     id: "bug",
     title: "Reportar Bug",
+    title_en: "Report Bug",
     response: "Encontrou um bug? Reporte na área específica:",
+    response_en: "Found a bug? Report it in the specific area:",
     link: "https://forum.mush.com.br/category/5/bug-report",
     category: "bug"
   },
   {
     id: "appeal",
     title: "Contestar Punição injusta",
+    title_en: "Appeal Unfair Punishment",
     response: "Para contestar uma punição incorreta, acesse:",
+    response_en: "To appeal an incorrect punishment, access:",
     link: "https://forum.mush.com.br/category/8/appeal",
     category: "appeal"
   },
   {
     id: "content",
     title: "Aplicar para criador de conteúdo",
+    title_en: "Apply for Content Creator",
     response: "Para aplicar para ser um dos criadores de conteúdo do servidor, acesse:",
+    response_en: "To apply to be one of the server's content creators, access:",
     link: "https://forum.mush.com.br/category/78/solicita%C3%A7%C3%A3o-para-cria%C3%A7%C3%A3o-de-conte%C3%BAdo",
     category: "conteudo"
   },
   {
     id: "general",
     title: "Área de Atendimento",
+    title_en: "Support Area",
     response: "Para questões gerais de atendimento, acesse:",
+    response_en: "For general support questions, access:",
     link: "https://forum.mush.com.br/category/69/%C3%A1rea-de-atendimento",
     category: "atendimento"
   }
 ];
 
-export const HelpAssistant = () => {
+export const HelpAssistant = ({ isEnglish = false }: HelpAssistantProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState<HelpOption | null>(null);
 
@@ -94,6 +118,14 @@ export const HelpAssistant = () => {
   const handleClose = () => {
     setIsOpen(false);
     setSelectedOption(null);
+  };
+
+  // Textos traduzidos
+  const texts = {
+    title: isEnglish ? "Mush Help" : "Ajuda Mush",
+    greeting: isEnglish ? "How can I help you today?" : "Como posso ajudar você hoje?",
+    accessForum: isEnglish ? "Access on Forum" : "Acessar no Fórum",
+    backToOptions: isEnglish ? "Back to options" : "Voltar às opções"
   };
 
   return (
@@ -113,7 +145,7 @@ export const HelpAssistant = () => {
                 </button>
               )}
               <h3 className="text-white font-semibold text-sm">
-                {selectedOption ? selectedOption.title : "Ajuda Mush"}
+                {selectedOption ? (isEnglish ? selectedOption.title_en : selectedOption.title) : texts.title}
               </h3>
             </div>
             <button
@@ -129,7 +161,7 @@ export const HelpAssistant = () => {
             {!selectedOption ? (
               <div className="space-y-2">
                 <p className="text-gray-300 text-sm mb-4 animate-fade-in">
-                  Como posso ajudar você hoje?
+                  {texts.greeting}
                 </p>
                 {helpOptions.map((option, index) => (
                   <button
@@ -139,7 +171,7 @@ export const HelpAssistant = () => {
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className="text-red-400 font-medium text-sm">
-                      {option.title}
+                      {isEnglish ? option.title_en : option.title}
                     </div>
                   </button>
                 ))}
@@ -148,7 +180,7 @@ export const HelpAssistant = () => {
               <div className="space-y-4 animate-fade-in">
                 <div className="bg-gray-800 p-4 rounded-lg transform transition-all duration-300 hover:scale-[1.01]">
                   <p className="text-gray-300 text-sm leading-relaxed">
-                    {selectedOption.response}
+                    {isEnglish ? selectedOption.response_en : selectedOption.response}
                   </p>
                 </div>
                 
@@ -161,7 +193,7 @@ export const HelpAssistant = () => {
                       className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-all duration-200 hover:translate-x-1 text-sm group"
                     >
                       <ExternalLink size={14} className="transition-transform duration-200 group-hover:scale-110" />
-                      Acessar no Fórum
+                      {texts.accessForum}
                     </a>
                   </div>
                 )}
@@ -171,7 +203,7 @@ export const HelpAssistant = () => {
                   className="w-full p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-300 text-gray-300 text-sm hover:scale-[1.02] hover:-translate-y-0.5 animate-fade-in"
                   style={{ animationDelay: "300ms" }}
                 >
-                  Voltar às opções
+                  {texts.backToOptions}
                 </button>
               </div>
             )}
