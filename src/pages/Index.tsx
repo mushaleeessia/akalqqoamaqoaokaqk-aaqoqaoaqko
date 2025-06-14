@@ -5,6 +5,7 @@ import { LinkCard } from "@/components/LinkCard";
 import { BlogSection } from "@/components/BlogSection";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { HelpAssistant } from "@/components/HelpAssistant";
 import { Globe, MessageSquare, Video } from "lucide-react";
 
 const Index = () => {
@@ -74,6 +75,9 @@ const Index = () => {
         
         <Footer isVisible={isEnglish} />
       </div>
+
+      {/* Help Assistant */}
+      <HelpAssistant />
     </div>
   );
 };
