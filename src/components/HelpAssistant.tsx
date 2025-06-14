@@ -99,14 +99,14 @@ export const HelpAssistant = () => {
     <div className="fixed bottom-6 right-6 z-50">
       {/* Chat Window */}
       {isOpen && (
-        <div className="mb-4 w-80 h-96 bg-gray-900 border border-red-800/50 rounded-lg shadow-2xl overflow-hidden flex flex-col">
+        <div className="mb-4 w-80 h-96 bg-gray-900 border border-red-800/50 rounded-lg shadow-2xl overflow-hidden flex flex-col animate-scale-in">
           {/* Header */}
           <div className="bg-gradient-to-r from-red-900 to-amber-900 p-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               {selectedOption && (
                 <button
                   onClick={handleBack}
-                  className="text-white hover:text-red-200 transition-colors"
+                  className="text-white hover:text-red-200 transition-all duration-200 hover:scale-110 hover:-translate-x-1"
                 >
                   <ChevronLeft size={16} />
                 </button>
@@ -117,7 +117,7 @@ export const HelpAssistant = () => {
             </div>
             <button
               onClick={handleClose}
-              className="text-white hover:text-red-200 transition-colors"
+              className="text-white hover:text-red-200 transition-all duration-200 hover:scale-110 hover:rotate-90"
             >
               <X size={16} />
             </button>
@@ -127,14 +127,15 @@ export const HelpAssistant = () => {
           <div className="flex-1 overflow-y-auto p-4">
             {!selectedOption ? (
               <div className="space-y-2">
-                <p className="text-gray-300 text-sm mb-4">
+                <p className="text-gray-300 text-sm mb-4 animate-fade-in">
                   Como posso ajudar você hoje?
                 </p>
-                {helpOptions.map((option) => (
+                {helpOptions.map((option, index) => (
                   <button
                     key={option.id}
                     onClick={() => handleOptionClick(option)}
-                    className="w-full text-left p-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors border border-gray-700 hover:border-red-800/50"
+                    className="w-full text-left p-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-all duration-300 border border-gray-700 hover:border-red-800/50 hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-lg animate-fade-in"
+                    style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className="text-red-400 font-medium text-sm">
                       {option.title}
@@ -143,22 +144,22 @@ export const HelpAssistant = () => {
                 ))}
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="bg-gray-800 p-4 rounded-lg">
+              <div className="space-y-4 animate-fade-in">
+                <div className="bg-gray-800 p-4 rounded-lg transform transition-all duration-300 hover:scale-[1.01]">
                   <p className="text-gray-300 text-sm leading-relaxed">
                     {selectedOption.response}
                   </p>
                 </div>
                 
                 {selectedOption.link && (
-                  <div className="bg-gradient-to-r from-red-900/20 to-amber-900/20 border border-red-800/30 rounded-lg p-4">
+                  <div className="bg-gradient-to-r from-red-900/20 to-amber-900/20 border border-red-800/30 rounded-lg p-4 transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg animate-scale-in" style={{ animationDelay: "150ms" }}>
                     <a
                       href={selectedOption.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors text-sm"
+                      className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-all duration-200 hover:translate-x-1 text-sm group"
                     >
-                      <ExternalLink size={14} />
+                      <ExternalLink size={14} className="transition-transform duration-200 group-hover:scale-110" />
                       Acessar no Fórum
                     </a>
                   </div>
@@ -166,7 +167,8 @@ export const HelpAssistant = () => {
                 
                 <button
                   onClick={handleBack}
-                  className="w-full p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors text-gray-300 text-sm"
+                  className="w-full p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-all duration-300 text-gray-300 text-sm hover:scale-[1.02] hover:-translate-y-0.5 animate-fade-in"
+                  style={{ animationDelay: "300ms" }}
                 >
                   Voltar às opções
                 </button>
@@ -179,16 +181,16 @@ export const HelpAssistant = () => {
       {/* Toggle Button */}
       <Button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-14 h-14 rounded-full shadow-lg transition-all duration-300 ${
+        className={`w-14 h-14 rounded-full shadow-lg transition-all duration-500 hover:scale-110 active:scale-95 ${
           isOpen 
-            ? "bg-red-700 hover:bg-red-600" 
-            : "bg-gradient-to-r from-red-900 to-amber-900 hover:from-red-800 hover:to-amber-800"
+            ? "bg-red-700 hover:bg-red-600 animate-pulse" 
+            : "bg-gradient-to-r from-red-900 to-amber-900 hover:from-red-800 hover:to-amber-800 hover:shadow-xl hover:shadow-red-900/25"
         }`}
       >
         {isOpen ? (
-          <X className="w-6 h-6 text-white" />
+          <X className="w-6 h-6 text-white transition-transform duration-300 rotate-0 hover:rotate-90" />
         ) : (
-          <MessageCircle className="w-6 h-6 text-white" />
+          <MessageCircle className="w-6 h-6 text-white transition-all duration-300 hover:scale-110 animate-bounce" style={{ animationDuration: "2s" }} />
         )}
       </Button>
     </div>
