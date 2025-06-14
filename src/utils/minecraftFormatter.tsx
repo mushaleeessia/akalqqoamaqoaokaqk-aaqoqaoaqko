@@ -8,7 +8,7 @@ const colorMap: { [key: string]: string } = {
   '2': 'text-green-600',       // Verde escuro
   '3': 'text-cyan-600',        // Azul-ciano escuro
   '4': 'text-red-700',         // Vermelho escuro
-  '5': 'text-purple-600',      // Roxo
+  '5': 'text-purple-500',      // Roxo (melhorado)
   '6': 'text-yellow-600',      // Dourado
   '7': 'text-gray-300',        // Cinza claro
   '8': 'text-gray-600',        // Cinza escuro
