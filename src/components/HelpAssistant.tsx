@@ -1,4 +1,5 @@
 
+
 import { useState } from "react";
 import { MessageCircle, X, ExternalLink, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -181,9 +182,13 @@ export const HelpAssistant = () => {
       {/* Toggle Button - ALWAYS fixed in bottom right */}
       <div className="fixed bottom-6 right-6">
         <div className="relative">
-          {/* Círculos de ondas saindo do botão - mais notáveis */}
-          <div className="absolute inset-0 rounded-full border-4 border-red-400/70 animate-ripple pointer-events-none"></div>
-          <div className="absolute inset-0 rounded-full border-4 border-amber-400/60 animate-ripple-delay pointer-events-none"></div>
+          {/* Círculos de ondas saindo do botão - só aparecem quando fechado */}
+          {!isOpen && (
+            <>
+              <div className="absolute inset-0 rounded-full border-4 border-red-400/70 animate-ripple pointer-events-none"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-amber-400/60 animate-ripple-delay pointer-events-none"></div>
+            </>
+          )}
           
           <Button
             onClick={() => setIsOpen(!isOpen)}
@@ -201,3 +206,4 @@ export const HelpAssistant = () => {
     </div>
   );
 };
+
