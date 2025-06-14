@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { MessageCircle, X, ExternalLink, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -96,10 +95,10 @@ export const HelpAssistant = () => {
   };
 
   return (
-    <>
+    <div className="fixed bottom-0 right-0 z-[9999]">
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-80 h-96 bg-gray-900 border border-red-800/50 rounded-lg shadow-2xl overflow-hidden flex flex-col animate-scale-in z-50">
+        <div className="absolute bottom-20 right-6 w-80 h-96 bg-gray-900 border border-red-800/50 rounded-lg shadow-2xl overflow-hidden flex flex-col animate-scale-in">
           {/* Header */}
           <div className="bg-gradient-to-r from-red-900 to-amber-900 p-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -178,17 +177,19 @@ export const HelpAssistant = () => {
         </div>
       )}
 
-      {/* Toggle Button - fixed position */}
-      <Button
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg transition-all duration-500 hover:scale-110 active:scale-95 bg-gradient-to-r from-red-900 to-amber-900 hover:from-red-800 hover:to-amber-800 hover:shadow-xl hover:shadow-red-900/25 z-50"
-      >
-        {isOpen ? (
-          <X className="w-6 h-6 text-white transition-transform duration-300 rotate-0 hover:rotate-90" />
-        ) : (
-          <MessageCircle className="w-6 h-6 text-white transition-all duration-300 hover:scale-110 animate-bounce" style={{ animationDuration: "2s" }} />
-        )}
-      </Button>
-    </>
+      {/* Toggle Button - ALWAYS fixed in bottom right */}
+      <div className="fixed bottom-6 right-6">
+        <Button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-14 h-14 rounded-full shadow-lg transition-all duration-500 hover:scale-110 active:scale-95 bg-gradient-to-r from-red-900 to-amber-900 hover:from-red-800 hover:to-amber-800 hover:shadow-xl hover:shadow-red-900/25"
+        >
+          {isOpen ? (
+            <X className="w-6 h-6 text-white transition-transform duration-300 rotate-0 hover:rotate-90" />
+          ) : (
+            <MessageCircle className="w-6 h-6 text-white transition-all duration-300 hover:scale-110 animate-bounce" style={{ animationDuration: "2s" }} />
+          )}
+        </Button>
+      </div>
+    </div>
   );
 };
