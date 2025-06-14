@@ -11,17 +11,11 @@ export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
   const [isShaking, setIsShaking] = useState(false);
 
   const handleImageClick = () => {
-    console.log('Image clicked!');
-    console.log('Current isShaking state:', isShaking);
     setIsShaking(true);
-    console.log('Set isShaking to true');
     setTimeout(() => {
       setIsShaking(false);
-      console.log('Set isShaking to false after timeout');
     }, 600);
   };
-
-  console.log('Component rendering, isShaking:', isShaking);
 
   return (
     <div className="text-center animate-fade-in">
