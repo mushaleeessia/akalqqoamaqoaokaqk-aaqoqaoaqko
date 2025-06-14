@@ -120,12 +120,18 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
               );
             })}
             
-            {/* Dropdown menu para Ajuda - SEM efeito slider */}
+            {/* Dropdown menu para Ajuda - COM efeito de ondas */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className={getButtonClasses('help')}>
-                  {/* Sem slider para o botão de ajuda - animação personalizada no ícone */}
-                  <HelpCircle className="w-4 h-4 relative z-10 animate-bounce" style={{ animationDuration: "1.5s" }} />
+                  {/* Container com posição relativa para os círculos */}
+                  <div className="relative flex items-center justify-center">
+                    {/* Círculos de ondas */}
+                    <div className="absolute inset-0 rounded-full border-2 border-white/30 animate-ripple"></div>
+                    <div className="absolute inset-0 rounded-full border-2 border-white/20 animate-ripple-delay"></div>
+                    {/* Ícone principal */}
+                    <HelpCircle className="w-4 h-4 relative z-10" />
+                  </div>
                   <span className="relative z-10">{isEnglish ? "Help" : "Ajuda"}</span>
                   <ChevronDown className="w-3 h-3 relative z-10" />
                 </button>
@@ -221,7 +227,13 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
               {/* Items de ajuda no mobile */}
               <div className="pt-2 border-t border-red-700/30">
                 <div className="flex items-center space-x-3 px-4 py-2 text-white text-sm font-medium opacity-70">
-                  <HelpCircle className="w-4 h-4 animate-bounce" style={{ animationDuration: "1.5s" }} />
+                  <div className="relative flex items-center justify-center">
+                    {/* Círculos de ondas para mobile */}
+                    <div className="absolute inset-0 rounded-full border border-white/30 animate-ripple"></div>
+                    <div className="absolute inset-0 rounded-full border border-white/20 animate-ripple-delay"></div>
+                    {/* Ícone principal */}
+                    <HelpCircle className="w-4 h-4" />
+                  </div>
                   <span>{isEnglish ? "Help" : "Ajuda"}</span>
                 </div>
                 {helpItems.map((item) => (

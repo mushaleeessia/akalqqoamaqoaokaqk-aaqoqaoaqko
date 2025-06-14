@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -89,12 +90,38 @@ export default {
 					'0%, 100%': { transform: 'translateX(0)' },
 					'10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-5px)' },
 					'20%, 40%, 60%, 80%': { transform: 'translateX(5px)' }
+				},
+				'ripple': {
+					'0%': {
+						transform: 'scale(0)',
+						opacity: '1'
+					},
+					'100%': {
+						transform: 'scale(2.5)',
+						opacity: '0'
+					}
+				},
+				'ripple-delay': {
+					'0%': {
+						transform: 'scale(0)',
+						opacity: '1'
+					},
+					'50%': {
+						transform: 'scale(0)',
+						opacity: '1'
+					},
+					'100%': {
+						transform: 'scale(2.5)',
+						opacity: '0'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'shake': 'shake 0.6s ease-in-out'
+				'shake': 'shake 0.6s ease-in-out',
+				'ripple': 'ripple 2s infinite ease-out',
+				'ripple-delay': 'ripple-delay 2s infinite ease-out'
 			}
 		}
 	},
