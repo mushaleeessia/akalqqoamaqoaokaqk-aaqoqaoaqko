@@ -6,6 +6,7 @@ import { BlogSection } from "@/components/BlogSection";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { HelpAssistant } from "@/components/HelpAssistant";
+import { TwitchEmbed } from "@/components/TwitchEmbed";
 import { Globe, MessageSquare, Video } from "lucide-react";
 
 const Index = () => {
@@ -43,6 +44,9 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-black via-red-950/40 to-gray-900 relative overflow-hidden">
       {/* Header do Mush */}
       <Header onLanguageChange={handleLanguageChange} />
+
+      {/* Twitch Embed */}
+      <TwitchEmbed isEnglish={isEnglish} />
 
       {/* Dark red ambient background elements - distributed across the screen */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
