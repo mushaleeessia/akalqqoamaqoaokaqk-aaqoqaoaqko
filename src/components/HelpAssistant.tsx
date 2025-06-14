@@ -178,14 +178,10 @@ export const HelpAssistant = () => {
         </div>
       )}
 
-      {/* Toggle Button */}
+      {/* Toggle Button - always in the same position */}
       <Button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-14 h-14 rounded-full shadow-lg transition-all duration-500 hover:scale-110 active:scale-95 ${
-          isOpen 
-            ? "bg-red-700 hover:bg-red-600 animate-pulse" 
-            : "bg-gradient-to-r from-red-900 to-amber-900 hover:from-red-800 hover:to-amber-800 hover:shadow-xl hover:shadow-red-900/25"
-        }`}
+        className="w-14 h-14 rounded-full shadow-lg transition-all duration-500 hover:scale-110 active:scale-95 bg-gradient-to-r from-red-900 to-amber-900 hover:from-red-800 hover:to-amber-800 hover:shadow-xl hover:shadow-red-900/25"
       >
         {isOpen ? (
           <X className="w-6 h-6 text-white transition-transform duration-300 rotate-0 hover:rotate-90" />
