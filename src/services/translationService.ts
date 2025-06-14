@@ -31,6 +31,9 @@ export const translateText = async (text: string, targetLang: string = 'en'): Pr
     'Moderadora Secundária da rede de serveres Mush.': 'Secondary Moderator of the Mush server network.',
     'Secondary Moderator da rede de servidores Mush.': 'Secondary Moderator of the Mush server network.',
     'Moderadora Secundária da rede de servidores Mush.': 'Secondary Moderator of the Mush server network.',
+    'Esse é o primeiro post no meu blog!': 'This is the first post on my blog!',
+    'Esse é o first post no meu blog!': 'This is the first post on my blog!',
+    'Esse é o First post no meu blog!': 'This is the first post on my blog!',
     'da rede de serveres': 'of the server network',
     'da rede de servidores': 'of the server network',
     'rede de serveres': 'server network',
@@ -41,6 +44,7 @@ export const translateText = async (text: string, targetLang: string = 'en'): Pr
     'Staff desde': 'Staff since',
     'Partner desde': 'Partner since',
     'Primeiro post': 'First post',
+    'primeiro post': 'first post',
     'Drops': 'Drops',
     'aleeessia': 'aleeessia',
     'Olá!': 'Hello!',
@@ -49,7 +53,8 @@ export const translateText = async (text: string, targetLang: string = 'en'): Pr
     'servidor': 'server',
     'Bem-vindos': 'Welcome',
     'ao meu cantinho!': 'to my corner!',
-    'Esse é o primeiro post no meu blog!': 'This is the first post on my blog!',
+    'no meu blog': 'on my blog',
+    'meu blog': 'my blog',
     'Agora que percebi': 'Now that I realized',
     'eu posso do nada soltar uma chave': 'I can randomly drop a key',
     'de um vip aqui': 'of a VIP here',
@@ -118,6 +123,7 @@ export const translateText = async (text: string, targetLang: string = 'en'): Pr
     .replace(/Staff/gi, 'Staff')
     .replace(/Partner/gi, 'Partner')
     .replace(/Primeiro/gi, 'First')
+    .replace(/primeiro/gi, 'first')
     .replace(/post/gi, 'post')
     .replace(/blog/gi, 'blog')
     .replace(/Olá/gi, 'Hello')
@@ -126,6 +132,7 @@ export const translateText = async (text: string, targetLang: string = 'en'): Pr
     .replace(/cantinho/gi, 'corner')
     .replace(/Esse é o/gi, 'This is the')
     .replace(/no meu/gi, 'on my')
+    .replace(/meu/gi, 'my')
     .replace(/Agora que percebi/gi, 'Now that I realized')
     .replace(/eu posso/gi, 'I can')
     .replace(/do nada/gi, 'randomly')
