@@ -126,7 +126,7 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                     
                     {/* Overlay verde que cresce da esquerda para direita */}
                     <div 
-                      className={`absolute inset-0 bg-green-500 rounded-lg transition-all ease-out origin-left z-10 ${
+                      className={`absolute top-0 left-0 right-0 bottom-0 bg-green-500 rounded-lg transition-all ease-out origin-left z-10 ${
                         isClicking 
                           ? 'scale-x-100 bg-green-400 opacity-90' 
                           : isHovered 
@@ -161,7 +161,7 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                     
                     {/* Overlay verde para o dropdown */}
                     <div 
-                      className={`absolute inset-0 bg-green-500 rounded-lg transition-all duration-300 ease-out origin-left z-10 ${
+                      className={`absolute top-0 left-0 right-0 bottom-0 bg-green-500 rounded-lg transition-all duration-300 ease-out origin-left z-10 ${
                         hoveredItem === 'help' ? 'opacity-60 scale-x-100' : 'opacity-0 scale-x-0'
                       }`}
                       style={{
@@ -256,7 +256,7 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                       
                       {/* Overlay verde no mobile */}
                       <div 
-                        className={`absolute inset-0 bg-green-500 rounded-lg transition-all ease-out origin-left ${
+                        className={`absolute top-0 left-0 right-0 bottom-0 bg-green-500 rounded-lg transition-all ease-out origin-left ${
                           isClicking 
                             ? 'scale-x-100 bg-green-400 opacity-80' 
                             : 'scale-x-0 opacity-0'
@@ -286,7 +286,7 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                       
                       {/* Overlay verde para itens de ajuda no mobile */}
                       <div 
-                        className={`absolute inset-0 bg-green-500 rounded-lg transition-all ease-out origin-left ${
+                        className={`absolute top-0 left-0 right-0 bottom-0 bg-green-500 rounded-lg transition-all ease-out origin-left ${
                           clickingItem === item.title 
                             ? 'scale-x-100 bg-green-400 opacity-80' 
                             : 'scale-x-0 opacity-0'
