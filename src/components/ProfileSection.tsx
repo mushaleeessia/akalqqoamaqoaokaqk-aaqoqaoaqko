@@ -28,7 +28,7 @@ export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
           }}
         >
           <AvatarImage 
-            src="https://minotar.net/helm/aleeessia_/100.png" 
+            src="https://mc-heads.net/avatar/80eba0b3-159a-48bf-9613-307634a45057/128" 
             alt="Minecraft head" 
             className="pixelated"
           />
