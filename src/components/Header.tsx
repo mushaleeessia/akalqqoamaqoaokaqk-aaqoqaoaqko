@@ -102,7 +102,7 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                     onClick={() => handleLinkClick(item.url, item.title)}
                     onMouseEnter={() => setHoveredItem(item.title)}
                     onMouseLeave={() => setHoveredItem(null)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium overflow-hidden relative"
+                    className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700/50 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium overflow-hidden relative"
                   >
                     <IconComponent className="w-4 h-4 relative z-10" />
                     <span className="relative z-10">{item.title}</span>
@@ -113,11 +113,11 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                         isClicking 
                           ? 'scale-x-100 bg-green-400 opacity-80' 
                           : isHovered 
-                            ? 'scale-x-100 opacity-20'
+                            ? 'scale-x-100 opacity-30'
                             : 'scale-x-0 opacity-0'
                       }`}
                       style={{
-                        transitionDuration: isClicking ? '600ms' : '200ms'
+                        transitionDuration: isClicking ? '600ms' : '300ms'
                       }}
                     />
                   </button>
@@ -130,7 +130,7 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
               <DropdownMenuTrigger asChild>
                 <div className="relative">
                   <button 
-                    className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium overflow-hidden relative"
+                    className="flex items-center space-x-2 px-4 py-2 bg-red-800/50 hover:bg-red-700/50 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium overflow-hidden relative"
                     onMouseEnter={() => setHoveredItem('help')}
                     onMouseLeave={() => setHoveredItem(null)}
                   >
@@ -140,8 +140,8 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                     
                     {/* Overlay verde para o dropdown */}
                     <div 
-                      className={`absolute inset-0 bg-green-500 rounded-lg transition-all duration-200 ease-out origin-left ${
-                        hoveredItem === 'help' ? 'opacity-20 scale-x-100' : 'opacity-0 scale-x-0'
+                      className={`absolute inset-0 bg-green-500 rounded-lg transition-all duration-300 ease-out origin-left ${
+                        hoveredItem === 'help' ? 'opacity-30 scale-x-100' : 'opacity-0 scale-x-0'
                       }`}
                     />
                   </button>
