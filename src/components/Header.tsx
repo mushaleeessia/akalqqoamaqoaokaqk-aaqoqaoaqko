@@ -17,7 +17,6 @@ interface HeaderProps {
 export const Header = ({ onLanguageChange }: HeaderProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isEnglish, setIsEnglish] = useState(false);
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [clickingItem, setClickingItem] = useState<string | null>(null);
 
   const navItems = [
@@ -73,14 +72,6 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
     }, 600);
   };
 
-  const handleMouseEnter = (itemTitle: string) => {
-    setHoveredItem(itemTitle);
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredItem(null);
-  };
-
   const toggleLanguage = () => {
     const newLanguageState = !isEnglish;
     setIsEnglish(newLanguageState);
@@ -88,18 +79,11 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
   };
 
   const getButtonClasses = (itemTitle: string) => {
-    const isHovered = hoveredItem === itemTitle;
     const isClicking = clickingItem === itemTitle;
     
-    let bgClass = "bg-red-900/50";
-    
-    if (isClicking) {
-      bgClass = "bg-green-400";
-    } else if (isHovered) {
-      bgClass = "bg-green-500/60";
-    }
-    
-    return `flex items-center space-x-2 px-4 py-2 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-300 text-sm font-medium ${bgClass}`;
+    return `relative overflow-hidden flex items-center space-x-2 px-4 py-2 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-300 text-sm font-medium bg-red-900/50 group ${
+      isClicking ? 'bg-green-400' : ''
+    }`;
   };
 
   return (
@@ -115,17 +99,24 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
           <nav className="hidden md:flex items-center space-x-4 flex-1 justify-center max-w-4xl">
             {navItems.map((item) => {
               const IconComponent = item.icon;
+              const isClicking = clickingItem === item.title;
               
               return (
                 <button
                   key={item.title}
                   onClick={() => handleLinkClick(item.url, item.title)}
-                  onMouseEnter={() => handleMouseEnter(item.title)}
-                  onMouseLeave={handleMouseLeave}
                   className={getButtonClasses(item.title)}
                 >
-                  <IconComponent className="w-4 h-4" />
-                  <span>{item.title}</span>
+                  {/* Background verde com animação */}
+                  <div 
+                    className={`absolute inset-0 bg-green-500 transition-all duration-300 ${
+                      isClicking 
+                        ? 'w-full h-full opacity-100' 
+                        : 'w-4/5 h-4/5 opacity-0 group-hover:opacity-60 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-lg'
+                    }`}
+                  />
+                  <IconComponent className="w-4 h-4 relative z-10" />
+                  <span className="relative z-10">{item.title}</span>
                 </button>
               );
             })}
@@ -133,14 +124,18 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
             {/* Dropdown menu para Ajuda */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button 
-                  className={getButtonClasses('help')}
-                  onMouseEnter={() => handleMouseEnter('help')}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  <HelpCircle className="w-4 h-4" />
-                  <span>{isEnglish ? "Help" : "Ajuda"}</span>
-                  <ChevronDown className="w-3 h-3" />
+                <button className={getButtonClasses('help')}>
+                  {/* Background verde com animação para botão de ajuda */}
+                  <div 
+                    className={`absolute inset-0 bg-green-500 transition-all duration-300 ${
+                      clickingItem === 'help'
+                        ? 'w-full h-full opacity-100' 
+                        : 'w-4/5 h-4/5 opacity-0 group-hover:opacity-60 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 rounded-lg'
+                    }`}
+                  />
+                  <HelpCircle className="w-4 h-4 relative z-10" />
+                  <span className="relative z-10">{isEnglish ? "Help" : "Ajuda"}</span>
+                  <ChevronDown className="w-3 h-3 relative z-10" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="z-50 bg-red-900 border-red-700 min-w-[200px]" align="end">
