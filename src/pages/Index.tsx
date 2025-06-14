@@ -1,4 +1,5 @@
 
+
 import { useState } from "react";
 import { ProfileSection } from "@/components/ProfileSection";
 import { LinkCard } from "@/components/LinkCard";
@@ -44,13 +45,34 @@ const Index = () => {
       {/* Header do Mush */}
       <Header onLanguageChange={handleLanguageChange} />
 
-      {/* Dark red ambient background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-red-600 rounded-sm animate-pulse"></div>
-        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-amber-600 rounded-sm animate-pulse delay-100"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-red-700 rounded-sm animate-pulse delay-200"></div>
-        <div className="absolute top-2/3 right-1/4 w-1 h-1 bg-red-500 rounded-sm animate-pulse delay-300"></div>
-        <div className="absolute bottom-1/3 right-1/2 w-2 h-2 bg-amber-700 rounded-sm animate-pulse delay-500"></div>
+      {/* Dark red ambient background elements - more circles with different sizes and positions */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Top area circles */}
+        <div className="absolute top-16 left-1/6 w-1 h-1 bg-red-700 rounded-full animate-pulse opacity-60"></div>
+        <div className="absolute top-24 right-1/5 w-2 h-2 bg-red-500 rounded-full animate-pulse delay-100 opacity-40"></div>
+        <div className="absolute top-32 left-3/4 w-1.5 h-1.5 bg-amber-600 rounded-full animate-pulse delay-200"></div>
+        <div className="absolute top-20 left-1/2 w-1 h-1 bg-red-800 rounded-full animate-pulse delay-300 opacity-70"></div>
+        
+        {/* Middle area circles */}
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-red-600 rounded-full animate-pulse opacity-50"></div>
+        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-amber-600 rounded-full animate-pulse delay-100"></div>
+        <div className="absolute top-2/5 left-1/6 w-1.5 h-1.5 bg-red-700 rounded-full animate-pulse delay-400 opacity-60"></div>
+        <div className="absolute top-1/2 right-1/6 w-1 h-1 bg-red-500 rounded-full animate-pulse delay-600 opacity-80"></div>
+        <div className="absolute top-3/5 left-4/5 w-2 h-2 bg-amber-700 rounded-full animate-pulse delay-700 opacity-45"></div>
+        
+        {/* Bottom area circles */}
+        <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-red-700 rounded-full animate-pulse delay-200"></div>
+        <div className="absolute top-2/3 right-1/4 w-1 h-1 bg-red-500 rounded-full animate-pulse delay-300"></div>
+        <div className="absolute bottom-1/3 right-1/2 w-2 h-2 bg-amber-700 rounded-full animate-pulse delay-500"></div>
+        <div className="absolute bottom-1/5 left-1/5 w-1.5 h-1.5 bg-red-800 rounded-full animate-pulse delay-800 opacity-55"></div>
+        <div className="absolute bottom-32 right-1/3 w-1 h-1 bg-red-600 rounded-full animate-pulse delay-900 opacity-70"></div>
+        <div className="absolute bottom-40 left-2/3 w-1.5 h-1.5 bg-amber-600 rounded-full animate-pulse delay-1000 opacity-65"></div>
+        
+        {/* Side area circles */}
+        <div className="absolute top-3/4 left-12 w-1 h-1 bg-red-500 rounded-full animate-pulse delay-1100 opacity-50"></div>
+        <div className="absolute top-1/6 right-12 w-2 h-2 bg-red-700 rounded-full animate-pulse delay-1200 opacity-40"></div>
+        <div className="absolute top-4/5 right-8 w-1.5 h-1.5 bg-amber-700 rounded-full animate-pulse delay-1300 opacity-60"></div>
+        <div className="absolute top-1/8 left-8 w-1 h-1 bg-red-600 rounded-full animate-pulse delay-1400 opacity-75"></div>
       </div>
 
       {/* Main content */}
@@ -83,3 +105,4 @@ const Index = () => {
 };
 
 export default Index;
+
