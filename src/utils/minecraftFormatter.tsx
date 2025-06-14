@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 // Mapeamento dos códigos de cor do Minecraft para classes Tailwind
@@ -7,7 +8,7 @@ const colorMap: { [key: string]: string } = {
   '2': 'text-green-600',       // Verde escuro
   '3': 'text-cyan-600',        // Azul-ciano escuro
   '4': 'text-red-700',         // Vermelho escuro
-  '5': 'text-purple-500',      // Roxo (melhorado)
+  '5': 'text-purple-600',      // Roxo
   '6': 'text-yellow-600',      // Dourado
   '7': 'text-gray-300',        // Cinza claro
   '8': 'text-gray-600',        // Cinza escuro
@@ -57,9 +58,14 @@ export const parseMinecraftText = (text: string): TextSegment[] => {
       
       // Processa o código
       if (colorMap[code]) {
-        // Remove cores anteriores e adiciona nova cor
-        currentClasses = currentClasses.filter(cls => !Object.values(colorMap).includes(cls));
-        currentClasses.push(colorMap[code]);
+        if (code === 'f') {
+          // &f reseta todas as formatações e aplica apenas branco
+          currentClasses = ['text-white'];
+        } else {
+          // Remove cores anteriores e adiciona nova cor
+          currentClasses = currentClasses.filter(cls => !Object.values(colorMap).includes(cls));
+          currentClasses.push(colorMap[code]);
+        }
       } else if (formatMap[code]) {
         if (code === 'r') {
           // Reset - volta para o padrão
