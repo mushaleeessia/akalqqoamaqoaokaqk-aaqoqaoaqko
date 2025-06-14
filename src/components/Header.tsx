@@ -20,8 +20,6 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [clickingItem, setClickingItem] = useState<string | null>(null);
 
-  console.log('Current hoveredItem:', hoveredItem);
-
   const navItems = [
     { 
       title: isEnglish ? "Store" : "Loja", 
@@ -68,7 +66,6 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
   const handleLinkClick = (url: string, itemTitle: string) => {
     setClickingItem(itemTitle);
     
-    // Delay para mostrar a animação de completar
     setTimeout(() => {
       window.open(url, '_blank', 'noopener,noreferrer');
       setMobileMenuOpen(false);
@@ -77,12 +74,10 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
   };
 
   const handleMouseEnter = (itemTitle: string) => {
-    console.log('Mouse enter:', itemTitle);
     setHoveredItem(itemTitle);
   };
 
   const handleMouseLeave = () => {
-    console.log('Mouse leave');
     setHoveredItem(null);
   };
 
@@ -90,6 +85,21 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
     const newLanguageState = !isEnglish;
     setIsEnglish(newLanguageState);
     onLanguageChange?.(newLanguageState);
+  };
+
+  const getButtonClasses = (itemTitle: string) => {
+    const isHovered = hoveredItem === itemTitle;
+    const isClicking = clickingItem === itemTitle;
+    
+    let bgClass = "bg-red-900/50";
+    
+    if (isClicking) {
+      bgClass = "bg-green-400";
+    } else if (isHovered) {
+      bgClass = "bg-green-500/60";
+    }
+    
+    return `flex items-center space-x-2 px-4 py-2 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-300 text-sm font-medium ${bgClass}`;
   };
 
   return (
@@ -105,83 +115,33 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
           <nav className="hidden md:flex items-center space-x-4 flex-1 justify-center max-w-4xl">
             {navItems.map((item) => {
               const IconComponent = item.icon;
-              const isHovered = hoveredItem === item.title;
-              const isClicking = clickingItem === item.title;
-              
-              console.log(`Item ${item.title} - isHovered: ${isHovered}, isClicking: ${isClicking}`);
               
               return (
-                <div key={item.title} className="relative">
-                  <button
-                    onClick={() => handleLinkClick(item.url, item.title)}
-                    onMouseEnter={() => handleMouseEnter(item.title)}
-                    onMouseLeave={handleMouseLeave}
-                    className="flex items-center space-x-2 px-4 py-2 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium relative"
-                    style={{
-                      backgroundColor: isHovered || isClicking ? 'transparent' : 'rgba(153, 27, 27, 0.5)',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    <IconComponent className="w-4 h-4 relative z-20" />
-                    <span className="relative z-20">{item.title}</span>
-                    
-                    {/* Overlay verde que cresce da esquerda para direita */}
-                    <div 
-                      className={`absolute bg-green-500 rounded-lg transition-all ease-out origin-left ${
-                        isClicking 
-                          ? 'scale-x-100 bg-green-400 opacity-90' 
-                          : isHovered 
-                            ? 'scale-x-100 opacity-60'
-                            : 'scale-x-0 opacity-0'
-                      }`}
-                      style={{
-                        top: '-1px',
-                        left: '-1px',
-                        right: '-1px',
-                        bottom: '-1px',
-                        zIndex: 10,
-                        transitionDuration: isClicking ? '600ms' : '300ms',
-                        transformOrigin: 'left center'
-                      }}
-                    />
-                  </button>
-                </div>
+                <button
+                  key={item.title}
+                  onClick={() => handleLinkClick(item.url, item.title)}
+                  onMouseEnter={() => handleMouseEnter(item.title)}
+                  onMouseLeave={handleMouseLeave}
+                  className={getButtonClasses(item.title)}
+                >
+                  <IconComponent className="w-4 h-4" />
+                  <span>{item.title}</span>
+                </button>
               );
             })}
             
             {/* Dropdown menu para Ajuda */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="relative">
-                  <button 
-                    className="flex items-center space-x-2 px-4 py-2 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium relative"
-                    onMouseEnter={() => handleMouseEnter('help')}
-                    onMouseLeave={handleMouseLeave}
-                    style={{
-                      backgroundColor: hoveredItem === 'help' ? 'transparent' : 'rgba(153, 27, 27, 0.5)',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    <HelpCircle className="w-4 h-4 relative z-20" />
-                    <span className="relative z-20">{isEnglish ? "Help" : "Ajuda"}</span>
-                    <ChevronDown className="w-3 h-3 relative z-20" />
-                    
-                    {/* Overlay verde para o dropdown */}
-                    <div 
-                      className={`absolute bg-green-500 rounded-lg transition-all duration-300 ease-out origin-left ${
-                        hoveredItem === 'help' ? 'opacity-60 scale-x-100' : 'opacity-0 scale-x-0'
-                      }`}
-                      style={{
-                        top: '-1px',
-                        left: '-1px',
-                        right: '-1px',
-                        bottom: '-1px',
-                        zIndex: 10,
-                        transformOrigin: 'left center'
-                      }}
-                    />
-                  </button>
-                </div>
+                <button 
+                  className={getButtonClasses('help')}
+                  onMouseEnter={() => handleMouseEnter('help')}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  <span>{isEnglish ? "Help" : "Ajuda"}</span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="z-50 bg-red-900 border-red-700 min-w-[200px]" align="end">
                 {helpItems.map((item) => (
@@ -224,7 +184,7 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
           </div>
         </div>
 
-        {/* Aviso para estrangeiros - desktop (posicionado no canto direito) */}
+        {/* Aviso para estrangeiros - desktop */}
         {isEnglish && (
           <div className="hidden md:block absolute top-16 right-4 z-50">
             <ForeignerNotice isVisible={isEnglish} />
@@ -250,7 +210,7 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                 />
               </div>
 
-              {/* Aviso para estrangeiros - mobile (abaixo do switch) */}
+              {/* Aviso para estrangeiros - mobile */}
               <ForeignerNotice isVisible={isEnglish} />
 
               {navItems.map((item) => {
@@ -258,32 +218,16 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                 const isClicking = clickingItem === item.title;
                 
                 return (
-                  <div key={item.title} className="relative">
-                    <button
-                      onClick={() => handleLinkClick(item.url, item.title)}
-                      className="flex items-center space-x-3 px-4 py-3 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium w-full relative"
-                      style={{ overflow: 'hidden' }}
-                    >
-                      <IconComponent className="w-4 h-4 relative z-10" />
-                      <span className="relative z-10">{item.title}</span>
-                      
-                      {/* Overlay verde no mobile */}
-                      <div 
-                        className={`absolute bg-green-500 rounded-lg transition-all ease-out origin-left ${
-                          isClicking 
-                            ? 'scale-x-100 bg-green-400 opacity-80' 
-                            : 'scale-x-0 opacity-0'
-                        }`}
-                        style={{
-                          top: '-1px',
-                          left: '-1px',
-                          right: '-1px',
-                          bottom: '-1px',
-                          transitionDuration: isClicking ? '600ms' : '200ms'
-                        }}
-                      />
-                    </button>
-                  </div>
+                  <button
+                    key={item.title}
+                    onClick={() => handleLinkClick(item.url, item.title)}
+                    className={`flex items-center space-x-3 px-4 py-3 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200 text-sm font-medium w-full ${
+                      isClicking ? 'bg-green-400' : 'bg-red-800/50 hover:bg-red-700'
+                    }`}
+                  >
+                    <IconComponent className="w-4 h-4" />
+                    <span>{item.title}</span>
+                  </button>
                 );
               })}
               
@@ -294,31 +238,15 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                   <span>{isEnglish ? "Help" : "Ajuda"}</span>
                 </div>
                 {helpItems.map((item) => (
-                  <div key={item.title} className="relative">
-                    <button
-                      onClick={() => handleLinkClick(item.url, item.title)}
-                      className="flex items-center space-x-3 px-8 py-2 text-white hover:bg-red-700 rounded-lg transition-all duration-200 text-sm w-full relative"
-                      style={{ overflow: 'hidden' }}
-                    >
-                      <span className="relative z-10">{item.title}</span>
-                      
-                      {/* Overlay verde para itens de ajuda no mobile */}
-                      <div 
-                        className={`absolute bg-green-500 rounded-lg transition-all ease-out origin-left ${
-                          clickingItem === item.title 
-                            ? 'scale-x-100 bg-green-400 opacity-80' 
-                            : 'scale-x-0 opacity-0'
-                        }`}
-                        style={{
-                          top: '-1px',
-                          left: '-1px',
-                          right: '-1px',
-                          bottom: '-1px',
-                          transitionDuration: clickingItem === item.title ? '600ms' : '200ms'
-                        }}
-                      />
-                    </button>
-                  </div>
+                  <button
+                    key={item.title}
+                    onClick={() => handleLinkClick(item.url, item.title)}
+                    className={`flex items-center space-x-3 px-8 py-2 text-white rounded-lg transition-all duration-200 text-sm w-full ${
+                      clickingItem === item.title ? 'bg-green-400' : 'hover:bg-red-700'
+                    }`}
+                  >
+                    <span>{item.title}</span>
+                  </button>
                 ))}
               </div>
             </nav>
