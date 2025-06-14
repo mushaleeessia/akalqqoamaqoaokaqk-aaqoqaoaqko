@@ -8,7 +8,6 @@ export const translateText = async (text: string, targetLang: string = 'en'): Pr
     const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodedText}&langpair=pt|${targetLang}`);
     
     if (!response.ok) {
-      console.warn('Translation API failed, returning original text');
       return text;
     }
     
@@ -20,7 +19,6 @@ export const translateText = async (text: string, targetLang: string = 'en'): Pr
     
     return text;
   } catch (error) {
-    console.warn('Translation failed:', error);
     return text;
   }
 };
