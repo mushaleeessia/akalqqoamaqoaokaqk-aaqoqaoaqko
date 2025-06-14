@@ -107,8 +107,8 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                     <IconComponent className="w-4 h-4 relative z-10" />
                     <span className="relative z-10">{item.title}</span>
                     
-                    {/* Barra de progresso verde melhorada */}
-                    <div className="absolute bottom-0 left-0 w-full h-1 bg-red-800/30 rounded-b-lg">
+                    {/* Barra de progresso verde melhorada - cobrindo todo o botão */}
+                    <div className="absolute inset-x-0 bottom-0 h-1 bg-red-800/30 rounded-b-lg">
                       <div 
                         className={`h-full bg-gradient-to-r from-green-400 to-green-500 rounded-b-lg shadow-sm transition-all duration-500 ease-out ${
                           isClicking 
@@ -141,8 +141,8 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                     <span className="relative z-10">{isEnglish ? "Help" : "Ajuda"}</span>
                     <ChevronDown className="w-3 h-3 relative z-10" />
                     
-                    {/* Barra de progresso verde para o dropdown */}
-                    <div className="absolute bottom-0 left-0 w-full h-1 bg-red-800/30 rounded-b-lg">
+                    {/* Barra de progresso verde para o dropdown - cobrindo todo o botão */}
+                    <div className="absolute inset-x-0 bottom-0 h-1 bg-red-800/30 rounded-b-lg">
                       <div 
                         className={`h-full bg-gradient-to-r from-green-400 to-green-500 rounded-b-lg shadow-sm transition-all duration-500 ease-out ${
                           hoveredItem === 'help' ? 'w-4/5 opacity-90' : 'w-0 opacity-0'
@@ -236,8 +236,8 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                       <IconComponent className="w-4 h-4 relative z-10" />
                       <span className="relative z-10">{item.title}</span>
                       
-                      {/* Barra de progresso verde no mobile melhorada */}
-                      <div className="absolute bottom-0 left-0 w-full h-1 bg-red-800/30 rounded-b-lg">
+                      {/* Barra de progresso verde no mobile - cobrindo todo o botão */}
+                      <div className="absolute inset-x-0 bottom-0 h-1 bg-red-800/30 rounded-b-lg">
                         <div 
                           className={`h-full bg-gradient-to-r from-green-400 to-green-500 rounded-b-lg shadow-sm transition-all duration-400 ease-out ${
                             isClicking ? 'w-full opacity-100 shadow-green-400/50' : 'w-0 opacity-0'
@@ -267,8 +267,8 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                     >
                       <span className="relative z-10">{item.title}</span>
                       
-                      {/* Barra de progresso verde para itens de ajuda no mobile melhorada */}
-                      <div className="absolute bottom-0 left-0 w-full h-1 bg-red-800/30 rounded-b-lg">
+                      {/* Barra de progresso verde para itens de ajuda no mobile - cobrindo todo o botão */}
+                      <div className="absolute inset-x-0 bottom-0 h-1 bg-red-800/30 rounded-b-lg">
                         <div 
                           className={`h-full bg-gradient-to-r from-green-400 to-green-500 rounded-b-lg shadow-sm transition-all duration-400 ease-out ${
                             clickingItem === item.title ? 'w-full opacity-100 shadow-green-400/50' : 'w-0 opacity-0'
