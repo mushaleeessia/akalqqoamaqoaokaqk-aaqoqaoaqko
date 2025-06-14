@@ -1,73 +1,52 @@
 
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { useState } from "react";
+import { useFirebaseData } from "@/hooks/useFirebaseData";
 
 interface ProfileSectionProps {
   isEnglish: boolean;
 }
 
 export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
-  const [isShaking, setIsShaking] = useState(false);
-
-  const handleAvatarClick = () => {
-    setIsShaking(true);
-    setTimeout(() => setIsShaking(false), 500);
-  };
+  const { about, loading } = useFirebaseData(isEnglish);
 
   return (
-    <div className="text-center mb-8 animate-fade-in">
-      <div className="relative inline-block mb-4">
-        <Avatar 
-          className={`w-24 h-24 mx-auto border-4 border-red-600 cursor-pointer transition-all duration-300 hover:scale-105 ${
-            isShaking ? 'animate-pulse' : ''
-          }`}
-          onClick={handleAvatarClick}
-          style={{
-            transform: isShaking ? 'scale(1.1)' : 'scale(1)',
-            filter: isShaking ? 'brightness(1.3) saturate(1.2)' : 'brightness(1) saturate(1)',
-            boxShadow: isShaking ? '0 0 20px rgba(239, 68, 68, 0.6)' : 'none',
-            transition: 'all 0.5s ease-in-out',
-            animation: isShaking ? 'shake 0.5s ease-in-out' : 'none'
-          }}
-        >
-          <AvatarImage 
-            src="https://mc-heads.net/avatar/80eba0b3-159a-48bf-9613-307634a45057/128" 
-            alt="Minecraft head" 
-            className="pixelated"
-          />
-          <AvatarFallback className="bg-red-800 text-white text-xl font-bold">
-            AL
-          </AvatarFallback>
-        </Avatar>
-        
-        {/* Efeito de brilho quando clica */}
-        {isShaking && (
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-2 -left-2 -right-2 -bottom-2 border-2 border-red-400 rounded-full animate-ping opacity-75"></div>
-            <div className="absolute -top-1 -left-1 -right-1 -bottom-1 border border-amber-400 rounded-full animate-ping delay-100 opacity-50"></div>
+    <div className="text-center animate-fade-in">
+      {/* Profile Image */}
+      <div className="relative inline-block mb-6">
+        <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-red-600 via-red-700 to-amber-800 p-1 shadow-2xl shadow-red-900/40">
+          <div className="w-full h-full rounded-full overflow-hidden bg-gray-900 flex items-center justify-center">
+            <img 
+              src="https://mc-heads.net/avatar/80eba0b3-159a-48bf-9613-307634a45057/128" 
+              alt="aleeessia Minecraft Skin"
+              className="w-full h-full object-cover rounded-full"
+            />
           </div>
-        )}
+        </div>
+        {/* Glow effect */}
+        <div className="absolute inset-0 rounded-full bg-red-600 opacity-20 blur-xl animate-pulse"></div>
       </div>
-      
+
+      {/* Name and Title */}
       <h1 className="text-3xl font-bold text-white mb-2 tracking-wide">
-        aleeessia_
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-amber-600">aleeessia</span>
       </h1>
       
-      <p className="text-red-200 text-lg mb-4">
-        {isEnglish ? "Content Creator & Gamer" : "Criadora de Conteúdo & Gamer"}
+      <p className="text-gray-300 text-lg mb-4">
+        {isEnglish ? "Mush Moderator" : "Moderadora do Mush"}
       </p>
       
-      <div className="flex justify-center space-x-4 text-sm text-red-300">
-        <span className="bg-red-800/30 px-3 py-1 rounded-full border border-red-600/30">
-          Minecraft
-        </span>
-        <span className="bg-red-800/30 px-3 py-1 rounded-full border border-red-600/30">
-          TikTok
-        </span>
-        <span className="bg-red-800/30 px-3 py-1 rounded-full border border-red-600/30">
-          Gaming
-        </span>
+      {/* About Section */}
+      <div className="max-w-xs mx-auto mb-4">
+        {loading ? (
+          <p className="text-gray-400 text-sm">{isEnglish ? "Loading..." : "Carregando..."}</p>
+        ) : (
+          <p className="text-gray-200 text-sm leading-relaxed bg-gray-800/40 p-3 rounded-lg border border-red-900/30">
+            {about}
+          </p>
+        )}
       </div>
+
+      {/* Decorative line */}
+      <div className="mt-6 mx-auto w-24 h-px bg-gradient-to-r from-transparent via-red-600 to-transparent"></div>
     </div>
   );
 };
