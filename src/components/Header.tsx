@@ -125,7 +125,7 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
               <DropdownMenuTrigger asChild>
                 <button className={getButtonClasses('help')}>
                   {/* Sem slider para o botão de ajuda */}
-                  <HelpCircle className="w-4 h-4 relative z-10" />
+                  <HelpCircle className="w-4 h-4 relative z-10 animate-pulse" />
                   <span className="relative z-10">{isEnglish ? "Help" : "Ajuda"}</span>
                   <ChevronDown className="w-3 h-3 relative z-10" />
                 </button>
@@ -221,7 +221,7 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
               {/* Items de ajuda no mobile */}
               <div className="pt-2 border-t border-red-700/30">
                 <div className="flex items-center space-x-3 px-4 py-2 text-white text-sm font-medium opacity-70">
-                  <HelpCircle className="w-4 h-4" />
+                  <HelpCircle className="w-4 h-4 animate-pulse" />
                   <span>{isEnglish ? "Help" : "Ajuda"}</span>
                 </div>
                 {helpItems.map((item) => (
