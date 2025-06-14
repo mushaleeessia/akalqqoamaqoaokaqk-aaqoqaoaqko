@@ -11,10 +11,12 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
   const [currentStreamer, setCurrentStreamer] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [showingVOD, setShowingVOD] = useState(false);
 
   useEffect(() => {
     const checkStreams = async () => {
       setIsLoading(true);
+      setShowingVOD(false);
       
       // Primeiro verifica ffeijao
       const ffeijaoOnline = await checkStreamStatus('ffeijao');
@@ -32,8 +34,9 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
         return;
       }
       
-      // Nenhum está online
+      // Se ninguém estiver online, mostra o VOD do mushmc
       setCurrentStreamer(null);
+      setShowingVOD(true);
       setIsLoading(false);
     };
 
@@ -45,18 +48,36 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
     return () => clearInterval(interval);
   }, []);
 
-  if (isLoading || !currentStreamer || !isVisible) {
+  if (isLoading || (!currentStreamer && !showingVOD) || !isVisible) {
     return null;
   }
 
+  const getEmbedUrl = () => {
+    if (currentStreamer) {
+      return `https://player.twitch.tv/?channel=${currentStreamer}&parent=${window.location.hostname}&muted=true`;
+    } else if (showingVOD) {
+      return `https://player.twitch.tv/?video=2457385170&parent=${window.location.hostname}&muted=true`;
+    }
+    return '';
+  };
+
+  const getTitle = () => {
+    if (currentStreamer) {
+      return `${isEnglish ? 'Live Stream' : 'Ao Vivo'}: ${currentStreamer}`;
+    } else if (showingVOD) {
+      return `${isEnglish ? 'Latest VOD' : 'Último VOD'}: mushmc`;
+    }
+    return '';
+  };
+
   return (
     <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-40 w-80 h-48 bg-black rounded-lg overflow-hidden shadow-2xl border border-red-600/50">
-      {/* Header com nome do streamer e botão fechar */}
+      {/* Header com nome do streamer/VOD e botão fechar */}
       <div className="bg-red-900/90 px-3 py-2 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+          <div className={`w-2 h-2 rounded-full ${currentStreamer ? 'bg-red-500 animate-pulse' : 'bg-gray-400'}`}></div>
           <span className="text-white text-sm font-medium">
-            {isEnglish ? 'Live Stream' : 'Ao Vivo'}: {currentStreamer}
+            {getTitle()}
           </span>
         </div>
         <button
@@ -69,7 +90,7 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
       
       {/* Embed da Twitch */}
       <iframe
-        src={`https://player.twitch.tv/?channel=${currentStreamer}&parent=${window.location.hostname}&muted=true`}
+        src={getEmbedUrl()}
         width="100%"
         height="100%"
         frameBorder="0"
