@@ -107,23 +107,16 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                     <IconComponent className="w-4 h-4 relative z-10" />
                     <span className="relative z-10">{item.title}</span>
                     
-                    {/* Barra de progresso verde - nova abordagem cobrindo completamente */}
-                    <div className="absolute -left-px -right-px bottom-0 h-2 overflow-hidden rounded-b-lg">
-                      <div className="absolute inset-0 bg-red-800/30 rounded-b-lg"></div>
-                      <div 
-                        className={`absolute bottom-0 left-0 h-full bg-gradient-to-r from-green-400 to-green-500 rounded-b-lg shadow-sm transition-all duration-500 ease-out ${
-                          isClicking 
-                            ? 'w-full opacity-100 shadow-green-400/50' 
-                            : isHovered 
-                              ? 'w-4/5 opacity-90' 
-                              : 'w-0 opacity-0'
-                        }`}
-                        style={{
-                          transformOrigin: 'left',
-                          boxShadow: isClicking ? '0 0 8px rgba(34, 197, 94, 0.4)' : 'none'
-                        }}
-                      />
-                    </div>
+                    {/* Overlay verde transparente cobrindo todo o botão */}
+                    <div 
+                      className={`absolute inset-0 bg-green-400/20 rounded-lg transition-all duration-500 ease-out ${
+                        isClicking 
+                          ? 'opacity-100 bg-green-500/30' 
+                          : isHovered 
+                            ? 'opacity-100' 
+                            : 'opacity-0'
+                      }`}
+                    />
                   </button>
                 </div>
               );
@@ -142,16 +135,12 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                     <span className="relative z-10">{isEnglish ? "Help" : "Ajuda"}</span>
                     <ChevronDown className="w-3 h-3 relative z-10" />
                     
-                    {/* Barra de progresso verde para o dropdown - nova abordagem */}
-                    <div className="absolute -left-px -right-px bottom-0 h-2 overflow-hidden rounded-b-lg">
-                      <div className="absolute inset-0 bg-red-800/30 rounded-b-lg"></div>
-                      <div 
-                        className={`absolute bottom-0 left-0 h-full bg-gradient-to-r from-green-400 to-green-500 rounded-b-lg shadow-sm transition-all duration-500 ease-out ${
-                          hoveredItem === 'help' ? 'w-4/5 opacity-90' : 'w-0 opacity-0'
-                        }`}
-                        style={{ transformOrigin: 'left' }}
-                      />
-                    </div>
+                    {/* Overlay verde transparente para o dropdown */}
+                    <div 
+                      className={`absolute inset-0 bg-green-400/20 rounded-lg transition-all duration-500 ease-out ${
+                        hoveredItem === 'help' ? 'opacity-100' : 'opacity-0'
+                      }`}
+                    />
                   </button>
                 </div>
               </DropdownMenuTrigger>
@@ -238,19 +227,12 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                       <IconComponent className="w-4 h-4 relative z-10" />
                       <span className="relative z-10">{item.title}</span>
                       
-                      {/* Barra de progresso verde no mobile - nova abordagem */}
-                      <div className="absolute -left-px -right-px bottom-0 h-2 overflow-hidden rounded-b-lg">
-                        <div className="absolute inset-0 bg-red-800/30 rounded-b-lg"></div>
-                        <div 
-                          className={`absolute bottom-0 left-0 h-full bg-gradient-to-r from-green-400 to-green-500 rounded-b-lg shadow-sm transition-all duration-400 ease-out ${
-                            isClicking ? 'w-full opacity-100 shadow-green-400/50' : 'w-0 opacity-0'
-                          }`}
-                          style={{
-                            transformOrigin: 'left',
-                            boxShadow: isClicking ? '0 0 8px rgba(34, 197, 94, 0.4)' : 'none'
-                          }}
-                        />
-                      </div>
+                      {/* Overlay verde transparente no mobile */}
+                      <div 
+                        className={`absolute inset-0 bg-green-400/20 rounded-lg transition-all duration-400 ease-out ${
+                          isClicking ? 'opacity-100 bg-green-500/30' : 'opacity-0'
+                        }`}
+                      />
                     </button>
                   </div>
                 );
@@ -270,19 +252,12 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                     >
                       <span className="relative z-10">{item.title}</span>
                       
-                      {/* Barra de progresso verde para itens de ajuda no mobile - nova abordagem */}
-                      <div className="absolute -left-px -right-px bottom-0 h-2 overflow-hidden rounded-b-lg">
-                        <div className="absolute inset-0 bg-red-800/30 rounded-b-lg"></div>
-                        <div 
-                          className={`absolute bottom-0 left-0 h-full bg-gradient-to-r from-green-400 to-green-500 rounded-b-lg shadow-sm transition-all duration-400 ease-out ${
-                            clickingItem === item.title ? 'w-full opacity-100 shadow-green-400/50' : 'w-0 opacity-0'
-                          }`}
-                          style={{
-                            transformOrigin: 'left',
-                            boxShadow: clickingItem === item.title ? '0 0 8px rgba(34, 197, 94, 0.4)' : 'none'
-                          }}
-                        />
-                      </div>
+                      {/* Overlay verde transparente para itens de ajuda no mobile */}
+                      <div 
+                        className={`absolute inset-0 bg-green-400/20 rounded-lg transition-all duration-400 ease-out ${
+                          clickingItem === item.title ? 'opacity-100 bg-green-500/30' : 'opacity-0'
+                        }`}
+                      />
                     </button>
                   </div>
                 ))}
