@@ -180,23 +180,23 @@ export const HelpAssistant = () => {
 
       {/* Toggle Button - ALWAYS fixed in bottom right */}
       <div className="fixed bottom-6 right-6">
-        <Button
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-14 h-14 rounded-full shadow-lg transition-all duration-500 hover:scale-110 active:scale-95 bg-gradient-to-r from-red-900 to-amber-900 hover:from-red-800 hover:to-amber-800 hover:shadow-xl hover:shadow-red-900/25 relative overflow-hidden"
-        >
-          {/* Container com posição relativa para os círculos */}
-          <div className="relative flex items-center justify-center">
-            {/* Círculos de ondas com cores do gradiente */}
-            <div className="absolute inset-0 rounded-full border-2 border-red-400/40 animate-ripple"></div>
-            <div className="absolute inset-0 rounded-full border-2 border-amber-400/30 animate-ripple-delay"></div>
+        <div className="relative">
+          {/* Círculos de ondas saindo do botão */}
+          <div className="absolute inset-0 rounded-full border-2 border-red-400/40 animate-ripple"></div>
+          <div className="absolute inset-0 rounded-full border-2 border-amber-400/30 animate-ripple-delay"></div>
+          
+          <Button
+            onClick={() => setIsOpen(!isOpen)}
+            className="w-14 h-14 rounded-full shadow-lg transition-all duration-500 hover:scale-110 active:scale-95 bg-gradient-to-r from-red-900 to-amber-900 hover:from-red-800 hover:to-amber-800 hover:shadow-xl hover:shadow-red-900/25 relative z-10"
+          >
             {/* Ícone principal */}
             {isOpen ? (
-              <X className="w-6 h-6 text-white transition-transform duration-300 rotate-0 hover:rotate-90 relative z-10" />
+              <X className="w-6 h-6 text-white transition-transform duration-300 rotate-0 hover:rotate-90" />
             ) : (
-              <MessageCircle className="w-6 h-6 text-white transition-all duration-300 hover:scale-110 relative z-10" />
+              <MessageCircle className="w-6 h-6 text-white transition-all duration-300 hover:scale-110" />
             )}
-          </div>
-        </Button>
+          </Button>
+        </div>
       </div>
     </div>
   );
