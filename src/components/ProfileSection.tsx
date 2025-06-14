@@ -26,6 +26,7 @@ export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
       case 70:
       case 90: return "...";
       case 80: return "Ei, para, é sério.";
+      case 100: return "Ok, você ganhou! 🎉 Parabéns pela persistência!";
       default: return null;
     }
   };
@@ -33,12 +34,6 @@ export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
   const handleImageClick = () => {
     const newClickCount = clickCount + 1;
     setClickCount(newClickCount);
-
-    // Check if we should close the page
-    if (newClickCount >= 100) {
-      window.close();
-      return;
-    }
 
     // Check if we should show a message
     const message = getMessageForClickCount(newClickCount);
