@@ -109,12 +109,12 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                     
                     {/* Overlay verde que cresce da esquerda para direita */}
                     <div 
-                      className={`absolute inset-0 bg-green-500/60 rounded-lg transition-all duration-200 ease-out ${
-                        isHovered ? 'opacity-100' : 'opacity-0'
-                      } ${
+                      className={`absolute inset-0 bg-green-500 rounded-lg transition-all ease-out ${
                         isClicking 
-                          ? 'transform scale-x-100 origin-left bg-green-400/80' 
-                          : 'transform scale-x-0 origin-left'
+                          ? 'transform scale-x-100 origin-left bg-green-400 opacity-80' 
+                          : isHovered 
+                            ? 'transform scale-x-100 origin-left opacity-30'
+                            : 'transform scale-x-0 origin-left opacity-0'
                       }`}
                       style={{
                         transitionDuration: isClicking ? '600ms' : '200ms'
@@ -140,9 +140,10 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                     
                     {/* Overlay verde para o dropdown */}
                     <div 
-                      className={`absolute inset-0 bg-green-500/60 rounded-lg transition-all duration-200 ease-out ${
-                        hoveredItem === 'help' ? 'opacity-100' : 'opacity-0'
+                      className={`absolute inset-0 bg-green-500 rounded-lg transition-all duration-200 ease-out ${
+                        hoveredItem === 'help' ? 'opacity-30 scale-x-100' : 'opacity-0 scale-x-0'
                       }`}
+                      style={{ transformOrigin: 'left' }}
                     />
                   </button>
                 </div>
@@ -232,10 +233,10 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                       
                       {/* Overlay verde no mobile */}
                       <div 
-                        className={`absolute inset-0 bg-green-500/60 rounded-lg transition-all ease-out ${
+                        className={`absolute inset-0 bg-green-500 rounded-lg transition-all ease-out ${
                           isClicking 
-                            ? 'transform scale-x-100 origin-left bg-green-400/80' 
-                            : 'transform scale-x-0 origin-left'
+                            ? 'transform scale-x-100 origin-left bg-green-400 opacity-80' 
+                            : 'transform scale-x-0 origin-left opacity-0'
                         }`}
                         style={{
                           transitionDuration: isClicking ? '600ms' : '200ms'
@@ -262,10 +263,10 @@ export const Header = ({ onLanguageChange }: HeaderProps) => {
                       
                       {/* Overlay verde para itens de ajuda no mobile */}
                       <div 
-                        className={`absolute inset-0 bg-green-500/60 rounded-lg transition-all ease-out ${
+                        className={`absolute inset-0 bg-green-500 rounded-lg transition-all ease-out ${
                           clickingItem === item.title 
-                            ? 'transform scale-x-100 origin-left bg-green-400/80' 
-                            : 'transform scale-x-0 origin-left'
+                            ? 'transform scale-x-100 origin-left bg-green-400 opacity-80' 
+                            : 'transform scale-x-0 origin-left opacity-0'
                         }`}
                         style={{
                           transitionDuration: clickingItem === item.title ? '600ms' : '200ms'
