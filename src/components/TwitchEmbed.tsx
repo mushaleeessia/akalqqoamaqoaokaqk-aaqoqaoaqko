@@ -89,8 +89,8 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
         </button>
       </div>
       
-      {/* Embed da Twitch - otimizado para remover bordas */}
-      <div className="w-full h-full bg-black" style={{ height: 'calc(100% - 44px)' }}>
+      {/* Embed da Twitch - zoom aumentado para eliminar bordas */}
+      <div className="w-full h-full bg-black overflow-hidden" style={{ height: 'calc(100% - 44px)' }}>
         <iframe
           src={getEmbedUrl()}
           width="100%"
@@ -104,7 +104,7 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
             border: 'none',
             outline: 'none',
             background: 'black',
-            transform: 'scale(1.05)',
+            transform: 'scale(1.2)',
             transformOrigin: 'center center'
           }}
         />
