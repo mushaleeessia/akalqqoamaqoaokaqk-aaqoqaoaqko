@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { MessageCircle, X, ExternalLink, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,8 +22,8 @@ const helpOptions: HelpOption[] = [
   },
   {
     id: "migration",
-    title: "Migração de Contas",
-    response: "Se você precisa migrar sua conta, siga o processo oficial descrito no fórum:",
+    title: "Problemas com contas",
+    response: "Se você está com problemas com sua conta, confira o tópico oficial no fórum:",
     link: "https://forum.mush.com.br/topic/43053/migra%C3%A7%C3%A3o-de-contas",
     category: "conta"
   },
@@ -35,8 +36,8 @@ const helpOptions: HelpOption[] = [
   },
   {
     id: "support",
-    title: "Atendimento e Vendas",
-    response: "Para entrar em contato com o suporte ou vendas, acesse:",
+    title: "Atendimento de vendas",
+    response: "Para entrar em contato com o suporte de vendas, acesse:",
     link: "https://forum.mush.com.br/topic/145928/atendimento-email-de-vendas",
     category: "suporte"
   },
@@ -56,15 +57,15 @@ const helpOptions: HelpOption[] = [
   },
   {
     id: "appeal",
-    title: "Fazer Appeal",
-    response: "Para fazer um appeal (recurso), acesse:",
+    title: "Contestar Punição injusta",
+    response: "Para contestar uma punição incorreta, acesse:",
     link: "https://forum.mush.com.br/category/8/appeal",
     category: "appeal"
   },
   {
     id: "content",
-    title: "Criar Conteúdo",
-    response: "Quer criar conteúdo para o servidor? Solicite aqui:",
+    title: "Aplicar para criador de conteúdo",
+    response: "Para aplicar para ser um dos criadores de conteúdo do servidor, acesse:",
     link: "https://forum.mush.com.br/category/78/solicita%C3%A7%C3%A3o-para-cria%C3%A7%C3%A3o-de-conte%C3%BAdo",
     category: "conteudo"
   },
