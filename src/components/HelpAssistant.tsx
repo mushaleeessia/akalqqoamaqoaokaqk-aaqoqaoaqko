@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { MessageCircle, X, ExternalLink, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -128,12 +129,12 @@ export const HelpAssistant = ({ isEnglish = false }: HelpAssistantProps) => {
 
   const handleEmailClick = () => {
     const subject = isEnglish 
-      ? "My minecraft nick:" 
-      : "Meu nick no minecraft:";
+      ? "Message from your website" 
+      : "Mensagem do seu site";
     
     const body = isEnglish 
-      ? "Olá,\n\n" 
-      : "Olá,\n\n";
+      ? "• My minecraft nick:\n• My account type: (Pirate/Original)\n• My question/Message:\n\n\n• I understand that this message is only for asking questions or sending messages to aleeessia. Yes" 
+      : "• Meu nick no minecraft:\n• Meu tipo de conta: (Pirata/Original)\n• Minha dúvida/Mensagem:\n\n\n• Eu entendo que essa mensagem é apenas para tirar dúvidas ou enviar mensagens para a aleeessia. Sim";
     
     const mailtoUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=aleeessia@aleeessia.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailtoUrl, '_blank');
