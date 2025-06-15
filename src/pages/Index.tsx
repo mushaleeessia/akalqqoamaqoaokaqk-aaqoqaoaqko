@@ -7,6 +7,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { HelpAssistant } from "@/components/HelpAssistant";
 import { TwitchEmbed } from "@/components/TwitchEmbed";
+import { MusicPlayer } from "@/components/MusicPlayer";
 import { Globe, MessageSquare, Video } from "lucide-react";
 
 const Index = () => {
@@ -161,6 +162,9 @@ const Index = () => {
 
       {/* Help Assistant */}
       <HelpAssistant isEnglish={isEnglish} />
+
+      {/* Music Player */}
+      <MusicPlayer />
     </div>
   );
 };
