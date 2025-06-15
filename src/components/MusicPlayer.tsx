@@ -1,14 +1,14 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { Music, Music2 } from 'lucide-react';
+import { Disc } from 'lucide-react';
 
 export const MusicPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // URL do áudio fornecido
-  const audioUrl = "https://jmp.sh/s/F8NXAZVprnbU8lorS5K6";
+  // URL do áudio atualizado
+  const audioUrl = "https://cdn.discordapp.com/attachments/1225909016526458971/1383758695594332211/Mac_Miller_-_Congratulations_Instrumental_VIOLIN__PIANO_.mp3?ex=684ff536&is=684ea3b6&hm=c2e6c0184dab419c7f7ce6387bbfe927a8a05eb185b07906436f97c1b8c4fc55&";
 
   useEffect(() => {
     // Criar elemento de áudio
@@ -54,38 +54,30 @@ export const MusicPlayer = () => {
   };
 
   return (
-    <div className="fixed top-6 right-6 z-40">
+    <div className="fixed top-20 right-6 z-40">
       <button
         onClick={togglePlay}
         disabled={isLoading}
         className={`
           w-16 h-16 rounded-full 
-          bg-gradient-to-br from-red-400 via-red-500 to-pink-600
-          hover:from-red-500 hover:via-red-600 hover:to-pink-700
-          shadow-lg shadow-red-500/40
+          bg-gradient-to-br from-red-400 via-pink-500 to-pink-600
+          hover:from-red-500 hover:via-pink-600 hover:to-pink-700
+          shadow-lg shadow-pink-500/40
           flex items-center justify-center
           transition-all duration-300
-          ${isPlaying ? 'animate-pulse scale-110' : 'hover:scale-105'}
+          ${isPlaying ? 'scale-110' : 'hover:scale-105'}
           ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-          border-2 border-red-300/50
+          border-2 border-pink-300/50
         `}
       >
         {isLoading ? (
           <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-        ) : isPlaying ? (
-          <Music2 className="w-7 h-7 text-white" />
         ) : (
-          <Music className="w-7 h-7 text-white" />
+          <Disc 
+            className={`w-7 h-7 text-white ${isPlaying ? 'animate-spin' : ''}`} 
+          />
         )}
       </button>
-      
-      {/* Efeito de ondas quando tocando */}
-      {isPlaying && (
-        <div className="absolute inset-0 rounded-full">
-          <div className="absolute inset-0 rounded-full bg-red-400/30 animate-ripple"></div>
-          <div className="absolute inset-0 rounded-full bg-red-400/20 animate-ripple-delay"></div>
-        </div>
-      )}
     </div>
   );
 };
