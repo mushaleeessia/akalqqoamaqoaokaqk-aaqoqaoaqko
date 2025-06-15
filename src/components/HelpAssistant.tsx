@@ -134,8 +134,8 @@ export const HelpAssistant = ({ isEnglish = false }: HelpAssistantProps) => {
       : "Mensagem do seu site";
     
     const body = isEnglish 
-      ? "• My minecraft IGN:\n• My account type: (Cracked/Original)\n• My question/Message:\n\n\n• I understand that this e-mail is only for asking questions about mush or sending messages to aleeessia: Yes" 
-      : "• Meu nick no minecraft:\n• Meu tipo de conta: (Pirata/Original)\n• Minha dúvida/Mensagem:\n\n\n• Eu entendo que essa mensagem é apenas para tirar dúvidas ou enviar mensagens para a aleeessia. Sim";
+      ? "• My minecraft IGN:\n• My account type: (Cracked/Original)\n• My Question/Message:\n\n\n• I understand that this e-mail is only for asking questions about mush or sending messages to aleeessia: Yes" 
+      : "• Meu nick no minecraft:\n• Meu tipo de conta: (Pirata/Original)\n• Minha dúvida/Mensagem:\n\n\n• Eu entendo que esse e-mail é apenas para tirar dúvidas ou enviar mensagens para a aleeessia: Sim";
     
     const mailtoUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=aleeessia@aleeessia.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailtoUrl, '_blank');
