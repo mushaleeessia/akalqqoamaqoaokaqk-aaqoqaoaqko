@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Sunrise, Moon } from "lucide-react";
 import {
   Theme,
@@ -8,19 +8,15 @@ import {
   themeStorageKey,
 } from "./theme-utils";
 
-// Largura total do slider e largura do thumb (em px)
-// O slider tem w-14 (56px), o thumb tem w-6 (24px), gap vertical/top igual: 4px
+// Tamanho do slider e do thumb
 const SLIDER_WIDTH = 56;
+const SLIDER_HEIGHT = 32;
 const THUMB_SIZE = 24;
-const THUMB_LEFT_LIGHT = 4; // px (spaces from left)
-const THUMB_LEFT_DARK = SLIDER_WIDTH - THUMB_SIZE - 4; // px (spaces from right)
-const THUMB_LEFT_SYSTEM = (SLIDER_WIDTH - THUMB_SIZE) / 2; // centralizado
 
 export const ThemeSwitch = () => {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
-    // Aplica o tema no HTML
     const applyTheme = (_theme: Theme) => {
       if (_theme === "system") {
         const system = getSystemTheme();
@@ -41,25 +37,31 @@ export const ThemeSwitch = () => {
     }
   }, [theme]);
 
-  const handleThemeChange = (toTheme: Theme) => (e: React.MouseEvent) => {
+  const handleThemeChange = (toTheme: Theme) => () => {
     setTheme(toTheme);
   };
 
-  const handleSwitch = (e: React.MouseEvent) => {
-    if (theme === "light") handleThemeChange("dark")(e);
-    else if (theme === "dark") handleThemeChange("system")(e);
-    else handleThemeChange("light")(e);
+  const handleSwitch = () => {
+    if (theme === "light") setTheme("dark");
+    else if (theme === "dark") setTheme("system");
+    else setTheme("light");
   };
 
-  // Calcula a posição esquerda do thumb conforme o tema
-  let thumbLeft = THUMB_LEFT_LIGHT;
+  // Gradiente do thumb
   let thumbGradient = "from-yellow-400 to-yellow-100";
   if (theme === "dark") {
-    thumbLeft = THUMB_LEFT_DARK;
     thumbGradient = "from-zinc-700 to-slate-800";
   } else if (theme === "system") {
-    thumbLeft = THUMB_LEFT_SYSTEM;
     thumbGradient = "from-green-200 to-green-600";
+  }
+
+  // Classes de posicionamento puro para extremos
+  let thumbPositionClass =
+    "left-0"; // claro = extremo esquerdo
+  if (theme === "dark") {
+    thumbPositionClass = "right-0";
+  } else if (theme === "system") {
+    thumbPositionClass = "left-1/2 -translate-x-1/2";
   }
 
   return (
@@ -78,6 +80,7 @@ export const ThemeSwitch = () => {
       >
         <Sunrise className={`h-6 w-6 transition ${theme === "light" ? "text-yellow-800" : "text-yellow-400"}`} />
       </button>
+      {/* SLIDER REFEITO */}
       <button
         tabIndex={0}
         type="button"
@@ -86,19 +89,20 @@ export const ThemeSwitch = () => {
           shadow-inner shadow-red-900/60
           focus-visible:ring-2 ring-red-400/90
         `}
-        style={{ outline: "none" }}
+        style={{ outline: "none", width: SLIDER_WIDTH, height: SLIDER_HEIGHT }}
         aria-label="Alternar tema"
         onClick={handleSwitch}
         title="Alternar tema (claro/escuro/automático)"
       >
         <span
           className={[
-            "absolute top-1 w-6 h-6 rounded-full transition-all duration-300 shadow bg-gradient-to-tr",
+            "absolute top-1",
+            thumbPositionClass,
+            "w-6 h-6 rounded-full transition-all duration-300 shadow bg-gradient-to-tr",
             thumbGradient
           ].join(" ")}
           style={{
-            left: thumbLeft,
-            transition: "left 0.28s cubic-bezier(.4,0,.2,1)",
+            transition: "left 0.28s cubic-bezier(.4,0,.2,1), right 0.28s cubic-bezier(.4,0,.2,1), transform 0.28s cubic-bezier(.4,0,.2,1)"
           }}
         />
       </button>
