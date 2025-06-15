@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,44 +8,45 @@
 @layer base {
   :root {
     --background: 0 0% 100%;             /* Branco puro */
-    --foreground: 222.2 84% 5%;          /* Preto quase puro */
+    --foreground: 230 64% 2%;            /* Preto MUITO forte */
+    --card: 0 0% 100%;                   /* Cartão branco */
 
-    --card: 0 0% 99%;                    /* Cartão quase branco */
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 230 64% 2%;       /* Mesmo preto forte */
 
     --popover: 0 0% 98%;                 /* Um tom diferente do fundo geral */
-    --popover-foreground: 222.2 84% 10%;
+    --popover-foreground: 230 64% 3%;
 
-    --primary: 221 80% 60%;              /* Azul bem vivo para botões/principal */
-    --primary-foreground: 0 0% 100%;     /* Sempre texto branco na cor primária */
+    --primary: 221 94% 56%;              /* Azul super saturado */
+    --primary-foreground: 0 0% 100%;     /* Branco no azul */
 
-    --secondary: 34 100% 85%;            /* Amarelo claro para destaque */
-    --secondary-foreground: 222.2 87% 8%;
+    --secondary: 44 100% 54%;            /* Amarelo saturado/dourado */
+    --secondary-foreground: 230 64% 2%;
 
-    --muted: 0 0% 95%;                   /* Cinza bem claro para áreas menos importantes */
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 95%;                   /* Cinza bem claro */
+    --muted-foreground: 220 5% 38%;
 
-    --accent: 338 100% 90%;              /* Tom rosado/laranja para acentos */
-    --accent-foreground: 222.2 87% 10%;
+    --accent: 0 90% 75%;                 /* Vermelho claro e saturado */
+    --accent-foreground: 230 64% 6%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 82% 42%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 85%;               /* Cinza claro para bordas */
-    --input: 220 13% 90%;
-    --ring: 221 80% 75%;                 /* Um azul claro, mais vibrante */
+    --border: 210 9% 85%;                /* Cinza claro */
+    --input: 210 13% 92%;
+    --ring: 221 98% 62%;                 /* Azul vibrante próximo ao primary */
 
     --radius: 0.5rem;
 
+    /* Sidebar */
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 16.1%; /* Texto sidebar mais forte */
-    --sidebar-primary: 221 80% 65%;       /* Sidebar primária viva */
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 34 100% 96%;
-    --sidebar-accent-foreground: 240 5.9% 12%;
+    --sidebar-foreground: 230 64% 4%;    /* Preto quase total */
+    --sidebar-primary: 221 94% 56%;      /* Igual ao primary */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 44 98% 92%;        /* Amarelo bem claro */
+    --sidebar-accent-foreground: 230 64% 7%;
 
-    --sidebar-border: 220 13% 85%;
-    --sidebar-ring: 221 80% 65%;
+    --sidebar-border: 210 9% 85%;
+    --sidebar-ring: 221 98% 62%;
   }
 
   .dark {
@@ -93,7 +95,8 @@
 
   body {
     @apply bg-background text-foreground;
-    transition: background-color 300ms cubic-bezier(0.8,0,0.2,1), color 200ms linear;
+    transition: background-color 300ms cubic-bezier(0.8,0,0.2,1),
+      color 200ms linear;
   }
 }
 
