@@ -45,8 +45,9 @@ export const MusicPlayer = ({ hidden = false }: MusicPlayerProps) => {
   };
   const handlePause = () => setIsPlaying(false);
 
-  return hidden ? null : (
+  return (
     <div className="fixed top-20 right-6 z-40">
+      {/* Esconde só o botão, não o audio */}
       <button
         onClick={handlePlayPause}
         disabled={isLoading}
@@ -61,6 +62,7 @@ export const MusicPlayer = ({ hidden = false }: MusicPlayerProps) => {
           ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
           border-2 border-pink-300/50
           relative
+          ${hidden ? "hidden" : ""}
         `}
         aria-label={isPlaying ? "Pausar música" : "Tocar música"}
       >
