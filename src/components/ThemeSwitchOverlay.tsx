@@ -17,13 +17,13 @@ export const ThemeSwitchOverlay: React.FC<ThemeSwitchOverlayProps> = ({ animatio
   let circleColor = "rgba(5,5,16,0.85)";
   let gradient = "";
   if (toTheme === "light") {
-    circleColor = "rgba(255, 246, 186, 0.88)";
-    gradient = "radial-gradient(circle at 60% 40%, #fff7d6 68%, #fff79e 100%)";
+    circleColor = "rgba(255, 246, 186, 0.92)";
+    gradient = "radial-gradient(circle at 60% 40%, #fff7d6 68%, #fffab2 100%)";
   } else if (toTheme === "system") {
-    circleColor = "rgba(110, 231, 183, 0.83)";
-    gradient = "radial-gradient(circle at 50% 30%, #6ee7b7 70%, #065f46 100%)";
+    circleColor = "rgba(110, 231, 183, 0.87)";
+    gradient = "radial-gradient(circle at 50% 30%, #6ee7b7 75%, #065f46 100%)";
   } else {
-    gradient = "radial-gradient(circle at 55% 55%, #16162d 65%, #000 100%)";
+    gradient = "radial-gradient(circle at 56% 56%, #16162d 67%, #000 100%)";
   }
 
   return (
@@ -44,25 +44,26 @@ export const ThemeSwitchOverlay: React.FC<ThemeSwitchOverlayProps> = ({ animatio
           height: 0,
           left: origin.x,
           top: origin.y,
-          opacity: 0.9,
+          opacity: 1,
           background: gradient.length ? gradient : circleColor,
           boxShadow: "0 0 110px 40px #0002",
           transform: "translate(-50%,-50%)",
           zIndex: 999,
-          animation: `theme-expand-softer 0.85s linear forwards`
+          animation: `theme-expand-fps 0.45s cubic-bezier(.84,-0.24,.36,1.16) forwards`
         }}
       />
       <style>
         {`
-            @keyframes theme-expand-softer {
-              0%   { width:0; height:0;   opacity:0.88; filter: blur(0px);}
-              12%  { opacity: 0.96;}
-              25%  { width:${radius * 0.6}px; height:${radius * 0.6}px; opacity:0.99; filter: blur(0.2px);}
-              50%  { width:${radius * 1.3}px; height:${radius * 1.3}px; opacity:1; filter: blur(0.4px);}
-              80%  { width:${radius * 2}px; height:${radius * 2}px; opacity:0.97; filter: blur(1px);}
-              100% { width:${radius * 2}px; height:${radius * 2}px; opacity:0; filter: blur(1.6px);}
-            }
-          `}
+        @keyframes theme-expand-fps {
+          0%   { width:0px; height:0px; opacity:1; filter: blur(0.1px);}
+          20%  { width:${radius * 0.55}px; height:${radius * 0.55}px; opacity:1; filter: blur(0.15px);}
+          60%  { width:${radius * 1.3}px; height:${radius * 1.3}px; opacity:1; filter: blur(0.25px);}
+          75%  { width:${radius * 2.03}px; height:${radius * 2.03}px; opacity:1; filter: blur(0.35px);}
+          87%  { width:${radius * 2.23}px; height:${radius * 2.23}px; opacity:0.97; filter: blur(0.6px);}
+          95%  { width:${radius * 2.33}px; height:${radius * 2.33}px; opacity:0.4; filter: blur(1.3px);}
+          100% { width:${radius * 2.35}px; height:${radius * 2.35}px; opacity:0; filter: blur(2.1px);}
+        }
+        `}
       </style>
     </div>
   );
