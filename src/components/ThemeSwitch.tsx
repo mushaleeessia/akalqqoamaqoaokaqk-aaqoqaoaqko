@@ -56,12 +56,12 @@ export const ThemeSwitch = () => {
         aria-label={`Tema atual: ${theme === "light" ? "claro" : theme === "dark" ? "escuro" : "automático"}`}
       >
         <div 
-          className={`absolute top-0.5 w-7 h-7 rounded-full transition-all duration-300 ease-out shadow-lg ${
+          className={`absolute top-1 w-6 h-6 rounded-full transition-all duration-300 ease-out shadow-lg ${
             theme === "light" 
-              ? "left-0.5 bg-gradient-to-r from-yellow-300 to-yellow-400" 
+              ? "left-1 bg-gradient-to-r from-yellow-300 to-yellow-400" 
               : theme === "dark"
-              ? "left-8 bg-gradient-to-r from-slate-600 to-slate-700"
-              : "left-4 bg-gradient-to-r from-green-400 to-green-500"
+              ? "left-9 bg-gradient-to-r from-slate-600 to-slate-700"
+              : "left-5 bg-gradient-to-r from-green-400 to-green-500"
           }`}
         />
       </button>
