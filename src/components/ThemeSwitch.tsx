@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Sunrise, Moon } from "lucide-react";
 import {
@@ -9,7 +8,7 @@ import {
 } from "./theme-utils";
 
 // Tamanho do slider, do thumb e da borda
-const SLIDER_WIDTH = 56;
+const SLIDER_WIDTH = 57; // aumentado para 57px
 const SLIDER_HEIGHT = 28;
 const THUMB_SIZE = 24;
 const SLIDER_BORDER = 2; // border-2 (tailwind = 2px)
@@ -65,18 +64,21 @@ export const ThemeSwitch = () => {
   if (theme === "light") {
     leftValue = 0;
   } else if (theme === "system") {
+    // Centralizar exatamente
     leftValue = Math.round((SLIDER_INNER_WIDTH - THUMB_SIZE) / 2);
   } else if (theme === "dark") {
+    // Encostar exatamente na borda direita interna
     leftValue = SLIDER_INNER_WIDTH - THUMB_SIZE;
   }
+  // Garantir que não ultrapassa (defensivo)
   leftValue = Math.max(0, Math.min(leftValue, SLIDER_INNER_WIDTH - THUMB_SIZE));
 
-  // Posição do thumb: precisa adicionar SLIDER_BORDER pois área util começa após borda
+  // Posição do thumb: precisa adicionar SLIDER_BORDER pois área útil começa após borda
   let thumbStyle: React.CSSProperties = {
     width: THUMB_SIZE,
     height: THUMB_SIZE,
     top: Math.floor((SLIDER_HEIGHT - THUMB_SIZE) / 2),
-    left: leftValue + SLIDER_BORDER, // compensação da borda esquerda
+    left: leftValue + SLIDER_BORDER,
     transition: "left 0.32s cubic-bezier(.4,0,.2,1), background 0.3s, box-shadow 0.3s",
   };
 
@@ -148,4 +150,3 @@ export const ThemeSwitch = () => {
     </div>
   );
 };
-
