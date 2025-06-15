@@ -2,9 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Sun, Moon } from "lucide-react";
 
-// Há 3 estados: 'light', 'dark', ou 'system'
+// 3 possíveis estados: 'light', 'dark' ou 'system'
 type Theme = "light" | "dark" | "system";
-
 const themeStorageKey = "theme-preference";
 
 const getSystemTheme = (): Theme => {
@@ -24,7 +23,7 @@ const getInitialTheme = (): Theme => {
 interface AnimationState {
   inProgress: boolean;
   toTheme: Theme;
-  origin: { x: number; y: number; };
+  origin: { x: number; y: number };
 }
 
 export const ThemeSwitch = () => {
@@ -54,20 +53,18 @@ export const ThemeSwitch = () => {
     }
   }, [theme]);
 
-  // Calcula o raio para cobrir a tela a partir do ponto de origem
+  // Calcula raio máximo para cobrir tela originando do ponto
   const calculateCircleRadius = (x: number, y: number) => {
-    // Canto da tela mais distante do ponto de origem
     const w = window.innerWidth;
     const h = window.innerHeight;
     const dx = x < w / 2 ? w - x : x;
     const dy = y < h / 2 ? h - y : y;
-    // Hipotenusa (distância máxima)
-    return Math.sqrt(dx * dx + dy * dy);
+    return Math.sqrt(dx * dx + dy * dy) + 64;
   };
 
-  // Inicia a animação de círculo a partir do botão clicado e troca tema durante o efeito
+  // Inicia animação, faz troca suave do tema
   const handleThemeChange = (toTheme: Theme) => (e: React.MouseEvent) => {
-    // Pega centro do botão clicado
+    // Usa centro do botão
     const rect = (e.target as HTMLElement).getBoundingClientRect();
     const clickX = rect.left + rect.width / 2;
     const clickY = rect.top + rect.height / 2;
@@ -77,35 +74,44 @@ export const ThemeSwitch = () => {
       origin: { x: clickX, y: clickY }
     });
 
-    // Tema será trocado no meio da expansão
+    // Tema muda após meio segundo (sincronizado com animação)
     setTimeout(() => {
       setTheme(toTheme);
-    }, 350);
+    }, 370);
 
-    // Termina a animação após fade-out
+    // Limpa overlay depois da animação
     setTimeout(() => {
       setAnimation(null);
-    }, 750);
+    }, 730);
   };
 
-  // Botão central para transição
+  // Botão central para ciclo de tema
   const handleSwitch = (e: React.MouseEvent) => {
     if (theme === "light") handleThemeChange("dark")(e);
     else if (theme === "dark") handleThemeChange("system")(e);
     else handleThemeChange("light")(e);
   };
 
-  // Overlay animado
+  // Overlay animado + animação suavizada
   const renderOverlay = () => {
     if (!animation) return null;
-    // calcula o raio máximo e origem
-    const radius = calculateCircleRadius(animation.origin.x, animation.origin.y) + 64;
-    // Cor da animação conforme tema alvo
-    const toTheme = animation.toTheme;
-    let circleColor = "#171717bb"; // escuro (dark)
-    if (toTheme === "light") circleColor = "#faf7bdaa";
-    if (toTheme === "system") circleColor = "#6ee7b7bb"; // verde para system
-    // Para animação do círculo expandindo + fade
+    const { origin, toTheme } = animation;
+    const radius = calculateCircleRadius(origin.x, origin.y);
+    let circleColor = "rgba(5,5,16,0.85)"; // dark
+    let gradient = "";
+    if (toTheme === "light") {
+      circleColor = "rgba(255, 246, 186, 0.88)";
+      gradient =
+        "radial-gradient(circle at 60% 40%, #fff7d6 68%, #fff79e 100%)";
+    } else if (toTheme === "system") {
+      circleColor = "rgba(110, 231, 183, 0.83)";
+      gradient =
+        "radial-gradient(circle at 50% 30%, #6ee7b7 70%, #065f46 100%)";
+    } else {
+      gradient =
+        "radial-gradient(circle at 55% 55%, #16162d 65%, #000 100%)";
+    }
+
     return (
       <div
         ref={overlayRef}
@@ -113,62 +119,62 @@ export const ThemeSwitch = () => {
         style={{}}
       >
         <div
-          // O círculo cresce do ponto do clique
           className={`
             rounded-full
             fixed
-            transition-[width,height,opacity,left,top] duration-700
-            will-change-[width,height,opacity,left,top]
             pointer-events-none
-            opacity-100
-            animate-none
+            will-change-[width,height,opacity,left,top]
           `}
           style={{
             width: 0,
             height: 0,
-            left: animation.origin.x,
-            top: animation.origin.y,
-            background: circleColor,
-            boxShadow: "0 0 70px 30px #0002",
+            left: origin.x,
+            top: origin.y,
+            opacity: 0.9,
+            background: gradient.length ? gradient : circleColor,
+            boxShadow: "0 0 110px 40px #0002",
             transform: "translate(-50%,-50%)",
             zIndex: 999,
-            animation: "theme-expand 0.7s cubic-bezier(.68,-0.6,.32,1.3) forwards"
+            animation: "theme-expand-softer 0.68s cubic-bezier(.77,-0.41,.17,1.32) forwards"
           }}
         />
         <style>
           {`
-          @keyframes theme-expand {
-            0% { width:0; height:0; opacity:0.8; }
-            50% { opacity:1; }
-            68% { width:${radius * 1.25}px; height:${radius * 1.25}px; opacity:1; }
-            100% { width:${radius * 1.25}px; height:${radius * 1.25}px; opacity:0; }
-          }
+            @keyframes theme-expand-softer {
+              0% { width:0; height:0; opacity:0.88; filter: blur(0px);}
+              43% {opacity:1;}
+              65% { width:${radius * 1.15}px; height:${radius * 1.15}px; opacity:1; filter: blur(0.5px);}
+              80% { opacity:0.93;}
+              100% { width:${radius * 1.15}px; height:${radius * 1.15}px; opacity:0; filter: blur(1.5px);}
+            }
           `}
         </style>
       </div>
     );
   };
 
-  // UI buttons
+  // UI dos botões
   return (
     <>
       <div className="flex items-center space-x-4 relative z-10">
         <button
-          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-            theme === "light"
-              ? "bg-yellow-300/80 shadow-lg shadow-yellow-200/30 scale-110"
-              : "hover:bg-yellow-100/40"
-          }`}
+          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all outline-none focus-visible:ring-2 ring-yellow-400/70
+            ${theme === "light"
+              ? "bg-yellow-200/90 shadow-md shadow-yellow-100/40 scale-105"
+              : "hover:bg-yellow-100/50"}
+          `}
           title="Modo claro"
           onClick={handleThemeChange("light")}
           aria-label="Tema claro"
+          tabIndex={0}
         >
-          <Sun className={`h-6 w-6 transition ${theme === "light" ? "text-yellow-700" : "text-yellow-400"}`} />
+          <Sun className={`h-6 w-6 transition ${theme === "light" ? "text-yellow-800" : "text-yellow-400"}`} />
         </button>
         <button
           tabIndex={0}
           className={`
-            w-14 h-8 rounded-full border-2 border-red-700 bg-red-900/60 flex items-center transition-all duration-300 relative
+            w-14 h-8 rounded-full border-2 border-red-700 bg-red-900/70 flex items-center transition-all duration-300 relative
+            shadow-inner shadow-red-900/60
             focus-visible:ring-2 ring-red-400/90
           `}
           style={{ outline: "none" }}
@@ -178,25 +184,26 @@ export const ThemeSwitch = () => {
         >
           <span
             className={`
-              absolute left-1 top-1 w-6 h-6 rounded-full transition-all duration-300
-              bg-white/80 shadow
+              absolute left-1 top-1 w-6 h-6 rounded-full transition-all duration-300 shadow
+              bg-gradient-to-tr 
               ${theme === "light"
-                ? "translate-x-0"
+                ? "from-yellow-400 to-yellow-100 translate-x-0"
                 : theme === "dark"
-                ? "translate-x-6 bg-zinc-800/80"
-                : "translate-x-3 bg-gradient-to-br from-yellow-200 via-gray-200 to-gray-700/40"}
+                  ? "from-zinc-700 to-slate-800 translate-x-6"
+                  : "from-green-200 to-green-600 translate-x-3"}
             `}
           />
         </button>
         <button
-          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-            theme === "dark"
-              ? "bg-slate-900/90 shadow-lg shadow-zinc-800/40 scale-110"
-              : "hover:bg-slate-800/30"
-          }`}
+          className={`w-8 h-8 rounded-full flex items-center justify-center transition-all outline-none focus-visible:ring-2 ring-blue-300/70
+            ${theme === "dark"
+              ? "bg-slate-900/90 shadow-md shadow-zinc-700/40 scale-105"
+              : "hover:bg-slate-900/20"}
+          `}
           title="Modo escuro"
           onClick={handleThemeChange("dark")}
           aria-label="Tema escuro"
+          tabIndex={0}
         >
           <Moon className={`h-6 w-6 transition ${theme === "dark" ? "text-blue-100" : "text-zinc-500"}`} />
         </button>
@@ -204,8 +211,8 @@ export const ThemeSwitch = () => {
           className={`
             px-2 py-0.5 rounded font-semibold text-xs transition-all duration-200 border
             ${theme === "system"
-              ? "border-green-400 bg-green-700/30 text-green-100 scale-105 shadow"
-              : "border-slate-600 bg-slate-700/10 text-slate-200 hover:bg-slate-700/20"}
+              ? "border-green-400 bg-green-700/40 text-green-100 scale-105 shadow"
+              : "border-slate-600 bg-slate-700/10 text-slate-200 hover:bg-slate-700/15"}
           `}
           onClick={handleThemeChange("system")}
           aria-label="Modo automático pelo sistema"
@@ -219,4 +226,3 @@ export const ThemeSwitch = () => {
     </>
   );
 };
-
