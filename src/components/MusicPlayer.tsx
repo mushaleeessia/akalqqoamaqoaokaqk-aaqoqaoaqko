@@ -1,62 +1,52 @@
 
-import { useState, useRef, useEffect } from 'react';
-import { Music } from 'lucide-react';
+import { useState, useRef } from "react";
+import { Music } from "lucide-react";
 
 export const MusicPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // URL do áudio atualizado
-  const audioUrl = "https://cdn.discordapp.com/attachments/1225909016526458971/1383758695594332211/Mac_Miller_-_Congratulations_Instrumental_VIOLIN__PIANO_.mp3?ex=684ff536&is=684ea3b6&hm=c2e6c0184dab419c7f7ce6387bbfe927a8a05eb185b07906436f97c1b8c4fc55&";
+  const audioUrl =
+    "https://cdn.discordapp.com/attachments/1225909016526458971/1383758695594332211/Mac_Miller_-_Congratulations_Instrumental_VIOLIN__PIANO_.mp3?ex=684ff536&is=684ea3b6&hm=c2e6c0184dab419c7f7ce6387bbfe927a8a05eb185b07906436f97c1b8c4fc55&";
 
-  useEffect(() => {
-    // Criar elemento de áudio
-    audioRef.current = new Audio(audioUrl);
-    audioRef.current.loop = true;
-    
-    // Event listeners
-    const audio = audioRef.current;
-    
-    const handleLoadStart = () => setIsLoading(true);
-    const handleCanPlay = () => setIsLoading(false);
-    const handleEnded = () => setIsPlaying(false);
-    const handleError = () => {
-      setIsLoading(false);
-      setIsPlaying(false);
-      console.log('Erro ao carregar o áudio');
-    };
-
-    audio.addEventListener('loadstart', handleLoadStart);
-    audio.addEventListener('canplay', handleCanPlay);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('error', handleError);
-
-    return () => {
-      audio.removeEventListener('loadstart', handleLoadStart);
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('error', handleError);
-      audio.pause();
-    };
-  }, [audioUrl]);
-
-  const togglePlay = () => {
+  const handlePlayPause = () => {
     if (!audioRef.current) return;
-
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
-      audioRef.current.play().catch(console.error);
-      setIsPlaying(true);
+      setIsLoading(true);
+      audioRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch((e) => {
+          setIsPlaying(false);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     }
   };
+
+  const handleLoadStart = () => setIsLoading(true);
+  const handleCanPlay = () => setIsLoading(false);
+  const handleEnded = () => setIsPlaying(false);
+  const handleError = () => {
+    setIsLoading(false);
+    setIsPlaying(false);
+    console.log("Erro ao carregar o áudio");
+  };
+
+  // Atualiza o estado se o usuário pausar manualmente no controle nativo do audio
+  const handlePause = () => setIsPlaying(false);
 
   return (
     <div className="fixed top-20 right-6 z-40">
       <button
-        onClick={togglePlay}
+        onClick={handlePlayPause}
         disabled={isLoading}
         className={`
           w-16 h-16 rounded-full 
@@ -65,27 +55,41 @@ export const MusicPlayer = () => {
           shadow-lg shadow-pink-500/40
           flex items-center justify-center
           transition-all duration-300
-          ${isPlaying ? 'scale-110' : 'hover:scale-105'}
-          ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+          ${isPlaying ? "scale-110" : "hover:scale-105"}
+          ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
           border-2 border-pink-300/50
           relative
         `}
+        aria-label={isPlaying ? "Pausar música" : "Tocar música"}
       >
         {isLoading ? (
           <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
         ) : (
           <div className="relative">
-            <Music 
-              className={`w-7 h-7 text-white ${isPlaying ? 'animate-spin' : ''}`} 
+            <Music
+              className={`w-7 h-7 text-white ${
+                isPlaying ? "animate-spin" : ""
+              }`}
             />
             {!isPlaying && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-0.5 bg-white rotate-45 transform"></div>
+                <div className="w-8 h-0.5 bg-white rotate-45 transform" />
               </div>
             )}
           </div>
         )}
       </button>
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        loop
+        onLoadStart={handleLoadStart}
+        onCanPlay={handleCanPlay}
+        onEnded={handleEnded}
+        onError={handleError}
+        onPause={handlePause}
+        style={{ display: "none" }}
+      />
     </div>
   );
 };
