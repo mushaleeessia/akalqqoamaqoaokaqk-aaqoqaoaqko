@@ -159,7 +159,7 @@ export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) =>
 
           {/* Switch de idiomas + Toggle de tema - desktop */}
           <div className="hidden md:flex items-center space-x-6">
-            <ThemeSwitch />
+            <ThemeSwitch isEnglish={isEnglish} />
             <div className="flex items-center space-x-3">
               <span className="text-lg">{isEnglish ? "🇺🇸" : "🇧🇷"}</span>
               <span className="text-white text-sm font-medium">
@@ -197,7 +197,7 @@ export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) =>
             <nav className="flex flex-col space-y-2 pt-4">
               {/* Toggle de tema (mobile) */}
               <div className="flex items-center justify-between px-4 py-3 bg-red-800/30 rounded-lg border border-red-600/30">
-                <ThemeSwitch />
+                <ThemeSwitch isEnglish={isEnglish} />
               </div>
               {/* Switch de idiomas */}
               <div className="flex items-center justify-between px-4 py-3 bg-red-800/30 rounded-lg border border-red-600/30">
