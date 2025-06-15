@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Sun, Moon } from "lucide-react";
 
@@ -53,13 +52,20 @@ export const ThemeSwitch = () => {
     }
   }, [theme]);
 
-  // Calcula raio máximo para cobrir tela originando do ponto
+  // Calcula o maior raio possível (da origem para cada canto da janela)
   const calculateCircleRadius = (x: number, y: number) => {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    const dx = x < w / 2 ? w - x : x;
-    const dy = y < h / 2 ? h - y : y;
-    return Math.sqrt(dx * dx + dy * dy) + 64;
+    const corners = [
+      { x: 0, y: 0 },
+      { x: window.innerWidth, y: 0 },
+      { x: 0, y: window.innerHeight },
+      { x: window.innerWidth, y: window.innerHeight },
+    ];
+    let maxDist = 0;
+    for (const corner of corners) {
+      const dist = Math.hypot(corner.x - x, corner.y - y);
+      if (dist > maxDist) maxDist = dist;
+    }
+    return maxDist + 64;
   };
 
   // Inicia animação, faz troca suave do tema
@@ -97,19 +103,16 @@ export const ThemeSwitch = () => {
     if (!animation) return null;
     const { origin, toTheme } = animation;
     const radius = calculateCircleRadius(origin.x, origin.y);
-    let circleColor = "rgba(5,5,16,0.85)"; // dark
+    let circleColor = "rgba(5,5,16,0.85)";
     let gradient = "";
     if (toTheme === "light") {
       circleColor = "rgba(255, 246, 186, 0.88)";
-      gradient =
-        "radial-gradient(circle at 60% 40%, #fff7d6 68%, #fff79e 100%)";
+      gradient = "radial-gradient(circle at 60% 40%, #fff7d6 68%, #fff79e 100%)";
     } else if (toTheme === "system") {
       circleColor = "rgba(110, 231, 183, 0.83)";
-      gradient =
-        "radial-gradient(circle at 50% 30%, #6ee7b7 70%, #065f46 100%)";
+      gradient = "radial-gradient(circle at 50% 30%, #6ee7b7 70%, #065f46 100%)";
     } else {
-      gradient =
-        "radial-gradient(circle at 55% 55%, #16162d 65%, #000 100%)";
+      gradient = "radial-gradient(circle at 55% 55%, #16162d 65%, #000 100%)";
     }
 
     return (
@@ -124,6 +127,7 @@ export const ThemeSwitch = () => {
             fixed
             pointer-events-none
             will-change-[width,height,opacity,left,top]
+            transition-all
           `}
           style={{
             width: 0,
@@ -135,7 +139,7 @@ export const ThemeSwitch = () => {
             boxShadow: "0 0 110px 40px #0002",
             transform: "translate(-50%,-50%)",
             zIndex: 999,
-            animation: "theme-expand-softer 0.68s cubic-bezier(.77,-0.41,.17,1.32) forwards"
+            animation: `theme-expand-softer 0.68s cubic-bezier(.77,-0.41,.17,1.32) forwards`
           }}
         />
         <style>
@@ -143,9 +147,9 @@ export const ThemeSwitch = () => {
             @keyframes theme-expand-softer {
               0% { width:0; height:0; opacity:0.88; filter: blur(0px);}
               43% {opacity:1;}
-              65% { width:${radius * 1.15}px; height:${radius * 1.15}px; opacity:1; filter: blur(0.5px);}
+              65% { width:${radius * 2}px; height:${radius * 2}px; opacity:1; filter: blur(0.5px);}
               80% { opacity:0.93;}
-              100% { width:${radius * 1.15}px; height:${radius * 1.15}px; opacity:0; filter: blur(1.5px);}
+              100% { width:${radius * 2}px; height:${radius * 2}px; opacity:0; filter: blur(1.5px);}
             }
           `}
         </style>
