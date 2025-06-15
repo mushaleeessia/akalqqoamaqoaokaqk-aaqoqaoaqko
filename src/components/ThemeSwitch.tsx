@@ -39,40 +39,40 @@ export const ThemeSwitch = () => {
   };
 
   return (
-    <div className="flex items-center gap-2 bg-red-900/20 backdrop-blur-sm border border-red-700/30 rounded-full p-1">
+    <div className="flex items-center gap-3 bg-red-900/20 backdrop-blur-sm border border-red-700/30 rounded-full px-2 py-1">
       {/* Sun Icon */}
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+      <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
         theme === "light" 
           ? "bg-yellow-400 shadow-lg shadow-yellow-400/30" 
           : "hover:bg-yellow-400/10"
       }`}>
-        <Sun className={`w-4 h-4 ${theme === "light" ? "text-yellow-900" : "text-yellow-400/60"}`} />
+        <Sun className={`w-3 h-3 ${theme === "light" ? "text-yellow-900" : "text-yellow-400/60"}`} />
       </div>
 
       {/* Toggle Switch */}
       <button
         onClick={cycleTheme}
-        className="relative w-14 h-7 bg-red-800/40 rounded-full border border-red-600/40 focus:outline-none focus:ring-2 focus:ring-red-400/50 transition-all duration-200"
+        className="relative w-16 h-8 bg-red-800/40 rounded-full border border-red-600/40 focus:outline-none focus:ring-2 focus:ring-red-400/50 transition-all duration-200"
         aria-label={`Tema atual: ${theme === "light" ? "claro" : theme === "dark" ? "escuro" : "automático"}`}
       >
         <div 
-          className={`absolute top-0.5 w-6 h-6 rounded-full transition-all duration-300 ease-out shadow-lg ${
+          className={`absolute top-0.5 w-7 h-7 rounded-full transition-all duration-300 ease-out shadow-lg ${
             theme === "light" 
               ? "left-0.5 bg-gradient-to-r from-yellow-300 to-yellow-400" 
               : theme === "dark"
-              ? "left-7 bg-gradient-to-r from-slate-600 to-slate-700"
-              : "left-3.5 bg-gradient-to-r from-green-400 to-green-500"
+              ? "left-8 bg-gradient-to-r from-slate-600 to-slate-700"
+              : "left-4 bg-gradient-to-r from-green-400 to-green-500"
           }`}
         />
       </button>
 
       {/* Moon Icon */}
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+      <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
         theme === "dark" 
           ? "bg-slate-700 shadow-lg shadow-slate-700/30" 
           : "hover:bg-slate-700/10"
       }`}>
-        <Moon className={`w-4 h-4 ${theme === "dark" ? "text-slate-100" : "text-slate-400/60"}`} />
+        <Moon className={`w-3 h-3 ${theme === "dark" ? "text-slate-100" : "text-slate-400/60"}`} />
       </div>
 
       {/* Auto Label */}
