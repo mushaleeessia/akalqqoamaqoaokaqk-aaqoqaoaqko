@@ -49,17 +49,18 @@ export const ThemeSwitchOverlay: React.FC<ThemeSwitchOverlayProps> = ({ animatio
           boxShadow: "0 0 110px 40px #0002",
           transform: "translate(-50%,-50%)",
           zIndex: 999,
-          animation: `theme-expand-softer 0.68s cubic-bezier(.77,-0.41,.17,1.32) forwards`
+          animation: `theme-expand-softer 0.85s linear forwards`
         }}
       />
       <style>
         {`
             @keyframes theme-expand-softer {
-              0% { width:0; height:0; opacity:0.88; filter: blur(0px);}
-              43% {opacity:1;}
-              65% { width:${radius * 2}px; height:${radius * 2}px; opacity:1; filter: blur(0.5px);}
-              80% { opacity:0.93;}
-              100% { width:${radius * 2}px; height:${radius * 2}px; opacity:0; filter: blur(1.5px);}
+              0%   { width:0; height:0;   opacity:0.88; filter: blur(0px);}
+              12%  { opacity: 0.96;}
+              25%  { width:${radius * 0.6}px; height:${radius * 0.6}px; opacity:0.99; filter: blur(0.2px);}
+              50%  { width:${radius * 1.3}px; height:${radius * 1.3}px; opacity:1; filter: blur(0.4px);}
+              80%  { width:${radius * 2}px; height:${radius * 2}px; opacity:0.97; filter: blur(1px);}
+              100% { width:${radius * 2}px; height:${radius * 2}px; opacity:0; filter: blur(1.6px);}
             }
           `}
       </style>
