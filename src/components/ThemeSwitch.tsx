@@ -86,9 +86,9 @@ export const ThemeSwitch = () => {
               bg-gradient-to-tr
               ${
                 theme === "light"
-                  ? "right-1 from-yellow-400 to-yellow-100"
+                  ? "left-1 from-yellow-400 to-yellow-100"
                   : theme === "dark"
-                    ? "left-1 from-zinc-700 to-slate-800"
+                    ? "right-1 from-zinc-700 to-slate-800"
                     : "left-1/2 -translate-x-1/2 from-green-200 to-green-600"
               }
             `}
