@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,46 +6,45 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;             /* Branco puro */
-    --foreground: 230 64% 2%;            /* Preto MUITO forte */
-    --card: 0 0% 100%;                   /* Cartão branco */
+    --background: 0 0% 98%;             /* Off-white */
+    --foreground: 222 12% 17%;          /* Cinza-escuro bem legível */
+    --card: 0 0% 100%;                  /* Branco puro para cards */
+    --card-foreground: 222 12% 17%;     /* Mesmo cinza do texto */
 
-    --card-foreground: 230 64% 2%;       /* Mesmo preto forte */
+    --popover: 0 0% 99%;                /* Um tom quase branco */
+    --popover-foreground: 222 12% 32%;  /* Cinza intermediário */
 
-    --popover: 0 0% 98%;                 /* Um tom diferente do fundo geral */
-    --popover-foreground: 230 64% 3%;
+    --primary: 220 80% 62%;             /* Azul suave, moderno */
+    --primary-foreground: 0 0% 100%;    /* Branco no azul */
 
-    --primary: 221 94% 56%;              /* Azul super saturado */
-    --primary-foreground: 0 0% 100%;     /* Branco no azul */
+    --secondary: 46 97% 82%;            /* Amarelo pastel */
+    --secondary-foreground: 222 14% 18%;
 
-    --secondary: 44 100% 54%;            /* Amarelo saturado/dourado */
-    --secondary-foreground: 230 64% 2%;
+    --muted: 210 16% 94%;               /* Cinza claro uniforme */
+    --muted-foreground: 220 12% 46%;
 
-    --muted: 0 0% 95%;                   /* Cinza bem claro */
-    --muted-foreground: 220 5% 38%;
+    --accent: 201 50% 87%;              /* Azul acinzentado suave */
+    --accent-foreground: 222 12% 24%;
 
-    --accent: 0 90% 75%;                 /* Vermelho claro e saturado */
-    --accent-foreground: 230 64% 6%;
-
-    --destructive: 0 82% 42%;
+    --destructive: 0 81% 65%;           /* Vermelho pastel */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 9% 85%;                /* Cinza claro */
-    --input: 210 13% 92%;
-    --ring: 221 98% 62%;                 /* Azul vibrante próximo ao primary */
+    --border: 222 16% 86%;              /* Cinza bem claro */
+    --input: 210 16% 90%;
+    --ring: 220 80% 70%;                /* Azul suave */
 
     --radius: 0.5rem;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 230 64% 4%;    /* Preto quase total */
-    --sidebar-primary: 221 94% 56%;      /* Igual ao primary */
+    --sidebar-background: 0 0% 97%;
+    --sidebar-foreground: 222 11% 24%;  
+    --sidebar-primary: 220 80% 62%;     
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 44 98% 92%;        /* Amarelo bem claro */
-    --sidebar-accent-foreground: 230 64% 7%;
+    --sidebar-accent: 46 83% 94%;      /* Amarelo pastel claro */
+    --sidebar-accent-foreground: 222 11% 28%;
 
-    --sidebar-border: 210 9% 85%;
-    --sidebar-ring: 221 98% 62%;
+    --sidebar-border: 222 16% 86%;
+    --sidebar-ring: 220 80% 70%;
   }
 
   .dark {
