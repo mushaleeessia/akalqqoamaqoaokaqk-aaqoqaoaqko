@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Sun, Moon } from "lucide-react";
 import {
@@ -8,26 +7,15 @@ import {
   themeStorageKey,
 } from "./theme-utils";
 
-// Ícone simples de monitor/computador (para modo sistema)
-const MonitorIcon = ({ className = "", ...props }: React.SVGProps<SVGSVGElement>) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    width={24}
-    height={24}
-    stroke="currentColor"
-    strokeWidth={2}
-    className={className}
-    {...props}
-  >
-    <rect x="3" y="4" width="18" height="14" rx="2" />
-    <path d="M8 20h8M12 16v4" />
-  </svg>
-);
+interface AnimationState {
+  inProgress: boolean;
+  toTheme: Theme;
+  origin: { x: number; y: number };
+}
 
 export const ThemeSwitch = () => {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
-  const [animation, setAnimation] = useState<null>(null);
+  const [animation, setAnimation] = useState<AnimationState | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -52,7 +40,9 @@ export const ThemeSwitch = () => {
     }
   }, [theme]);
 
+  // Inicia animação (apenas para manter interface, não será mais usado overlay)
   const handleThemeChange = (toTheme: Theme) => (e: React.MouseEvent) => {
+    // Remove animação do overlay, só troca o tema imediatamente
     setTheme(toTheme);
   };
 
@@ -61,20 +51,6 @@ export const ThemeSwitch = () => {
     else if (theme === "dark") handleThemeChange("system")(e);
     else handleThemeChange("light")(e);
   };
-
-  // Definir o ícone central do switch
-  let CenterIcon;
-  let centerIconClass = "h-6 w-6 transition";
-  if (theme === "light") {
-    CenterIcon = Sun;
-    centerIconClass += " text-yellow-600";
-  } else if (theme === "dark") {
-    CenterIcon = Moon;
-    centerIconClass += " text-blue-200";
-  } else {
-    CenterIcon = MonitorIcon;
-    centerIconClass += " text-green-400";
-  }
 
   return (
     <>
@@ -98,7 +74,6 @@ export const ThemeSwitch = () => {
             w-14 h-8 rounded-full border-2 border-red-700 bg-red-900/70 flex items-center transition-all duration-300 relative
             shadow-inner shadow-red-900/60
             focus-visible:ring-2 ring-red-400/90
-            px-0
           `}
           style={{ outline: "none" }}
           aria-label="Alternar tema"
@@ -107,18 +82,15 @@ export const ThemeSwitch = () => {
         >
           <span
             className={`
-              absolute left-1 top-1 w-6 h-6 rounded-full transition-all duration-300 shadow flex items-center justify-center
+              absolute left-1 top-1 w-6 h-6 rounded-full transition-all duration-300 shadow
               bg-gradient-to-tr 
-              z-10
               ${theme === "light"
                 ? "from-yellow-400 to-yellow-100 translate-x-0"
                 : theme === "dark"
                   ? "from-zinc-700 to-slate-800 translate-x-6"
                   : "from-green-200 to-green-600 translate-x-3"}
             `}
-          >
-            <CenterIcon className={centerIconClass} />
-          </span>
+          />
         </button>
         <button
           className={`w-8 h-8 rounded-full flex items-center justify-center transition-all outline-none focus-visible:ring-2 ring-blue-300/70
@@ -150,4 +122,3 @@ export const ThemeSwitch = () => {
     </>
   );
 };
-
