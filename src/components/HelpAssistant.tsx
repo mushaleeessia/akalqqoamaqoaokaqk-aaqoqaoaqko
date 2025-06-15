@@ -1,4 +1,5 @@
 
+
 import { useState } from "react";
 import { MessageCircle, X, ExternalLink, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -129,8 +130,8 @@ export const HelpAssistant = ({ isEnglish = false }: HelpAssistantProps) => {
 
   const handleEmailClick = () => {
     const subject = isEnglish 
-      ? "Hello! Contact from your website" 
-      : "Olá! Contato do seu site";
+      ? "My minecraft nick:" 
+      : "Meu nick no minecraft:";
     
     const body = isEnglish 
       ? "Hello Alessia,\n\nI found your website and would like to get in touch with you.\n\n" 
@@ -267,3 +268,4 @@ export const HelpAssistant = ({ isEnglish = false }: HelpAssistantProps) => {
     </div>
   );
 };
+
