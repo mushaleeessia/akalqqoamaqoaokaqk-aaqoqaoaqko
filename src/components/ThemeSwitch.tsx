@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Sunrise, Moon } from "lucide-react";
 import {
@@ -52,16 +51,19 @@ export const ThemeSwitch = () => {
     else handleThemeChange("light")(e);
   };
 
-  // mapeia o translate-x para garantir que o thumb vá até a borda
-  let thumbTranslate = "translate-x-0";
-  if (theme === "dark") thumbTranslate = "translate-x-6";
-  else if (theme === "system") thumbTranslate = "-translate-x-1/2";
-
-  // mapeia a cor do gradiente
+  // Utiliza classes para posicionar exatamente a bolinha conforme o tema
+  let thumbPositionClasses = "";
   let thumbGradient = "";
-  if (theme === "light") thumbGradient = "from-yellow-400 to-yellow-100";
-  else if (theme === "dark") thumbGradient = "from-zinc-700 to-slate-800";
-  else thumbGradient = "from-green-200 to-green-600";
+  if (theme === "light") {
+    thumbPositionClasses = "left-1";
+    thumbGradient = "from-yellow-400 to-yellow-100";
+  } else if (theme === "dark") {
+    thumbPositionClasses = "right-1";
+    thumbGradient = "from-zinc-700 to-slate-800";
+  } else {
+    thumbPositionClasses = "left-1/2 -translate-x-1/2";
+    thumbGradient = "from-green-200 to-green-600";
+  }
 
   return (
     <>
@@ -93,9 +95,9 @@ export const ThemeSwitch = () => {
         >
           <span
             className={[
-              "absolute top-1 left-1 w-6 h-6 rounded-full transition-all duration-300 shadow bg-gradient-to-tr",
-              thumbGradient,
-              thumbTranslate
+              "absolute top-1 w-6 h-6 rounded-full transition-all duration-300 shadow bg-gradient-to-tr",
+              thumbPositionClasses,
+              thumbGradient
             ].join(" ")}
           />
         </button>
