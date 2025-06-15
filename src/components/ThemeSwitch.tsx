@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Sun, Moon } from "lucide-react";
+import { ThemeSwitchOverlay } from "./ThemeSwitchOverlay";
+import {
+  Theme,
+  getSystemTheme,
+  getInitialTheme,
+  themeStorageKey,
+} from "./theme-utils";
 
 // 3 possíveis estados: 'light', 'dark' ou 'system'
 type Theme = "light" | "dark" | "system";
@@ -27,7 +34,11 @@ interface AnimationState {
 
 export const ThemeSwitch = () => {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
-  const [animation, setAnimation] = useState<AnimationState | null>(null);
+  const [animation, setAnimation] = useState<{
+    inProgress: boolean;
+    toTheme: Theme;
+    origin: { x: number; y: number };
+  } | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -226,7 +237,7 @@ export const ThemeSwitch = () => {
         </button>
       </div>
       {/* Overlay animado */}
-      {renderOverlay()}
+      <ThemeSwitchOverlay animation={animation} />
     </>
   );
 };
