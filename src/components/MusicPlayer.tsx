@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { Disc } from 'lucide-react';
+import { Music } from 'lucide-react';
 
 export const MusicPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -68,14 +68,22 @@ export const MusicPlayer = () => {
           ${isPlaying ? 'scale-110' : 'hover:scale-105'}
           ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
           border-2 border-pink-300/50
+          relative
         `}
       >
         {isLoading ? (
           <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
         ) : (
-          <Disc 
-            className={`w-7 h-7 text-white ${isPlaying ? 'animate-spin' : ''}`} 
-          />
+          <div className="relative">
+            <Music 
+              className={`w-7 h-7 text-white ${isPlaying ? 'animate-spin' : ''}`} 
+            />
+            {!isPlaying && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-0.5 bg-white rotate-45 transform"></div>
+              </div>
+            )}
+          </div>
         )}
       </button>
     </div>
