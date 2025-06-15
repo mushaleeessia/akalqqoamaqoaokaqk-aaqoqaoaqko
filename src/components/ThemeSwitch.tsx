@@ -83,13 +83,13 @@ export const ThemeSwitch = () => {
           <span
             className={`
               absolute top-1 w-6 h-6 rounded-full transition-all duration-300 shadow
-              bg-gradient-to-tr 
+              bg-gradient-to-tr
               ${
                 theme === "light"
-                  ? "left-1 from-yellow-400 to-yellow-100"
+                  ? "right-1 from-yellow-400 to-yellow-100"
                   : theme === "dark"
-                    ? "left-[28px] from-zinc-700 to-slate-800"
-                    : "left-[16px] from-green-200 to-green-600"
+                    ? "left-1 from-zinc-700 to-slate-800"
+                    : "left-1/2 -translate-x-1/2 from-green-200 to-green-600"
               }
             `}
           />
