@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { MessageCircle, X, ExternalLink, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -127,8 +128,14 @@ export const HelpAssistant = ({ isEnglish = false }: HelpAssistantProps) => {
   };
 
   const handleEmailClick = () => {
-    const subject = "";
-    const body = isEnglish ? "Hello,\n\n" : "Olá,\n\n";
+    const subject = isEnglish 
+      ? "Hello! Contact from your website" 
+      : "Olá! Contato do seu site";
+    
+    const body = isEnglish 
+      ? "Hello Alessia,\n\nI found your website and would like to get in touch with you.\n\n" 
+      : "Olá Alessia,\n\nEncontrei seu site e gostaria de entrar em contato com você.\n\n";
+    
     const mailtoUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=aleeessia@aleeessia.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailtoUrl, '_blank');
   };
