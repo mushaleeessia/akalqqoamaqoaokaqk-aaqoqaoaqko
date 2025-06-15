@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { MessageCircle, X, ExternalLink, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,14 @@ interface HelpOption {
 }
 
 const helpOptions: HelpOption[] = [
+  {
+    id: "contact",
+    title: "Entre em contato! 📩",
+    title_en: "Contact me! 📩",
+    response: "Caso você queira entrar em contato diretamente comigo, sinta-se livre para fazer isso enviando um e-mail para aleeessia@aleeessia.com",
+    response_en: "If you want to contact me directly, feel free to do so by sending an email to aleeessia@aleeessia.com",
+    category: "contact"
+  },
   {
     id: "staff",
     title: "Como entrar na Staff?",
@@ -119,6 +126,13 @@ export const HelpAssistant = ({ isEnglish = false }: HelpAssistantProps) => {
     setSelectedOption(null);
   };
 
+  const handleEmailClick = () => {
+    const subject = "";
+    const body = isEnglish ? "Hello,\n\n" : "Olá,\n\n";
+    const mailtoUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=aleeessia@aleeessia.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoUrl, '_blank');
+  };
+
   const getText = (ptText: string, enText?: string) => {
     return isEnglish && enText ? enText : ptText;
   };
@@ -182,7 +196,17 @@ export const HelpAssistant = ({ isEnglish = false }: HelpAssistantProps) => {
                   </p>
                 </div>
                 
-                {selectedOption.link && (
+                {selectedOption.id === "contact" ? (
+                  <div className="bg-gradient-to-r from-red-900/20 to-amber-900/20 border border-red-800/30 rounded-lg p-4 transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg animate-scale-in" style={{ animationDelay: "150ms" }}>
+                    <button
+                      onClick={handleEmailClick}
+                      className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-all duration-200 hover:translate-x-1 text-sm group w-full"
+                    >
+                      <ExternalLink size={14} className="transition-transform duration-200 group-hover:scale-110" />
+                      {getText("Enviar E-Mail", "Send E-Mail")}
+                    </button>
+                  </div>
+                ) : selectedOption.link && (
                   <div className="bg-gradient-to-r from-red-900/20 to-amber-900/20 border border-red-800/30 rounded-lg p-4 transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg animate-scale-in" style={{ animationDelay: "150ms" }}>
                     <a
                       href={selectedOption.link}
