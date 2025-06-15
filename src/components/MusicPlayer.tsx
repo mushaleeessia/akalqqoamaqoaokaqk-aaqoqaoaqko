@@ -7,8 +7,8 @@ export const MusicPlayer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // URL de exemplo - você pode substituir pela URL do seu MP3
-  const audioUrl = "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav";
+  // URL do áudio fornecido
+  const audioUrl = "https://jmp.sh/s/F8NXAZVprnbU8lorS5K6";
 
   useEffect(() => {
     // Criar elemento de áudio
@@ -54,7 +54,7 @@ export const MusicPlayer = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed top-6 right-6 z-40">
       <button
         onClick={togglePlay}
         disabled={isLoading}
