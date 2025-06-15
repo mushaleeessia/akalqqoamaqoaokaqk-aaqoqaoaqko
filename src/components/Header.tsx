@@ -1,5 +1,5 @@
 import { ShoppingCart, Users, Trophy, Shield, HelpCircle, MessageSquare, ChevronDown, Menu, X, Flag, Globe } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,12 +11,17 @@ import { ForeignerNotice } from "@/components/ForeignerNotice";
 
 interface HeaderProps {
   onLanguageChange?: (isEnglish: boolean) => void;
+  onMobileMenuChange?: (open: boolean) => void;
 }
 
-export const Header = ({ onLanguageChange }: HeaderProps) => {
+export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isEnglish, setIsEnglish] = useState(false);
   const [clickingItem, setClickingItem] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (onMobileMenuChange) onMobileMenuChange(mobileMenuOpen);
+  }, [mobileMenuOpen, onMobileMenuChange]);
 
   const navItems = [
     { 

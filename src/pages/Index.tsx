@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ProfileSection } from "@/components/ProfileSection";
 import { LinkCard } from "@/components/LinkCard";
@@ -12,6 +11,7 @@ import { Globe, MessageSquare, Video } from "lucide-react";
 
 const Index = () => {
   const [isEnglish, setIsEnglish] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const links = [
     {
@@ -44,7 +44,10 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-red-950/40 to-gray-900 relative overflow-hidden">
       {/* Header do Mush */}
-      <Header onLanguageChange={handleLanguageChange} />
+      <Header 
+        onLanguageChange={handleLanguageChange}
+        onMobileMenuChange={setMobileMenuOpen}
+      />
 
       {/* Twitch Embed */}
       <TwitchEmbed isEnglish={isEnglish} />
@@ -140,7 +143,7 @@ const Index = () => {
       {/* Main content */}
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-md">
         <ProfileSection isEnglish={isEnglish} />
-        
+         
         <div className="space-y-4 mt-8">
           {links.map((link, index) => (
             <LinkCard 
@@ -156,7 +159,6 @@ const Index = () => {
         </div>
 
         <BlogSection isEnglish={isEnglish} />
-        
         <Footer isVisible={isEnglish} />
       </div>
 
@@ -164,7 +166,7 @@ const Index = () => {
       <HelpAssistant isEnglish={isEnglish} />
 
       {/* Music Player */}
-      <MusicPlayer />
+      <MusicPlayer hidden={mobileMenuOpen} />
     </div>
   );
 };

@@ -2,7 +2,11 @@
 import { useState, useRef } from "react";
 import { Music } from "lucide-react";
 
-export const MusicPlayer = () => {
+interface MusicPlayerProps {
+  hidden?: boolean;
+}
+
+export const MusicPlayer = ({ hidden = false }: MusicPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -39,11 +43,9 @@ export const MusicPlayer = () => {
     setIsPlaying(false);
     console.log("Erro ao carregar o áudio");
   };
-
-  // Atualiza o estado se o usuário pausar manualmente no controle nativo do audio
   const handlePause = () => setIsPlaying(false);
 
-  return (
+  return hidden ? null : (
     <div className="fixed top-20 right-6 z-40">
       <button
         onClick={handlePlayPause}
