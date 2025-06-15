@@ -6,51 +6,45 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 0 0% 100%;             /* Branco puro */
+    --foreground: 222.2 84% 5%;          /* Preto quase puro */
 
-    --card: 0 0% 100%;
+    --card: 0 0% 99%;                    /* Cartão quase branco */
     --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 98%;                 /* Um tom diferente do fundo geral */
+    --popover-foreground: 222.2 84% 10%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 221 80% 60%;              /* Azul bem vivo para botões/principal */
+    --primary-foreground: 0 0% 100%;     /* Sempre texto branco na cor primária */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 34 100% 85%;            /* Amarelo claro para destaque */
+    --secondary-foreground: 222.2 87% 8%;
 
-    --muted: 210 40% 96.1%;
+    --muted: 0 0% 95%;                   /* Cinza bem claro para áreas menos importantes */
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 338 100% 90%;              /* Tom rosado/laranja para acentos */
+    --accent-foreground: 222.2 87% 10%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 13% 85%;               /* Cinza claro para bordas */
+    --input: 220 13% 90%;
+    --ring: 221 80% 75%;                 /* Um azul claro, mais vibrante */
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
+    --sidebar-foreground: 240 5.3% 16.1%; /* Texto sidebar mais forte */
+    --sidebar-primary: 221 80% 65%;       /* Sidebar primária viva */
     --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 34 100% 96%;
+    --sidebar-accent-foreground: 240 5.9% 12%;
 
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-border: 220 13% 85%;
+    --sidebar-ring: 221 80% 65%;
   }
 
   .dark {
