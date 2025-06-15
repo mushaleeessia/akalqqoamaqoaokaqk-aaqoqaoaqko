@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { Sunrise, Moon, Monitor } from "lucide-react";
 import {
   Theme,
   getSystemTheme,
@@ -45,13 +44,13 @@ export const ThemeSwitch = ({ isEnglish = false }: ThemeSwitchProps) => {
   const getCurrentIcon = () => {
     switch (theme) {
       case "light":
-        return <Sun className="w-4 h-4" />;
+        return <Sunrise className="w-4 h-4" />;
       case "dark":
         return <Moon className="w-4 h-4" />;
       case "system":
         return <Monitor className="w-4 h-4" />;
       default:
-        return <Sun className="w-4 h-4" />;
+        return <Sunrise className="w-4 h-4" />;
     }
   };
 
