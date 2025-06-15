@@ -10,7 +10,7 @@ import {
 
 // Tamanho do slider e do thumb
 const SLIDER_WIDTH = 56;
-const SLIDER_HEIGHT = 32;
+const SLIDER_HEIGHT = 30; // Reduzido de 32 para 30
 const THUMB_SIZE = 24;
 
 export const ThemeSwitch = () => {
@@ -55,13 +55,29 @@ export const ThemeSwitch = () => {
     thumbGradient = "from-green-200 to-green-600";
   }
 
-  // Classes de posicionamento puro para extremos
-  let thumbPositionClass =
-    "left-0"; // claro = extremo esquerdo
-  if (theme === "dark") {
-    thumbPositionClass = "right-0";
+  // Classes de posicionamento
+  let thumbStyle: React.CSSProperties = {
+    width: THUMB_SIZE,
+    height: THUMB_SIZE,
+    top: (SLIDER_HEIGHT - THUMB_SIZE) / 2,
+    transition: "left 0.28s cubic-bezier(.4,0,.2,1), right 0.28s cubic-bezier(.4,0,.2,1), transform 0.28s cubic-bezier(.4,0,.2,1)",
+  };
+  let thumbClass = `absolute rounded-full transition-all duration-300 shadow bg-gradient-to-tr ${thumbGradient}`;
+
+  // Controlar posição por pixels, para garantir animação suave entre extremos
+  if (theme === "light") {
+    thumbStyle.left = 0;
+    thumbStyle.right = "auto";
+    thumbStyle.transform = "none";
+  } else if (theme === "dark") {
+    thumbStyle.left = "auto";
+    thumbStyle.right = 0;
+    thumbStyle.transform = "none";
   } else if (theme === "system") {
-    thumbPositionClass = "left-1/2 -translate-x-1/2";
+    // Centralizado
+    thumbStyle.left = "50%";
+    thumbStyle.right = "auto";
+    thumbStyle.transform = "translateX(-50%)";
   }
 
   return (
@@ -80,12 +96,12 @@ export const ThemeSwitch = () => {
       >
         <Sunrise className={`h-6 w-6 transition ${theme === "light" ? "text-yellow-800" : "text-yellow-400"}`} />
       </button>
-      {/* SLIDER REFEITO */}
+      {/* SLIDER */}
       <button
         tabIndex={0}
         type="button"
         className={`
-          w-14 h-8 rounded-full border-2 border-red-700 bg-red-900/70 flex items-center transition-all duration-300 relative
+          w-14 rounded-full border-2 border-red-700 bg-red-900/70 flex items-center transition-all duration-300 relative
           shadow-inner shadow-red-900/60
           focus-visible:ring-2 ring-red-400/90
         `}
@@ -95,15 +111,8 @@ export const ThemeSwitch = () => {
         title="Alternar tema (claro/escuro/automático)"
       >
         <span
-          className={[
-            "absolute top-1",
-            thumbPositionClass,
-            "w-6 h-6 rounded-full transition-all duration-300 shadow bg-gradient-to-tr",
-            thumbGradient
-          ].join(" ")}
-          style={{
-            transition: "left 0.28s cubic-bezier(.4,0,.2,1), right 0.28s cubic-bezier(.4,0,.2,1), transform 0.28s cubic-bezier(.4,0,.2,1)"
-          }}
+          className={thumbClass}
+          style={thumbStyle}
         />
       </button>
       <button
