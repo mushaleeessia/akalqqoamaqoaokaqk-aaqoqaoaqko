@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Sunrise, Moon } from "lucide-react";
 import {
@@ -6,15 +7,6 @@ import {
   getInitialTheme,
   themeStorageKey,
 } from "./theme-utils";
-
-// Tamanho do slider, do thumb e da borda
-const SLIDER_WIDTH = 57; // aumentado para 57px
-const SLIDER_HEIGHT = 28;
-const THUMB_SIZE = 24;
-const SLIDER_BORDER = 2; // border-2 (tailwind = 2px)
-
-// O espaço interno disponível pro thumb é menor devido à borda de ambos os lados
-const SLIDER_INNER_WIDTH = SLIDER_WIDTH - SLIDER_BORDER * 2;
 
 export const ThemeSwitch = () => {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
@@ -50,42 +42,25 @@ export const ThemeSwitch = () => {
     else setTheme("light");
   };
 
-  // Gradiente do thumb
-  let thumbGradient = "from-yellow-400 to-yellow-100";
-  if (theme === "dark") {
-    thumbGradient = "from-zinc-700 to-slate-800";
-  } else if (theme === "system") {
-    thumbGradient = "from-green-200 to-green-600";
-  }
-
-  // Calculando posição da thumb:
-  // O limite de left é SLIDER_INNER_WIDTH - THUMB_SIZE (máximo sem exceder interior do slider)
-  let leftValue = 0;
-  if (theme === "light") {
-    leftValue = 0;
-  } else if (theme === "system") {
-    // Centralizar exatamente
-    leftValue = Math.round((SLIDER_INNER_WIDTH - THUMB_SIZE) / 2);
+  // Posição do thumb baseada no tema
+  let thumbPosition = "translate-x-0"; // light
+  if (theme === "system") {
+    thumbPosition = "translate-x-6"; // meio
   } else if (theme === "dark") {
-    // Encostar exatamente na borda direita interna
-    leftValue = SLIDER_INNER_WIDTH - THUMB_SIZE;
+    thumbPosition = "translate-x-12"; // direita
   }
-  // Garantir que não ultrapassa (defensivo)
-  leftValue = Math.max(0, Math.min(leftValue, SLIDER_INNER_WIDTH - THUMB_SIZE));
 
-  // Posição do thumb: precisa adicionar SLIDER_BORDER pois área útil começa após borda
-  let thumbStyle: React.CSSProperties = {
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    top: Math.floor((SLIDER_HEIGHT - THUMB_SIZE) / 2),
-    left: leftValue + SLIDER_BORDER,
-    transition: "left 0.32s cubic-bezier(.4,0,.2,1), background 0.3s, box-shadow 0.3s",
-  };
-
-  let thumbClass = `absolute rounded-full shadow bg-gradient-to-tr transition-all duration-300 ${thumbGradient}`;
+  // Cor do thumb baseada no tema
+  let thumbColor = "bg-gradient-to-r from-yellow-400 to-yellow-200"; // light
+  if (theme === "system") {
+    thumbColor = "bg-gradient-to-r from-green-400 to-green-200"; // system
+  } else if (theme === "dark") {
+    thumbColor = "bg-gradient-to-r from-gray-600 to-gray-400"; // dark
+  }
 
   return (
     <div className="flex items-center space-x-4 relative z-10">
+      {/* Botão Modo Claro */}
       <button
         className={`w-8 h-8 rounded-full flex items-center justify-center transition-all outline-none focus-visible:ring-2 ring-yellow-400/70
           ${theme === "light"
@@ -95,30 +70,25 @@ export const ThemeSwitch = () => {
         title="Modo claro"
         onClick={handleThemeChange("light")}
         aria-label="Tema claro"
-        tabIndex={0}
         type="button"
       >
         <Sunrise className={`h-6 w-6 transition ${theme === "light" ? "text-yellow-800" : "text-yellow-400"}`} />
       </button>
-      {/* SLIDER */}
+
+      {/* Switch Central */}
       <button
-        tabIndex={0}
-        type="button"
-        className={`
-          w-14 rounded-full border-2 border-red-700 bg-red-900/70 flex items-center transition-all duration-300 relative
-          shadow-inner shadow-red-900/60
-          focus-visible:ring-2 ring-red-400/90
-        `}
-        style={{ outline: "none", width: SLIDER_WIDTH, height: SLIDER_HEIGHT }}
-        aria-label="Alternar tema"
+        className="relative w-16 h-7 bg-red-900/70 border-2 border-red-700 rounded-full shadow-inner shadow-red-900/60 transition-all duration-300 focus-visible:ring-2 ring-red-400/90 outline-none"
         onClick={handleSwitch}
+        aria-label="Alternar tema"
         title="Alternar tema (claro/escuro/automático)"
+        type="button"
       >
-        <span
-          className={thumbClass}
-          style={thumbStyle}
+        <div
+          className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full shadow transition-all duration-300 ease-out ${thumbColor} ${thumbPosition}`}
         />
       </button>
+
+      {/* Botão Modo Escuro */}
       <button
         className={`w-8 h-8 rounded-full flex items-center justify-center transition-all outline-none focus-visible:ring-2 ring-blue-300/70
           ${theme === "dark"
@@ -128,11 +98,12 @@ export const ThemeSwitch = () => {
         title="Modo escuro"
         onClick={handleThemeChange("dark")}
         aria-label="Tema escuro"
-        tabIndex={0}
         type="button"
       >
         <Moon className={`h-6 w-6 transition ${theme === "dark" ? "text-blue-100" : "text-zinc-500"}`} />
       </button>
+
+      {/* Botão Auto */}
       <button
         className={`
           px-2 py-0.5 rounded font-semibold text-xs transition-all duration-200 border
