@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Sun, Moon } from "lucide-react";
+import { Sunrise, Moon } from "lucide-react";
 import {
   Theme,
   getSystemTheme,
@@ -66,7 +66,7 @@ export const ThemeSwitch = () => {
           aria-label="Tema claro"
           tabIndex={0}
         >
-          <Sun className={`h-6 w-6 transition ${theme === "light" ? "text-yellow-800" : "text-yellow-400"}`} />
+          <Sunrise className={`h-6 w-6 transition ${theme === "light" ? "text-yellow-800" : "text-yellow-400"}`} />
         </button>
         <button
           tabIndex={0}
