@@ -8,10 +8,14 @@ import {
   themeStorageKey,
 } from "./theme-utils";
 
-// Tamanho do slider e do thumb
+// Tamanho do slider, do thumb e da borda
 const SLIDER_WIDTH = 56;
-const SLIDER_HEIGHT = 28; // Agora 28px, como solicitado
+const SLIDER_HEIGHT = 28;
 const THUMB_SIZE = 24;
+const SLIDER_BORDER = 2; // border-2 (tailwind = 2px)
+
+// O espaço interno disponível pro thumb é menor devido à borda de ambos os lados
+const SLIDER_INNER_WIDTH = SLIDER_WIDTH - SLIDER_BORDER * 2;
 
 export const ThemeSwitch = () => {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
@@ -56,23 +60,23 @@ export const ThemeSwitch = () => {
   }
 
   // Calculando posição da thumb:
+  // O limite de left é SLIDER_INNER_WIDTH - THUMB_SIZE (máximo sem exceder interior do slider)
   let leftValue = 0;
   if (theme === "light") {
     leftValue = 0;
   } else if (theme === "system") {
-    leftValue = Math.round((SLIDER_WIDTH - THUMB_SIZE) / 2);
+    leftValue = Math.round((SLIDER_INNER_WIDTH - THUMB_SIZE) / 2);
   } else if (theme === "dark") {
-    // O máximo permitido para evitar overflow. Precisa ser inteiro:
-    leftValue = SLIDER_WIDTH - THUMB_SIZE;
+    leftValue = SLIDER_INNER_WIDTH - THUMB_SIZE;
   }
-  // Garante que nunca sai:
-  leftValue = Math.max(0, Math.min(leftValue, SLIDER_WIDTH - THUMB_SIZE));
+  leftValue = Math.max(0, Math.min(leftValue, SLIDER_INNER_WIDTH - THUMB_SIZE));
 
+  // Posição do thumb: precisa adicionar SLIDER_BORDER pois área util começa após borda
   let thumbStyle: React.CSSProperties = {
     width: THUMB_SIZE,
     height: THUMB_SIZE,
     top: Math.floor((SLIDER_HEIGHT - THUMB_SIZE) / 2),
-    left: leftValue,
+    left: leftValue + SLIDER_BORDER, // compensação da borda esquerda
     transition: "left 0.32s cubic-bezier(.4,0,.2,1), background 0.3s, box-shadow 0.3s",
   };
 
@@ -144,3 +148,4 @@ export const ThemeSwitch = () => {
     </div>
   );
 };
+
