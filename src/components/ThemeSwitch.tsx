@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Sunrise, Moon } from "lucide-react";
 import {
@@ -10,7 +9,7 @@ import {
 
 // Tamanho do slider e do thumb
 const SLIDER_WIDTH = 56;
-const SLIDER_HEIGHT = 29; // Agora 29px
+const SLIDER_HEIGHT = 29; // 29px como solicitado
 const THUMB_SIZE = 24;
 
 export const ThemeSwitch = () => {
@@ -55,26 +54,24 @@ export const ThemeSwitch = () => {
     thumbGradient = "from-green-200 to-green-600";
   }
 
-  // Cálculo da posição da thumb, sempre usando "left" para transição visível
+  // Calcular a posição do thumb SEM ultrapassar limites
   let leftValue = 0;
-  let transformValue = "none";
   if (theme === "light") {
     leftValue = 0;
-    transformValue = "none";
   } else if (theme === "system") {
-    leftValue = SLIDER_WIDTH / 2 - THUMB_SIZE / 2;
-    transformValue = "none";
+    leftValue = (SLIDER_WIDTH - THUMB_SIZE) / 2;
   } else if (theme === "dark") {
-    leftValue = SLIDER_WIDTH - THUMB_SIZE;
-    transformValue = "none";
+    leftValue = SLIDER_WIDTH - THUMB_SIZE; // Exatamente no limite direito
   }
+  // Garantir que left nunca saia do slider
+  leftValue = Math.max(0, Math.min(leftValue, SLIDER_WIDTH - THUMB_SIZE));
+
   let thumbStyle: React.CSSProperties = {
     width: THUMB_SIZE,
     height: THUMB_SIZE,
     top: (SLIDER_HEIGHT - THUMB_SIZE) / 2,
     left: leftValue,
-    transform: transformValue,
-    transition: "left 0.32s cubic-bezier(.4,0,.2,1), background 0.3s, box-shadow 0.3s"
+    transition: "left 0.32s cubic-bezier(.4,0,.2,1), background 0.3s, box-shadow 0.3s",
   };
 
   let thumbClass = `absolute rounded-full shadow bg-gradient-to-tr transition-all duration-300 ${thumbGradient}`;
@@ -145,4 +142,3 @@ export const ThemeSwitch = () => {
     </div>
   );
 };
-
