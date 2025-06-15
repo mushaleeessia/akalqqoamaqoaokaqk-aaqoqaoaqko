@@ -1,19 +1,11 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Sun, Moon } from "lucide-react";
-import { ThemeSwitchOverlay } from "./ThemeSwitchOverlay";
 import {
   Theme,
   getSystemTheme,
   getInitialTheme,
   themeStorageKey,
 } from "./theme-utils";
-
-// Remove duplicate local type and function declarations:
-// - type Theme = "light" | "dark" | "system";
-// - const themeStorageKey = "theme-preference";
-// - const getSystemTheme = ...
-// - const getInitialTheme = ...
 
 interface AnimationState {
   inProgress: boolean;
@@ -48,37 +40,18 @@ export const ThemeSwitch = () => {
     }
   }, [theme]);
 
-  // Inicia animação, faz troca suave do tema
+  // Inicia animação (apenas para manter interface, não será mais usado overlay)
   const handleThemeChange = (toTheme: Theme) => (e: React.MouseEvent) => {
-    // Usa centro do botão
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    const clickX = rect.left + rect.width / 2;
-    const clickY = rect.top + rect.height / 2;
-    setAnimation({
-      inProgress: true,
-      toTheme,
-      origin: { x: clickX, y: clickY }
-    });
-
-    // Tema muda após meio segundo (sincronizado com animação)
-    setTimeout(() => {
-      setTheme(toTheme);
-    }, 370);
-
-    // Limpa overlay depois da animação
-    setTimeout(() => {
-      setAnimation(null);
-    }, 730);
+    // Remove animação do overlay, só troca o tema imediatamente
+    setTheme(toTheme);
   };
 
-  // Botão central para ciclo de tema
   const handleSwitch = (e: React.MouseEvent) => {
     if (theme === "light") handleThemeChange("dark")(e);
     else if (theme === "dark") handleThemeChange("system")(e);
     else handleThemeChange("light")(e);
   };
 
-  // UI dos botões
   return (
     <>
       <div className="flex items-center space-x-4 relative z-10">
@@ -146,8 +119,6 @@ export const ThemeSwitch = () => {
           Auto
         </button>
       </div>
-      {/* Overlay animado */}
-      <ThemeSwitchOverlay animation={animation} />
     </>
   );
 };
