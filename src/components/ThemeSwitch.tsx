@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Sunrise, Moon } from "lucide-react";
 import {
@@ -9,7 +10,7 @@ import {
 
 // Tamanho do slider e do thumb
 const SLIDER_WIDTH = 56;
-const SLIDER_HEIGHT = 29; // 29px como solicitado
+const SLIDER_HEIGHT = 28; // Agora 28px, como solicitado
 const THUMB_SIZE = 24;
 
 export const ThemeSwitch = () => {
@@ -54,22 +55,23 @@ export const ThemeSwitch = () => {
     thumbGradient = "from-green-200 to-green-600";
   }
 
-  // Calcular a posição do thumb SEM ultrapassar limites
+  // Calculando posição da thumb:
   let leftValue = 0;
   if (theme === "light") {
     leftValue = 0;
   } else if (theme === "system") {
-    leftValue = (SLIDER_WIDTH - THUMB_SIZE) / 2;
+    leftValue = Math.round((SLIDER_WIDTH - THUMB_SIZE) / 2);
   } else if (theme === "dark") {
-    leftValue = SLIDER_WIDTH - THUMB_SIZE; // Exatamente no limite direito
+    // O máximo permitido para evitar overflow. Precisa ser inteiro:
+    leftValue = SLIDER_WIDTH - THUMB_SIZE;
   }
-  // Garantir que left nunca saia do slider
+  // Garante que nunca sai:
   leftValue = Math.max(0, Math.min(leftValue, SLIDER_WIDTH - THUMB_SIZE));
 
   let thumbStyle: React.CSSProperties = {
     width: THUMB_SIZE,
     height: THUMB_SIZE,
-    top: (SLIDER_HEIGHT - THUMB_SIZE) / 2,
+    top: Math.floor((SLIDER_HEIGHT - THUMB_SIZE) / 2),
     left: leftValue,
     transition: "left 0.32s cubic-bezier(.4,0,.2,1), background 0.3s, box-shadow 0.3s",
   };
