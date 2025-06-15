@@ -1,5 +1,3 @@
-
-
 import { useState } from "react";
 import { MessageCircle, X, ExternalLink, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -134,8 +132,8 @@ export const HelpAssistant = ({ isEnglish = false }: HelpAssistantProps) => {
       : "Meu nick no minecraft:";
     
     const body = isEnglish 
-      ? "Hello Alessia,\n\nI found your website and would like to get in touch with you.\n\n" 
-      : "Olá Alessia,\n\nEncontrei seu site e gostaria de entrar em contato com você.\n\n";
+      ? "Olá,\n\n" 
+      : "Olá,\n\n";
     
     const mailtoUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=aleeessia@aleeessia.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailtoUrl, '_blank');
@@ -268,4 +266,3 @@ export const HelpAssistant = ({ isEnglish = false }: HelpAssistantProps) => {
     </div>
   );
 };
-
