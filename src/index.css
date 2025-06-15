@@ -6,12 +6,12 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;             /* Off-white */
+    --background: 285 38% 94%;             /* Lavanda claro puxando pro rosado */
     --foreground: 222 12% 17%;          /* Cinza-escuro bem legível */
     --card: 0 0% 100%;                  /* Branco puro para cards */
     --card-foreground: 222 12% 17%;     /* Mesmo cinza do texto */
 
-    --popover: 0 0% 99%;                /* Um tom quase branco */
+    --popover: 285 38% 98%;                /* Um lavanda ainda mais claro */
     --popover-foreground: 222 12% 32%;  /* Cinza intermediário */
 
     --primary: 220 80% 62%;             /* Azul suave, moderno */
@@ -36,7 +36,7 @@
     --radius: 0.5rem;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 97%;
+    --sidebar-background: 285 38% 92%;     /* Lavanda pastel para sidebar */
     --sidebar-foreground: 222 11% 24%;  
     --sidebar-primary: 220 80% 62%;     
     --sidebar-primary-foreground: 0 0% 100%;
