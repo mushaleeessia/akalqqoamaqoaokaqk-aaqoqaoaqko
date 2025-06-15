@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { ForeignerNotice } from "@/components/ForeignerNotice";
+import { ThemeSwitch } from "@/components/ThemeSwitch";
 
 interface HeaderProps {
   onLanguageChange?: (isEnglish: boolean) => void;
@@ -156,9 +157,10 @@ export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) =>
             </DropdownMenu>
           </nav>
 
-          {/* Switch de idiomas - desktop */}
-          <div className="hidden md:flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
+          {/* Switch de idiomas + Toggle de tema - desktop */}
+          <div className="hidden md:flex items-center space-x-6">
+            <ThemeSwitch />
+            <div className="flex items-center space-x-3">
               <span className="text-lg">{isEnglish ? "🇺🇸" : "🇧🇷"}</span>
               <span className="text-white text-sm font-medium">
                 {isEnglish ? "English" : "Português"}
@@ -193,6 +195,10 @@ export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) =>
         {mobileMenuOpen && (
           <div className="md:hidden pb-4 border-t border-red-700/30 mt-3">
             <nav className="flex flex-col space-y-2 pt-4">
+              {/* Toggle de tema (mobile) */}
+              <div className="flex items-center justify-between px-4 py-3 bg-red-800/30 rounded-lg border border-red-600/30">
+                <ThemeSwitch />
+              </div>
               {/* Switch de idiomas */}
               <div className="flex items-center justify-between px-4 py-3 bg-red-800/30 rounded-lg border border-red-600/30">
                 <div className="flex items-center space-x-3">
