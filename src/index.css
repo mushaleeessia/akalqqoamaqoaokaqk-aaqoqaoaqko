@@ -89,8 +89,15 @@
 /* Gradiente de fundo customizado para modo claro */
 body {
   @apply bg-background text-foreground;
-  /* Novo degradê: canto superior esquerdo claro, finalizando em roxo vibrante */
-  background: linear-gradient(135deg, #ffe5ec 0%, #f6d4fc 35%, #ccb1ff 72%, #8358fc 100%);
+  /* Gradiente suave, topo bem claro como no print */
+  background: linear-gradient(
+    135deg,
+    #fff8fa 0%,
+    #ffe5ec 18%,
+    #f6d4fc 44%,
+    #ccb1ff 72%,
+    #8358fc 100%
+  );
   transition: background-color 300ms cubic-bezier(0.8,0,0.2,1),
     color 200ms linear;
 }
