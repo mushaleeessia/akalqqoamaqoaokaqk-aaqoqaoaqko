@@ -88,8 +88,8 @@ export const ThemeSwitch = () => {
                 theme === "light"
                   ? "left-1 from-yellow-400 to-yellow-100"
                   : theme === "dark"
-                    ? "left-[28px] from-zinc-700 to-slate-800"
-                    : "left-[16px] from-green-200 to-green-600"
+                    ? "right-1 from-zinc-700 to-slate-800"
+                    : "left-1/2 -translate-x-1/2 from-green-200 to-green-600"
               }
             `}
           />
