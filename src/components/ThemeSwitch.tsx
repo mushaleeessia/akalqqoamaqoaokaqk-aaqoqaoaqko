@@ -10,7 +10,7 @@ import {
 
 // Tamanho do slider e do thumb
 const SLIDER_WIDTH = 56;
-const SLIDER_HEIGHT = 30; // Reduzido de 32 para 30
+const SLIDER_HEIGHT = 29; // Agora 29px
 const THUMB_SIZE = 24;
 
 export const ThemeSwitch = () => {
@@ -55,30 +55,29 @@ export const ThemeSwitch = () => {
     thumbGradient = "from-green-200 to-green-600";
   }
 
-  // Classes de posicionamento
+  // Cálculo da posição da thumb, sempre usando "left" para transição visível
+  let leftValue = 0;
+  let transformValue = "none";
+  if (theme === "light") {
+    leftValue = 0;
+    transformValue = "none";
+  } else if (theme === "system") {
+    leftValue = SLIDER_WIDTH / 2 - THUMB_SIZE / 2;
+    transformValue = "none";
+  } else if (theme === "dark") {
+    leftValue = SLIDER_WIDTH - THUMB_SIZE;
+    transformValue = "none";
+  }
   let thumbStyle: React.CSSProperties = {
     width: THUMB_SIZE,
     height: THUMB_SIZE,
     top: (SLIDER_HEIGHT - THUMB_SIZE) / 2,
-    transition: "left 0.28s cubic-bezier(.4,0,.2,1), right 0.28s cubic-bezier(.4,0,.2,1), transform 0.28s cubic-bezier(.4,0,.2,1)",
+    left: leftValue,
+    transform: transformValue,
+    transition: "left 0.32s cubic-bezier(.4,0,.2,1), background 0.3s, box-shadow 0.3s"
   };
-  let thumbClass = `absolute rounded-full transition-all duration-300 shadow bg-gradient-to-tr ${thumbGradient}`;
 
-  // Controlar posição por pixels, para garantir animação suave entre extremos
-  if (theme === "light") {
-    thumbStyle.left = 0;
-    thumbStyle.right = "auto";
-    thumbStyle.transform = "none";
-  } else if (theme === "dark") {
-    thumbStyle.left = "auto";
-    thumbStyle.right = 0;
-    thumbStyle.transform = "none";
-  } else if (theme === "system") {
-    // Centralizado
-    thumbStyle.left = "50%";
-    thumbStyle.right = "auto";
-    thumbStyle.transform = "translateX(-50%)";
-  }
+  let thumbClass = `absolute rounded-full shadow bg-gradient-to-tr transition-all duration-300 ${thumbGradient}`;
 
   return (
     <div className="flex items-center space-x-4 relative z-10">
@@ -146,3 +145,4 @@ export const ThemeSwitch = () => {
     </div>
   );
 };
+
