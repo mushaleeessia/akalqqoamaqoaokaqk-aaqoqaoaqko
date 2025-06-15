@@ -6,43 +6,43 @@
 
 @layer base {
   :root {
-    --background: 285 38% 94%;             /* Lavanda claro puxando pro rosado */
-    --foreground: 222 12% 17%;          /* Cinza-escuro bem legível */
-    --card: 0 0% 100%;                  /* Branco puro para cards */
-    --card-foreground: 222 12% 17%;     /* Mesmo cinza do texto */
+    /* Mantém as variáveis para consistência da paleta */
+    --background: 285 38% 94%;
+    --foreground: 222 12% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 12% 17%;
 
-    --popover: 285 38% 98%;                /* Um lavanda ainda mais claro */
-    --popover-foreground: 222 12% 32%;  /* Cinza intermediário */
+    --popover: 285 38% 98%;
+    --popover-foreground: 222 12% 32%;
 
-    --primary: 220 80% 62%;             /* Azul suave, moderno */
-    --primary-foreground: 0 0% 100%;    /* Branco no azul */
+    --primary: 220 80% 62%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 46 97% 82%;            /* Amarelo pastel */
+    --secondary: 46 97% 82%;
     --secondary-foreground: 222 14% 18%;
 
-    --muted: 210 16% 94%;               /* Cinza claro uniforme */
+    --muted: 210 16% 94%;
     --muted-foreground: 220 12% 46%;
 
-    --accent: 201 50% 87%;              /* Azul acinzentado suave */
+    --accent: 201 50% 87%;
     --accent-foreground: 222 12% 24%;
 
-    --destructive: 0 81% 65%;           /* Vermelho pastel */
+    --destructive: 0 81% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 222 16% 86%;              /* Cinza bem claro */
+    --border: 222 16% 86%;
     --input: 210 16% 90%;
-    --ring: 220 80% 70%;                /* Azul suave */
+    --ring: 220 80% 70%;
 
     --radius: 0.5rem;
 
     /* Sidebar */
-    --sidebar-background: 285 38% 92%;     /* Lavanda pastel para sidebar */
-    --sidebar-foreground: 222 11% 24%;  
-    --sidebar-primary: 220 80% 62%;     
+    --sidebar-background: 285 38% 92%;
+    --sidebar-foreground: 222 11% 24%;
+    --sidebar-primary: 220 80% 62%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 46 83% 94%;      /* Amarelo pastel claro */
+    --sidebar-accent: 46 83% 94%;
     --sidebar-accent-foreground: 222 11% 28%;
-
     --sidebar-border: 222 16% 86%;
     --sidebar-ring: 220 80% 70%;
   }
@@ -86,16 +86,18 @@
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
+/* Gradiente de fundo customizado para modo claro */
+body {
+  @apply bg-background text-foreground;
+  /* Degradê: vermelho escuro -> roxo suave */
+  background: linear-gradient(135deg, #cb2d6f 0%, #8358fc 100%);
+  transition: background-color 300ms cubic-bezier(0.8,0,0.2,1),
+    color 200ms linear;
+}
 
-  body {
-    @apply bg-background text-foreground;
-    transition: background-color 300ms cubic-bezier(0.8,0,0.2,1),
-      color 200ms linear;
-  }
+/* No modo escuro, mantém fundo escuro */
+.dark body {
+  background: linear-gradient(135deg, #1a101f 0%, #432463 100%);
 }
 
 /* Hide scrollbar but keep functionality */
