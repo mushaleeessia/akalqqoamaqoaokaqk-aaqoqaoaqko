@@ -89,10 +89,24 @@
 /* Gradiente de fundo customizado para modo claro */
 body {
   @apply bg-background text-foreground;
-  /* Fundo inspirado no print: radial-gradient escuro no topo esquerdo + linear degradê lavanda/rosa */
-  background: 
-    radial-gradient(ellipse 70% 60% at 0% 0%, rgba(50,35,60,0.72) 0%, rgba(50,35,60,0.12) 48%, rgba(0,0,0,0) 100%),
-    linear-gradient(135deg, #2a2232 0%, #9571bf 35%, #efb1e4 65%, #ffe5ec 100%);
+  /* Efeito amanhecer/sunrise: escuro suave no topo, lavanda/rosado nas diagonais */
+  background:
+    radial-gradient(
+      ellipse 70% 50% at 8% 0%,
+      #2a223b 0%,
+      #483675 42%,
+      #9460ca 65%,
+      rgba(245,208,232,0.85) 82%,
+      #ffe5ec 100%
+    ),
+    linear-gradient(
+      120deg,
+      #ffe5ec 5%,
+      #efb2d4 20%,
+      #f7e0ff 46%,
+      #dbc3f7 76%,
+      #ffe5ec 100%
+    );
   transition: background-color 300ms cubic-bezier(0.8,0,0.2,1),
     color 200ms linear;
 }
