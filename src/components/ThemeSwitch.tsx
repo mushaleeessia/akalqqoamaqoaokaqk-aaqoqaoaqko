@@ -1,4 +1,5 @@
 
+
 import { useEffect, useState } from "react";
 import { Sun, Moon, Monitor } from "lucide-react";
 import {
@@ -54,13 +55,13 @@ export const ThemeSwitch = () => {
   const getCurrentLabel = () => {
     switch (theme) {
       case "light":
-        return "Claro";
+        return "Light";
       case "dark":
-        return "Escuro";
+        return "Dark";
       case "system":
         return "Auto";
       default:
-        return "Claro";
+        return "Light";
     }
   };
 
@@ -79,3 +80,4 @@ export const ThemeSwitch = () => {
     </button>
   );
 };
+
