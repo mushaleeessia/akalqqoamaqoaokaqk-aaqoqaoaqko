@@ -3,6 +3,7 @@ import { TermoGrid } from "./TermoGrid";
 import { TermoKeyboard } from "./TermoKeyboard";
 import { TermoGameOver } from "./TermoGameOver";
 import { validatePortugueseWord } from "@/utils/portugueseWords";
+import { usePlayerSession } from "@/hooks/usePlayerSession";
 import { toast } from "@/hooks/use-toast";
 
 interface TermoGameProps {
@@ -20,6 +21,7 @@ export interface GameState {
 }
 
 export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
+  const { canPlay, sessionInfo, updateSession } = usePlayerSession();
   const [gameState, setGameState] = useState<GameState>({
     guesses: [],
     currentGuess: '',
@@ -30,6 +32,31 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
   const [isValidating, setIsValidating] = useState(false);
   const maxGuesses = 6;
+
+  // Se o jogador não pode jogar, mostrar mensagem
+  if (!canPlay && sessionInfo) {
+    return (
+      <div className="flex flex-col items-center space-y-6 p-8 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">
+            {sessionInfo.completed ? '✅ Você já jogou hoje!' : '❌ Tentativas esgotadas!'}
+          </h2>
+          <p className="text-white/80 mb-2">
+            {sessionInfo.completed 
+              ? `Parabéns! Você completou o Termo de hoje.`
+              : `Você esgotou suas tentativas para hoje.`
+            }
+          </p>
+          <p className="text-white/60 text-sm">
+            Uma nova palavra estará disponível amanhã!
+          </p>
+          <div className="mt-4 text-white/50 text-xs">
+            Tentativas realizadas: {sessionInfo.attempts}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const evaluateGuess = (guess: string): LetterState[] => {
     const result: LetterState[] = [];
@@ -128,6 +155,11 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         gameStatus: isWin ? 'won' : (isGameOver ? 'lost' : 'playing'),
         currentRow: newGuesses.length
       });
+
+      // Atualizar sessão do jogador se o jogo terminou
+      if (isGameOver) {
+        updateSession(isWin, !isWin);
+      }
       
     } catch (error) {
       toast({
@@ -138,7 +170,7 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     } finally {
       setIsValidating(false);
     }
-  }, [gameState.currentGuess, gameState.guesses, targetWord, keyStates]);
+  }, [gameState.currentGuess, gameState.guesses, targetWord, keyStates, updateSession]);
 
   const handleKeyPress = useCallback((key: string) => {
     if (gameState.gameStatus !== 'playing' || isValidating) return;
