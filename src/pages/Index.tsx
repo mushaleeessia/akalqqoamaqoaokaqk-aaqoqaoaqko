@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { ProfileSection } from "@/components/ProfileSection";
 import { LinkCard } from "@/components/LinkCard";
@@ -7,7 +8,8 @@ import { Footer } from "@/components/Footer";
 import { HelpAssistant } from "@/components/HelpAssistant";
 import { TwitchEmbed } from "@/components/TwitchEmbed";
 import { MusicPlayer } from "@/components/MusicPlayer";
-import { Globe, MessageSquare, Video } from "lucide-react";
+import { Globe, MessageSquare, Video, Gamepad2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Index = () => {
   const [isEnglish, setIsEnglish] = useState(false);
@@ -143,8 +145,25 @@ const Index = () => {
       {/* Main content */}
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-md">
         <ProfileSection isEnglish={isEnglish} />
+        
+        {/* Botão especial do jogo Termo */}
+        <div className="mt-8 mb-4">
+          <Link to="/termo">
+            <button className="w-full relative overflow-hidden flex items-center justify-center space-x-3 px-6 py-4 text-white rounded-xl border-2 border-green-500/30 hover:border-green-400 transition-all duration-300 text-lg font-bold bg-gradient-to-r from-green-900/80 via-green-800/60 to-green-900/80 hover:from-green-800/90 hover:via-green-700/70 hover:to-green-800/90 group shadow-lg hover:shadow-green-500/20">
+              {/* Efeito de brilho animado */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-400/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+              
+              <Gamepad2 className="w-6 h-6 relative z-10 text-green-300" />
+              <span className="relative z-10 text-green-100">TEEERMO</span>
+              
+              {/* Partículas de fundo */}
+              <div className="absolute top-1 right-2 w-1 h-1 bg-green-400 rounded-full animate-pulse opacity-70" />
+              <div className="absolute bottom-2 left-3 w-1.5 h-1.5 bg-green-300 rounded-full animate-pulse delay-300 opacity-50" />
+            </button>
+          </Link>
+        </div>
          
-        <div className="space-y-4 mt-8">
+        <div className="space-y-4">
           {links.map((link, index) => (
             <LinkCard 
               key={index} 
