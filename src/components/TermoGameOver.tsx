@@ -22,7 +22,7 @@ export const TermoGameOver = ({
     const date = new Date().toLocaleDateString('pt-BR');
     const attempts = gameState.gameStatus === 'won' ? gameState.guesses.length : 'X';
     
-    let shareText = `Termo ${date} ${attempts}/6\n\n`;
+    let shareText = `Teeermo ${date} ${attempts}/6\n\n`;
     
     gameState.guesses.forEach(guess => {
       const evaluation = evaluateGuess(guess);
@@ -37,7 +37,7 @@ export const TermoGameOver = ({
       shareText += emojis + '\n';
     });
     
-    shareText += '\nterm.ooo';
+    shareText += '\naleeessia.com (veja também term.ooo!)';
     return shareText;
   };
 
@@ -74,7 +74,7 @@ export const TermoGameOver = ({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Meu resultado no Termo',
+          title: 'Meu resultado no Teeermo',
           text: shareText
         });
       } catch (error) {

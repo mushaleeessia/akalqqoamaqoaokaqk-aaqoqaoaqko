@@ -42,9 +42,14 @@ const Termo = () => {
           </Button>
         </Link>
         
-        <h1 className="text-3xl font-bold text-white tracking-wider">
-          TERM.OOO
-        </h1>
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white tracking-wider">
+            aleeessia.com
+          </h1>
+          <p className="text-sm text-white/70 mt-1">
+            teeermo (veja também term.ooo!)
+          </p>
+        </div>
         
         <Button 
           variant="ghost" 
