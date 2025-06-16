@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useTermoData } from "@/hooks/useTermoData";
 
 const Termo = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true); // Modo escuro como padrão
   const { todayWord, loading } = useTermoData();
 
   useEffect(() => {
