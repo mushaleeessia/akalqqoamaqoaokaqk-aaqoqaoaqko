@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { TermoGrid } from "./TermoGrid";
 import { TermoKeyboard } from "./TermoKeyboard";
@@ -29,6 +28,7 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
   });
 
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
+  const [isValidating, setIsValidating] = useState(false);
   const maxGuesses = 6;
 
   const evaluateGuess = (guess: string): LetterState[] => {
@@ -78,7 +78,7 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     setKeyStates(newKeyStates);
   };
 
-  const submitGuess = useCallback(() => {
+  const submitGuess = useCallback(async () => {
     if (gameState.currentGuess.length !== 5) {
       toast({
         title: "Palavra incompleta",
@@ -88,32 +88,48 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
       return;
     }
 
-    if (!validatePortugueseWord(gameState.currentGuess)) {
+    setIsValidating(true);
+    
+    try {
+      const isValid = await validatePortugueseWord(gameState.currentGuess);
+      
+      if (!isValid) {
+        toast({
+          title: "Palavra inválida",
+          description: "Esta palavra não existe no dicionário",
+          variant: "destructive"
+        });
+        setIsValidating(false);
+        return;
+      }
+
+      const evaluation = evaluateGuess(gameState.currentGuess);
+      updateKeyStates(gameState.currentGuess, evaluation);
+      
+      const newGuesses = [...gameState.guesses, gameState.currentGuess];
+      const isWin = gameState.currentGuess.toLowerCase() === targetWord.toLowerCase();
+      const isGameOver = isWin || newGuesses.length >= maxGuesses;
+      
+      setGameState({
+        guesses: newGuesses,
+        currentGuess: '',
+        gameStatus: isWin ? 'won' : (isGameOver ? 'lost' : 'playing'),
+        currentRow: newGuesses.length
+      });
+      
+    } catch (error) {
       toast({
-        title: "Palavra inválida",
-        description: "Esta palavra não existe no dicionário",
+        title: "Erro de validação",
+        description: "Não foi possível validar a palavra. Tente novamente.",
         variant: "destructive"
       });
-      return;
+    } finally {
+      setIsValidating(false);
     }
-
-    const evaluation = evaluateGuess(gameState.currentGuess);
-    updateKeyStates(gameState.currentGuess, evaluation);
-    
-    const newGuesses = [...gameState.guesses, gameState.currentGuess];
-    const isWin = gameState.currentGuess.toLowerCase() === targetWord.toLowerCase();
-    const isGameOver = isWin || newGuesses.length >= maxGuesses;
-    
-    setGameState({
-      guesses: newGuesses,
-      currentGuess: '',
-      gameStatus: isWin ? 'won' : (isGameOver ? 'lost' : 'playing'),
-      currentRow: newGuesses.length
-    });
   }, [gameState.currentGuess, gameState.guesses, targetWord, keyStates]);
 
   const handleKeyPress = useCallback((key: string) => {
-    if (gameState.gameStatus !== 'playing') return;
+    if (gameState.gameStatus !== 'playing' || isValidating) return;
 
     if (key === 'ENTER') {
       submitGuess();
@@ -128,7 +144,7 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         currentGuess: prev.currentGuess + key.toLowerCase()
       }));
     }
-  }, [gameState.gameStatus, gameState.currentGuess, submitGuess]);
+  }, [gameState.gameStatus, gameState.currentGuess, isValidating, submitGuess]);
 
   // Keyboard event listener
   useEffect(() => {
@@ -166,6 +182,12 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
 
   return (
     <div className="flex flex-col items-center space-y-6">
+      {isValidating && (
+        <div className="text-white text-sm opacity-70">
+          Validando palavra...
+        </div>
+      )}
+      
       <TermoGrid
         guesses={gameState.guesses}
         currentGuess={gameState.currentGuess}
@@ -179,6 +201,7 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         onKeyPress={handleKeyPress}
         keyStates={keyStates}
         isDarkMode={isDarkMode}
+        disabled={isValidating}
       />
     </div>
   );
