@@ -91,9 +91,9 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     setIsValidating(true);
     
     try {
-      const isValid = await validatePortugueseWord(gameState.currentGuess);
+      const validationResult = await validatePortugueseWord(gameState.currentGuess);
       
-      if (!isValid) {
+      if (!validationResult.isValid) {
         toast({
           title: "Palavra inválida",
           description: "Esta palavra não existe no dicionário",
@@ -101,6 +101,18 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         });
         setIsValidating(false);
         return;
+      }
+
+      // Usar a forma correta da palavra (com acentos)
+      const correctWord = validationResult.correctForm;
+      
+      // Mostrar toast com a forma correta se for diferente da digitada
+      if (correctWord.toLowerCase() !== gameState.currentGuess.toLowerCase()) {
+        toast({
+          title: "Palavra aceita",
+          description: `Forma correta: "${correctWord}"`,
+          variant: "default"
+        });
       }
 
       const evaluation = evaluateGuess(gameState.currentGuess);
