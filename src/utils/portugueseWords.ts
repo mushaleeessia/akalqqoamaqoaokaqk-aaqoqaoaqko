@@ -10,33 +10,67 @@ const normalizeWord = (word: string): string => {
     .replace(/[\u0300-\u036f]/g, ''); // Remove acentos
 };
 
-// Função para gerar variações com acentos possíveis
-const generateAccentVariations = (word: string): string[] => {
-  const variations = [word];
-  const accentMap: Record<string, string[]> = {
-    'a': ['a', 'á', 'à', 'â', 'ã'],
-    'e': ['e', 'é', 'ê'],
-    'i': ['i', 'í'],
-    'o': ['o', 'ó', 'ô', 'õ'],
-    'u': ['u', 'ú', 'ü'],
-    'c': ['c', 'ç'],
-    'n': ['n', 'ñ']
-  };
-
+// Função para gerar variações plurais e com acentos
+const generateWordVariations = (word: string): string[] => {
+  const variations = [word.toLowerCase()];
   const normalizedWord = normalizeWord(word);
+  variations.push(normalizedWord);
   
-  // Gerar algumas variações comuns
-  const commonVariations = [
-    normalizedWord,
-    normalizedWord.replace(/a/g, 'á'),  // aureo -> áureo
-    normalizedWord.replace(/e/g, 'é'),  
-    normalizedWord.replace(/o/g, 'ó'),  
-    normalizedWord.replace(/u/g, 'ú'),  
-    normalizedWord.replace(/i/g, 'í'),  
-    normalizedWord.replace(/c/g, 'ç'),  
+  // Variações com acentos comuns
+  const accentVariations = [
+    normalizedWord.replace(/a/g, 'á'),
+    normalizedWord.replace(/e/g, 'é'),
+    normalizedWord.replace(/o/g, 'ó'),
+    normalizedWord.replace(/u/g, 'ú'),
+    normalizedWord.replace(/i/g, 'í'),
+    normalizedWord.replace(/c/g, 'ç'),
   ];
-
-  return [...new Set([...variations, ...commonVariations])];
+  
+  // Variações plurais
+  const pluralVariations = [];
+  
+  // Para cada variação base, gerar formas plurais
+  [...variations, ...accentVariations].forEach(baseWord => {
+    // Plurais regulares
+    if (baseWord.endsWith('s')) {
+      pluralVariations.push(baseWord); // já é plural
+      pluralVariations.push(baseWord.slice(0, -1)); // singular
+    } else {
+      pluralVariations.push(baseWord + 's'); // plural simples
+    }
+    
+    // Plurais especiais
+    if (baseWord.endsWith('ão')) {
+      pluralVariations.push(baseWord.slice(0, -2) + 'ões'); // ação -> ações
+      pluralVariations.push(baseWord.slice(0, -2) + 'ãos'); // mão -> mãos
+    }
+    
+    if (baseWord.endsWith('al')) {
+      pluralVariations.push(baseWord.slice(0, -2) + 'ais'); // animal -> animais
+    }
+    
+    if (baseWord.endsWith('el')) {
+      pluralVariations.push(baseWord.slice(0, -2) + 'éis'); // papel -> papéis
+    }
+    
+    if (baseWord.endsWith('ol')) {
+      pluralVariations.push(baseWord.slice(0, -2) + 'óis'); // farol -> faróis
+    }
+    
+    if (baseWord.endsWith('il') && baseWord.length > 3) {
+      pluralVariations.push(baseWord.slice(0, -2) + 'is'); // perfil -> perfis
+    }
+    
+    if (baseWord.endsWith('r') || baseWord.endsWith('z')) {
+      pluralVariations.push(baseWord + 'es'); // flor -> flores, luz -> luzes
+    }
+    
+    if (baseWord.endsWith('m')) {
+      pluralVariations.push(baseWord.slice(0, -1) + 'ns'); // homem -> homens
+    }
+  });
+  
+  return [...new Set([...variations, ...accentVariations, ...pluralVariations])];
 };
 
 // Função para validar palavra usando API de dicionário
@@ -54,8 +88,9 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
   }
 
   try {
-    // Gerar variações da palavra para testar
-    const variations = generateAccentVariations(originalWord);
+    // Gerar todas as variações da palavra (singular, plural, acentos)
+    const variations = generateWordVariations(originalWord);
+    console.log(`Testando variações para "${originalWord}":`, variations);
     
     // Testar cada variação na API
     for (const variation of variations) {
@@ -66,6 +101,7 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
           const data = await response.json();
           if (data && data.length > 0) {
             const correctForm = data[0].word || variation;
+            console.log(`Palavra válida encontrada: "${variation}" -> "${correctForm}"`);
             wordCache.set(normalizedWord, { isValid: true, correctForm });
             return { isValid: true, correctForm };
           }
@@ -84,6 +120,7 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
         if (fallbackResponse.ok) {
           const fallbackData = await fallbackResponse.json();
           if (fallbackData && !fallbackData.error) {
+            console.log(`Palavra válida encontrada no fallback: "${variation}"`);
             wordCache.set(normalizedWord, { isValid: true, correctForm: variation });
             return { isValid: true, correctForm: variation };
           }
@@ -94,20 +131,29 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
       }
     }
     
-    // Se ambas as APIs falharem, verificar palavras básicas
+    // Lista expandida de palavras básicas incluindo plurais
     const basicWords = [
+      // Singulares
       'navio', 'termo', 'palavra', 'jogo', 'casa', 'vida', 'tempo', 'mundo', 'amor', 'terra',
       'agua', 'água', 'fogo', 'vento', 'luz', 'noite', 'sol', 'lua', 'mar', 'rio', 'monte',
       'pedra', 'arvore', 'árvore', 'flor', 'fruto', 'folha', 'raiz', 'broto', 'animal', 'gato', 'cao', 'cão',
-      'aureo', 'áureo', 'acido', 'ácido', 'musica', 'música', 'historia', 'história'
+      'aureo', 'áureo', 'acido', 'ácido', 'musica', 'música', 'historia', 'história', 'homem', 'mulher',
+      'papel', 'livro', 'mesa', 'porta', 'janela', 'carro', 'aviao', 'avião', 'trem', 'barca',
+      // Plurais
+      'navios', 'termos', 'palavras', 'jogos', 'casas', 'vidas', 'tempos', 'mundos', 'amores', 'terras',
+      'aguas', 'águas', 'fogos', 'ventos', 'luzes', 'noites', 'sóis', 'luas', 'mares', 'rios', 'montes',
+      'pedras', 'arvores', 'árvores', 'flores', 'frutos', 'folhas', 'raízes', 'brotos', 'animais', 'gatos', 'caes', 'cães',
+      'aureos', 'áureos', 'acidos', 'ácidos', 'musicas', 'músicas', 'historias', 'histórias', 'homens', 'mulheres',
+      'papeis', 'papéis', 'livros', 'mesas', 'portas', 'janelas', 'carros', 'avioes', 'aviões', 'trens', 'barcas'
     ];
     
-    // Procurar tanto a palavra original quanto suas variações nas palavras básicas
+    // Procurar todas as variações nas palavras básicas
     for (const variation of variations) {
       const foundBasic = basicWords.find(basic => 
         normalizeWord(basic) === normalizeWord(variation) || basic === variation
       );
       if (foundBasic) {
+        console.log(`Palavra básica encontrada: "${variation}" -> "${foundBasic}"`);
         wordCache.set(normalizedWord, { isValid: true, correctForm: foundBasic });
         return { isValid: true, correctForm: foundBasic };
       }
@@ -119,15 +165,19 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
   } catch (error) {
     console.warn('Erro ao validar palavra:', error);
     
-    // Em caso de erro de rede, aceitar palavras básicas
+    // Em caso de erro de rede, usar lista básica expandida
     const basicWords = [
       'navio', 'termo', 'palavra', 'jogo', 'casa', 'vida', 'tempo', 'mundo', 'amor', 'terra',
       'agua', 'água', 'fogo', 'vento', 'luz', 'noite', 'sol', 'lua', 'mar', 'rio', 'monte',
       'pedra', 'arvore', 'árvore', 'flor', 'fruto', 'folha', 'raiz', 'broto', 'animal', 'gato', 'cao', 'cão',
-      'aureo', 'áureo', 'acido', 'ácido', 'musica', 'música', 'historia', 'história'
+      'aureo', 'áureo', 'acido', 'ácido', 'musica', 'música', 'historia', 'história', 'homem', 'mulher',
+      'navios', 'termos', 'palavras', 'jogos', 'casas', 'vidas', 'tempos', 'mundos', 'amores', 'terras',
+      'aguas', 'águas', 'fogos', 'ventos', 'luzes', 'noites', 'sóis', 'luas', 'mares', 'rios', 'montes',
+      'pedras', 'arvores', 'árvores', 'flores', 'frutos', 'folhas', 'raízes', 'brotos', 'animais', 'gatos', 'caes', 'cães',
+      'papeis', 'papéis', 'livros', 'mesas', 'portas', 'janelas', 'carros', 'avioes', 'aviões', 'trens', 'barcas'
     ];
     
-    const variations = generateAccentVariations(originalWord);
+    const variations = generateWordVariations(originalWord);
     for (const variation of variations) {
       const foundBasic = basicWords.find(basic => 
         normalizeWord(basic) === normalizeWord(variation) || basic === variation
