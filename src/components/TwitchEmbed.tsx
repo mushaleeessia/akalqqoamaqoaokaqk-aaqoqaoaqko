@@ -13,25 +13,22 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showingVOD, setShowingVOD] = useState(false);
 
+  // Lista de streamers em ordem de prioridade
+  const streamers = ['mushmc', 'ffeijao', 'nobriell', 'neexty', 'adipjl', 'hipperbt'];
+
   useEffect(() => {
     const checkStreams = async () => {
       setIsLoading(true);
       setShowingVOD(false);
       
-      // Primeiro verifica ffeijao
-      const ffeijaoOnline = await checkStreamStatus('ffeijao');
-      if (ffeijaoOnline) {
-        setCurrentStreamer('ffeijao');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Se ffeijao não estiver online, verifica mushmc
-      const mushmcOnline = await checkStreamStatus('mushmc');
-      if (mushmcOnline) {
-        setCurrentStreamer('mushmc');
-        setIsLoading(false);
-        return;
+      // Verifica cada streamer em ordem de prioridade
+      for (const streamer of streamers) {
+        const isOnline = await checkStreamStatus(streamer);
+        if (isOnline) {
+          setCurrentStreamer(streamer);
+          setIsLoading(false);
+          return;
+        }
       }
       
       // Se ninguém estiver online, mostra o VOD do mushmc
