@@ -7,6 +7,9 @@ interface PlayerSession {
   failed: boolean;
   attempts: number;
   ipHash: string;
+  guesses: string[];
+  currentGuess: string;
+  gameStatus: 'playing' | 'won' | 'lost';
 }
 
 export const usePlayerSession = () => {
@@ -54,9 +57,14 @@ export const usePlayerSession = () => {
       const session: PlayerSession = JSON.parse(existingSession);
       
       // Verificar se é o mesmo "jogador" (mesmo hash)
-      if (session.ipHash === playerHash && (session.completed || session.failed)) {
-        setCanPlay(false);
+      if (session.ipHash === playerHash) {
         setSessionInfo(session);
+        
+        if (session.completed || session.failed) {
+          setCanPlay(false);
+        } else {
+          setCanPlay(true);
+        }
         return;
       }
     }
@@ -67,7 +75,10 @@ export const usePlayerSession = () => {
       completed: false,
       failed: false,
       attempts: 0,
-      ipHash: playerHash
+      ipHash: playerHash,
+      guesses: [],
+      currentGuess: '',
+      gameStatus: 'playing'
     };
     
     localStorage.setItem(sessionKey, JSON.stringify(newSession));
@@ -75,7 +86,7 @@ export const usePlayerSession = () => {
     setCanPlay(true);
   };
 
-  const updateSession = (completed: boolean, failed: boolean) => {
+  const updateSession = (updates: Partial<PlayerSession>) => {
     if (!sessionInfo) return;
     
     const today = getTodayDate();
@@ -83,17 +94,26 @@ export const usePlayerSession = () => {
     
     const updatedSession: PlayerSession = {
       ...sessionInfo,
-      completed,
-      failed,
-      attempts: sessionInfo.attempts + 1
+      ...updates
     };
     
     localStorage.setItem(sessionKey, JSON.stringify(updatedSession));
     setSessionInfo(updatedSession);
     
-    if (completed || failed) {
+    if (updatedSession.completed || updatedSession.failed) {
       setCanPlay(false);
     }
+  };
+
+  const saveGameProgress = (guesses: string[], currentGuess: string, gameStatus: 'playing' | 'won' | 'lost') => {
+    updateSession({
+      guesses,
+      currentGuess,
+      gameStatus,
+      attempts: guesses.length,
+      completed: gameStatus === 'won',
+      failed: gameStatus === 'lost'
+    });
   };
 
   useEffect(() => {
@@ -103,6 +123,7 @@ export const usePlayerSession = () => {
   return {
     canPlay,
     sessionInfo,
-    updateSession
+    updateSession,
+    saveGameProgress
   };
 };

@@ -21,7 +21,7 @@ export interface GameState {
 }
 
 export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
-  const { canPlay, sessionInfo, updateSession } = usePlayerSession();
+  const { canPlay, sessionInfo, saveGameProgress } = usePlayerSession();
   const [gameState, setGameState] = useState<GameState>({
     guesses: [],
     currentGuess: '',
@@ -32,6 +32,28 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
   const [isValidating, setIsValidating] = useState(false);
   const maxGuesses = 6;
+
+  // Carregar progresso salvo ao inicializar
+  useEffect(() => {
+    if (sessionInfo) {
+      setGameState({
+        guesses: sessionInfo.guesses || [],
+        currentGuess: sessionInfo.currentGuess || '',
+        gameStatus: sessionInfo.gameStatus || 'playing',
+        currentRow: sessionInfo.guesses?.length || 0
+      });
+
+      // Recalcular keyStates baseado nas tentativas salvas
+      if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
+        const newKeyStates: Record<string, LetterState> = {};
+        sessionInfo.guesses.forEach(guess => {
+          const evaluation = evaluateGuess(guess);
+          updateKeyStatesForGuess(guess, evaluation, newKeyStates);
+        });
+        setKeyStates(newKeyStates);
+      }
+    }
+  }, [sessionInfo, targetWord]);
 
   // Se o jogador não pode jogar, mostrar mensagem
   if (!canPlay && sessionInfo) {
@@ -87,21 +109,23 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     return result;
   };
 
-  const updateKeyStates = (guess: string, evaluation: LetterState[]) => {
-    const newKeyStates = { ...keyStates };
-    
+  const updateKeyStatesForGuess = (guess: string, evaluation: LetterState[], keyStatesObj: Record<string, LetterState>) => {
     for (let i = 0; i < guess.length; i++) {
       const letter = guess[i].toLowerCase();
       const state = evaluation[i];
       
       // Só atualizar se for um estado "melhor"
-      if (!newKeyStates[letter] || 
-          (newKeyStates[letter] === 'absent' && state !== 'absent') ||
-          (newKeyStates[letter] === 'present' && state === 'correct')) {
-        newKeyStates[letter] = state;
+      if (!keyStatesObj[letter] || 
+          (keyStatesObj[letter] === 'absent' && state !== 'absent') ||
+          (keyStatesObj[letter] === 'present' && state === 'correct')) {
+        keyStatesObj[letter] = state;
       }
     }
-    
+  };
+
+  const updateKeyStates = (guess: string, evaluation: LetterState[]) => {
+    const newKeyStates = { ...keyStates };
+    updateKeyStatesForGuess(guess, evaluation, newKeyStates);
     setKeyStates(newKeyStates);
   };
 
@@ -149,17 +173,17 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
       const isWin = gameState.currentGuess.toLowerCase() === targetWord.toLowerCase();
       const isGameOver = isWin || newGuesses.length >= maxGuesses;
       
-      setGameState({
+      const newGameState = {
         guesses: newGuesses,
         currentGuess: '',
-        gameStatus: isWin ? 'won' : (isGameOver ? 'lost' : 'playing'),
+        gameStatus: isWin ? 'won' as const : (isGameOver ? 'lost' as const : 'playing' as const),
         currentRow: newGuesses.length
-      });
+      };
+      
+      setGameState(newGameState);
 
-      // Atualizar sessão do jogador se o jogo terminou
-      if (isGameOver) {
-        updateSession(isWin, !isWin);
-      }
+      // Salvar progresso em tempo real
+      saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
       
     } catch (error) {
       toast({
@@ -170,7 +194,7 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     } finally {
       setIsValidating(false);
     }
-  }, [gameState.currentGuess, gameState.guesses, targetWord, keyStates, updateSession]);
+  }, [gameState.currentGuess, gameState.guesses, targetWord, keyStates, saveGameProgress]);
 
   const handleKeyPress = useCallback((key: string) => {
     if (gameState.gameStatus !== 'playing' || isValidating) return;
@@ -178,17 +202,25 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     if (key === 'ENTER') {
       submitGuess();
     } else if (key === 'BACKSPACE') {
-      setGameState(prev => ({
-        ...prev,
-        currentGuess: prev.currentGuess.slice(0, -1)
-      }));
+      const newGameState = {
+        ...gameState,
+        currentGuess: gameState.currentGuess.slice(0, -1)
+      };
+      setGameState(newGameState);
+      
+      // Salvar progresso da digitação atual
+      saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
     } else if (key.length === 1 && gameState.currentGuess.length < 5) {
-      setGameState(prev => ({
-        ...prev,
-        currentGuess: prev.currentGuess + key.toLowerCase()
-      }));
+      const newGameState = {
+        ...gameState,
+        currentGuess: gameState.currentGuess + key.toLowerCase()
+      };
+      setGameState(newGameState);
+      
+      // Salvar progresso da digitação atual
+      saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
     }
-  }, [gameState.gameStatus, gameState.currentGuess, isValidating, submitGuess]);
+  }, [gameState, isValidating, submitGuess, saveGameProgress]);
 
   // Keyboard event listener
   useEffect(() => {
