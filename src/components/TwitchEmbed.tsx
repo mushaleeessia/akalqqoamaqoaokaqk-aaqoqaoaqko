@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { checkStreamStatus } from '@/services/twitchService';
+import { checkStreamStatus, checkYouTubeStatus } from '@/services/twitchService';
 import { X } from 'lucide-react';
 
 interface TwitchEmbedProps {
@@ -9,23 +9,38 @@ interface TwitchEmbedProps {
 
 export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
   const [currentStreamer, setCurrentStreamer] = useState<string | null>(null);
+  const [currentPlatform, setCurrentPlatform] = useState<'twitch' | 'youtube' | null>(null);
   const [isVisible, setIsVisible] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [showingVOD, setShowingVOD] = useState(false);
 
   // Lista de streamers em ordem de prioridade
-  const streamers = ['mushmc', 'ffeijao', 'nobriell', 'neexty', 'adipjl', 'hipperbt'];
+  const twitchStreamers = ['mushmc', 'ffeijao', 'nobriell'];
+  const youtubeChannels = ['Pentaax'];
 
   useEffect(() => {
     const checkStreams = async () => {
       setIsLoading(true);
       setShowingVOD(false);
+      setCurrentPlatform(null);
       
-      // Verifica cada streamer em ordem de prioridade
-      for (const streamer of streamers) {
+      // Verifica streamers da Twitch em ordem de prioridade
+      for (const streamer of twitchStreamers) {
         const isOnline = await checkStreamStatus(streamer);
         if (isOnline) {
           setCurrentStreamer(streamer);
+          setCurrentPlatform('twitch');
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      // Verifica canais do YouTube
+      for (const channel of youtubeChannels) {
+        const isOnline = await checkYouTubeStatus(channel);
+        if (isOnline) {
+          setCurrentStreamer(channel);
+          setCurrentPlatform('youtube');
           setIsLoading(false);
           return;
         }
@@ -33,6 +48,7 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
       
       // Se ninguém estiver online, mostra o VOD do mushmc
       setCurrentStreamer(null);
+      setCurrentPlatform(null);
       setShowingVOD(true);
       setIsLoading(false);
     };
@@ -50,18 +66,20 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
   }
 
   const getEmbedUrl = () => {
-    if (currentStreamer) {
+    if (currentStreamer && currentPlatform === 'twitch') {
       return `https://player.twitch.tv/?channel=${currentStreamer}&parent=${window.location.hostname}&muted=true`;
+    } else if (currentStreamer && currentPlatform === 'youtube') {
+      return `https://www.youtube.com/embed/live_stream?channel=UC_x5XG1OV2P6uZZ5FSM9Ttw&autoplay=1&mute=1`;
     } else if (showingVOD) {
-      // Para VODs, usamos time=0 para começar do início, autoplay=false para pausado, allowfullscreen=true para controles
       return `https://player.twitch.tv/?video=2457385170&parent=${window.location.hostname}&time=0&autoplay=false&allowfullscreen=true&muted=false`;
     }
     return '';
   };
 
   const getTitle = () => {
-    if (currentStreamer) {
-      return `${isEnglish ? 'Live Stream' : 'Ao Vivo'}: ${currentStreamer}`;
+    if (currentStreamer && currentPlatform) {
+      const platform = currentPlatform === 'twitch' ? 'Twitch' : 'YouTube';
+      return `${isEnglish ? 'Live Stream' : 'Ao Vivo'} (${platform}): ${currentStreamer}`;
     } else if (showingVOD) {
       return `${isEnglish ? 'Latest VOD' : 'Último VOD'}: mushmc`;
     }
@@ -86,7 +104,7 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
         </button>
       </div>
       
-      {/* Embed da Twitch - usando aspect ratio 16:9 */}
+      {/* Embed da Twitch/YouTube - usando aspect ratio 16:9 */}
       <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
         <iframe
           src={getEmbedUrl()}
