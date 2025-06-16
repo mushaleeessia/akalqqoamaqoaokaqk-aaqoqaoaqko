@@ -20,8 +20,8 @@ const helpOptions: HelpOption[] = [
     id: "contact",
     title: "Entre em contato! 📩",
     title_en: "Contact me! 📩",
-    response: "Caso você queira entrar em contato diretamente comigo, sinta-se livre para fazer isso enviando um e-mail para contact@aleeessia.com",
-    response_en: "If you want to contact me directly, feel free to do so by sending an email to contact@aleeessia.com",
+    response: "Caso você queira entrar em contato diretamente comigo, sinta-se livre para fazer isso enviando um e-mail para contact@aleeessia.com (OBS: Entre apenas em contato caso seu problema não possa ser resolvido pelas outra opções.)",
+    response_en: "If you want to contact me directly, feel free to do so by sending an email to contact@aleeessia.com (PS: Please contact me only if your issue cannot be resolved through the other available options.)",
     category: "contact"
   },
   {
