@@ -69,8 +69,6 @@ export const usePlayerSession = () => {
     const cookieKey = getCookieKey();
     const sessionData = JSON.stringify(session);
     
-    console.log(`[Solo Session] Salvando sessão solo:`, session);
-    
     localStorage.setItem(sessionKey, sessionData);
     setCookie(cookieKey, sessionData, 1);
   };
@@ -91,10 +89,8 @@ export const usePlayerSession = () => {
     if (sessionData) {
       try {
         const session = JSON.parse(sessionData);
-        console.log(`[Solo Session] Carregando sessão solo:`, session);
         return session;
       } catch (error) {
-        console.error('[Solo Session] Erro ao parsear sessão:', error);
         localStorage.removeItem(sessionKey);
       }
     }
@@ -105,8 +101,6 @@ export const usePlayerSession = () => {
   const initializeSession = () => {
     const today = getTodayDate();
     const playerHash = generatePlayerHash();
-    
-    console.log(`[Solo Session] Inicializando sessão solo`);
     
     const existingSession = loadSession();
     if (existingSession && existingSession.ipHash === playerHash) {
@@ -149,8 +143,6 @@ export const usePlayerSession = () => {
   };
 
   const saveGameProgress = (guesses: string[], currentGuess: string, gameStatus: 'playing' | 'won' | 'lost') => {
-    console.log(`[Solo Session] Salvando progresso - Tentativas: ${guesses.length}, Status: ${gameStatus}`);
-    
     updateSession({
       guesses,
       currentGuess,

@@ -19,7 +19,9 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
   const [sessionInfo, setSessionInfo] = useState<MultiModePlayerSession | null>(null);
 
   const getTodayDate = () => {
-    return new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const brasiliaTime = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+    return brasiliaTime.toISOString().split('T')[0];
   };
 
   const generatePlayerHash = (): string => {
@@ -68,8 +70,6 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
     const cookieKey = getCookieKey();
     const sessionData = JSON.stringify(session);
     
-    console.log(`[Session] Salvando sessão para modo ${mode}:`, session);
-    
     localStorage.setItem(sessionKey, sessionData);
     setCookie(cookieKey, sessionData, 1);
   };
@@ -91,15 +91,12 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
       try {
         const session = JSON.parse(sessionData);
         if (session.mode === mode) {
-          console.log(`[Session] Carregando sessão para modo ${mode}:`, session);
           return session;
         } else {
-          console.log(`[Session] Sessão inválida: esperado ${mode}, encontrado ${session.mode}`);
           localStorage.removeItem(sessionKey);
           document.cookie = `${cookieKey}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
         }
       } catch (error) {
-        console.error('[Session] Erro ao parsear sessão:', error);
         localStorage.removeItem(sessionKey);
       }
     }
@@ -110,8 +107,6 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
   const initializeSession = () => {
     const today = getTodayDate();
     const playerHash = generatePlayerHash();
-    
-    console.log(`[Session] Inicializando sessão para modo ${mode}`);
     
     const existingSession = loadSession();
     if (existingSession && existingSession.ipHash === playerHash) {
@@ -156,8 +151,6 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
   };
 
   const saveGameProgress = (guesses: string[], currentGuess: string, gameStatus: 'playing' | 'won' | 'lost') => {
-    console.log(`[Session] Salvando progresso - Tentativas: ${guesses.length}, Status: ${gameStatus}`);
-    
     updateSession({
       guesses,
       currentGuess,
