@@ -5,8 +5,12 @@ export const useTermoData = () => {
   const [todayWord, setTodayWord] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
-  const getTodayDate = () => {
-    return new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const getTodayDateBrasilia = () => {
+    // Criar data atual em UTC
+    const now = new Date();
+    // Ajustar para horário de Brasília (UTC-3)
+    const brasiliaTime = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+    return brasiliaTime.toISOString().split('T')[0]; // YYYY-MM-DD
   };
 
   // Lista de palavras de 5 letras em português para usar como seed
@@ -18,7 +22,9 @@ export const useTermoData = () => {
     'perna', 'cabeça', 'corpo', 'amor', 'paz', 'guerra', 'força',
     'poder', 'direito', 'lei', 'ordem', 'união', 'festa', 'jogo',
     'arte', 'obra', 'nome', 'ideia', 'plano', 'sorte', 'calor',
-    'frio', 'verde', 'azul', 'preto', 'branco', 'grande', 'pequeno'
+    'frio', 'verde', 'azul', 'preto', 'branco', 'grande', 'pequeno',
+    'carro', 'avião', 'ponte', 'rádio', 'música', 'dança', 'filme',
+    'banco', 'praia', 'campo', 'flor', 'árvore', 'pedra', 'metal'
   ];
 
   const generateDailyWord = async (date: string): Promise<string> => {
@@ -46,18 +52,10 @@ export const useTermoData = () => {
 
   useEffect(() => {
     const loadTodayWord = async () => {
-      const today = getTodayDate();
+      const today = getTodayDateBrasilia();
       
-      // Verificar se já temos a palavra do dia no localStorage
-      const cachedData = localStorage.getItem('termo-daily-word');
-      if (cachedData) {
-        const parsed = JSON.parse(cachedData);
-        if (parsed.date === today) {
-          setTodayWord(parsed.word);
-          setLoading(false);
-          return;
-        }
-      }
+      // Limpar cache antigo e forçar nova palavra
+      localStorage.removeItem('termo-daily-word');
       
       // Gerar nova palavra para hoje
       try {
@@ -69,6 +67,7 @@ export const useTermoData = () => {
         
         localStorage.setItem('termo-daily-word', JSON.stringify(wordData));
         setTodayWord(word);
+        console.log('Nova palavra do dia:', word, 'para a data:', today);
       } catch (error) {
         setTodayWord('termo'); // fallback
       } finally {

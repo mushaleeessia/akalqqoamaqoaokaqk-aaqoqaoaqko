@@ -1,4 +1,3 @@
-
 import { GameState } from "./TermoGame";
 import { Button } from "@/components/ui/button";
 import { Share2 } from "lucide-react";
@@ -24,11 +23,16 @@ export const TermoGameOver = ({
   useEffect(() => {
     const updateTimer = () => {
       const now = new Date();
-      const tomorrow = new Date(now);
+      // Ajustar para horário de Brasília (UTC-3)
+      const brasiliaTime = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+      
+      const tomorrow = new Date(brasiliaTime);
       tomorrow.setDate(tomorrow.getDate() + 1);
       tomorrow.setHours(0, 0, 0, 0);
       
-      const diff = tomorrow.getTime() - now.getTime();
+      // Calcular diferença considerando o fuso horário
+      const tomorrowUTC = new Date(tomorrow.getTime() + (3 * 60 * 60 * 1000));
+      const diff = tomorrowUTC.getTime() - now.getTime();
       
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -162,7 +166,7 @@ export const TermoGameOver = ({
       {/* Próxima palavra */}
       <div className="text-center">
         <p className="text-white/70 text-sm mb-2">
-          próxima palavra em
+          próxima palavra em (horário de Brasília)
         </p>
         <p className="text-white font-mono text-2xl font-bold">
           {timeToNext}
