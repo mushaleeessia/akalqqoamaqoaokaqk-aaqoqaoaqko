@@ -48,11 +48,6 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyPress]);
 
-  const handlePlayAgain = () => {
-    setShowingFreshGameOver(false);
-    window.location.reload();
-  };
-
   if ((gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') && showingFreshGameOver) {
     return (
       <TermoGameOver
@@ -64,7 +59,6 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
         }}
         targetWord={targetWords[0]}
         isDarkMode={isDarkMode}
-        onPlayAgain={handlePlayAgain}
         mode={mode}
         allTargetWords={targetWords}
       />

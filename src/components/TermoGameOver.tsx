@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { Share2, RefreshCw } from "lucide-react";
+import { Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GameState } from "./TermoGame";
 import { MultiModeGameState } from "@/hooks/useMultiModeGameState";
@@ -10,7 +11,6 @@ interface TermoGameOverProps {
   gameState: GameState | MultiModeGameState;
   targetWord: string;
   isDarkMode: boolean;
-  onPlayAgain: () => void;
   mode?: GameMode;
   allTargetWords?: string[];
 }
@@ -19,7 +19,6 @@ export const TermoGameOver = ({
   gameState, 
   targetWord, 
   isDarkMode, 
-  onPlayAgain,
   mode = 'solo',
   allTargetWords = [targetWord]
 }: TermoGameOverProps) => {
@@ -226,7 +225,7 @@ export const TermoGameOver = ({
         )}
       </div>
 
-      <div className="flex space-x-4">
+      <div className="flex justify-center">
         <Button
           onClick={handleShare}
           disabled={isSharing}
@@ -238,15 +237,6 @@ export const TermoGameOver = ({
         >
           <Share2 className="w-4 h-4" />
           <span>{isSharing ? 'Compartilhando...' : 'Compartilhar'}</span>
-        </Button>
-        
-        <Button
-          onClick={onPlayAgain}
-          variant="outline"
-          className="flex items-center space-x-2 bg-white/10 border-white/30 text-white hover:bg-white/20"
-        >
-          <RefreshCw className="w-4 h-4" />
-          <span>Jogar Novamente</span>
         </Button>
       </div>
 

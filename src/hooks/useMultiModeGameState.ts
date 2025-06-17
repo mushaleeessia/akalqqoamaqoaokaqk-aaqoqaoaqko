@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { GameMode } from "@/components/GameModeSelector";
 import { validatePortugueseWord } from "@/utils/portugueseWords";
@@ -27,6 +26,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
   const [initializedMode, setInitializedMode] = useState<GameMode | null>(null);
+  const [sessionLoaded, setSessionLoaded] = useState(false);
   const maxGuesses = 6;
 
   // Reset tudo quando o modo muda
@@ -41,6 +41,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
         currentRow: 0
       });
       setShowingFreshGameOver(false);
+      setSessionLoaded(false);
       setInitializedMode(mode);
     }
   }, [mode, initializedMode]);
@@ -205,9 +206,9 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     }
   }, [gameState, isValidating, submitGuess, saveGameProgress]);
 
-  // Carregar sessão apenas se for do modo correto
+  // Carregar sessão apenas se for do modo correto e ainda não foi carregada
   useEffect(() => {
-    if (sessionInfo && sessionInfo.mode === mode && initializedMode === mode) {
+    if (sessionInfo && sessionInfo.mode === mode && initializedMode === mode && !sessionLoaded) {
       console.log(`Carregando sessão para modo ${mode}:`, sessionInfo);
       
       // Verificar se a sessão realmente pertence ao modo atual
@@ -223,23 +224,22 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
         currentRow: (sessionInfo.guesses || []).length
       };
       
-      // Só atualizar se não estivermos mostrando game over
-      if (!showingFreshGameOver) {
-        setGameState(newGameState);
+      setGameState(newGameState);
 
-        // Reconstruir keyStates baseado nas tentativas salvas
-        if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
-          const newKeyStates: Record<string, LetterState> = {};
-          sessionInfo.guesses.forEach(guess => {
-            const evaluation = evaluateGuessForAllWords(guess);
-            const bestEvaluation = getBestEvaluationForKeyboard(evaluation);
-            updateKeyStatesForGuess(guess, bestEvaluation, newKeyStates);
-          });
-          setKeyStates(newKeyStates);
-        }
+      // Reconstruir keyStates baseado nas tentativas salvas
+      if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
+        const newKeyStates: Record<string, LetterState> = {};
+        sessionInfo.guesses.forEach(guess => {
+          const evaluation = evaluateGuessForAllWords(guess);
+          const bestEvaluation = getBestEvaluationForKeyboard(evaluation);
+          updateKeyStatesForGuess(guess, bestEvaluation, newKeyStates);
+        });
+        setKeyStates(newKeyStates);
       }
+      
+      setSessionLoaded(true);
     }
-  }, [sessionInfo, targetWords, showingFreshGameOver, mode, initializedMode]);
+  }, [sessionInfo, targetWords, mode, initializedMode, sessionLoaded]);
 
   return {
     gameState,
