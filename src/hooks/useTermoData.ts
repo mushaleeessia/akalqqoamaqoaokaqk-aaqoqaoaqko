@@ -40,7 +40,6 @@ export const useTermoData = () => {
       // Se a API falhar, usar a palavra do seed mesmo assim
       return selectedWord;
     } catch (error) {
-      console.warn('Erro ao validar palavra do dia:', error);
       return selectedWord;
     }
   };
@@ -71,7 +70,6 @@ export const useTermoData = () => {
         localStorage.setItem('termo-daily-word', JSON.stringify(wordData));
         setTodayWord(word);
       } catch (error) {
-        console.error('Erro ao carregar palavra do dia:', error);
         setTodayWord('termo'); // fallback
       } finally {
         setLoading(false);

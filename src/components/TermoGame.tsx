@@ -37,7 +37,6 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
   // Carregar progresso salvo ao inicializar
   useEffect(() => {
     if (sessionInfo) {
-      console.log('Loading session info:', sessionInfo);
       setGameState({
         guesses: sessionInfo.guesses || [],
         currentGuess: sessionInfo.currentGuess || '',
@@ -117,8 +116,6 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     }
 
     setIsValidating(true);
-    console.log('Submitting guess:', gameState.currentGuess);
-    console.log('Target word:', targetWord);
     
     try {
       const validationResult = await validatePortugueseWord(gameState.currentGuess);
@@ -152,12 +149,7 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
       const isWin = gameState.currentGuess.toLowerCase() === targetWord.toLowerCase();
       const isGameOver = isWin || newGuesses.length >= maxGuesses;
       
-      console.log('Is win?', isWin);
-      console.log('Is game over?', isGameOver);
-      console.log('New guesses length:', newGuesses.length);
-      
       const newGameStatus = isWin ? 'won' : (isGameOver ? 'lost' : 'playing');
-      console.log('New game status:', newGameStatus);
       
       const newGameState = {
         guesses: newGuesses,
@@ -166,14 +158,12 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         currentRow: newGuesses.length
       };
       
-      console.log('Setting new game state:', newGameState);
       setGameState(newGameState);
 
       // Salvar progresso em tempo real
       saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
       
     } catch (error) {
-      console.error('Error in submitGuess:', error);
       toast({
         title: "Erro de validação",
         description: "Não foi possível validar a palavra. Tente novamente.",
@@ -233,9 +223,6 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyPress]);
 
-  console.log('Current game state:', gameState);
-  console.log('Game status:', gameState.gameStatus);
-
   // Se o jogador não pode jogar, mostrar mensagem (MOVIDO PARA DEPOIS DOS HOOKS)
   if (!canPlay && sessionInfo) {
     return (
@@ -262,7 +249,6 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
   }
 
   if (gameState.gameStatus !== 'playing') {
-    console.log('Rendering TermoGameOver component');
     return (
       <TermoGameOver
         gameState={gameState}
@@ -273,7 +259,6 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     );
   }
 
-  console.log('Rendering game components');
   return (
     <div className="flex flex-col items-center space-y-6">
       {isValidating && (

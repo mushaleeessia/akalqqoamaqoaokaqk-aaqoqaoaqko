@@ -18,8 +18,6 @@ export const TermoGameOver = ({
   onPlayAgain 
 }: TermoGameOverProps) => {
   
-  console.log('TermoGameOver rendering with:', { gameState, targetWord, isDarkMode });
-  
   const generateShareText = (): string => {
     const date = new Date().toLocaleDateString('pt-BR');
     const attempts = gameState.gameStatus === 'won' ? gameState.guesses.length : 'X';
@@ -95,8 +93,6 @@ export const TermoGameOver = ({
       });
     }
   };
-
-  console.log('About to render TermoGameOver UI');
 
   return (
     <div className={`flex flex-col items-center space-y-6 p-8 rounded-xl ${
