@@ -17,10 +17,12 @@ export const usePlayerSession = () => {
   const [sessionInfo, setSessionInfo] = useState<PlayerSession | null>(null);
 
   const getTodayDate = () => {
-    return new Date().toISOString().split('T')[0];
+    // Usar horário de Brasília como nos outros hooks
+    const now = new Date();
+    const brasiliaTime = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+    return brasiliaTime.toISOString().split('T')[0];
   };
 
-  // Gerar um hash simples do IP (simulado pelo browser fingerprint)
   const generatePlayerHash = (): string => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -36,18 +38,16 @@ export const usePlayerSession = () => {
                        screen.width + 
                        screen.height;
     
-    // Hash simples
     let hash = 0;
     for (let i = 0; i < fingerprint.length; i++) {
       const char = fingerprint.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
+      hash = hash & hash;
     }
     
     return Math.abs(hash).toString();
   };
 
-  // Utilitários para cookies
   const setCookie = (name: string, value: string, days: number = 1) => {
     const expires = new Date();
     expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -61,65 +61,58 @@ export const usePlayerSession = () => {
     return null;
   };
 
+  const getSessionKey = () => `termo-solo-session-${getTodayDate()}`;
+  const getCookieKey = () => `termo_solo_${getTodayDate()}`;
+
   const saveSession = (session: PlayerSession) => {
-    const today = getTodayDate();
-    const sessionKey = `termo-session-${today}`;
-    const cookieKey = `termo_session_${today}`;
-    
+    const sessionKey = getSessionKey();
+    const cookieKey = getCookieKey();
     const sessionData = JSON.stringify(session);
     
-    // Salvar no localStorage
-    localStorage.setItem(sessionKey, sessionData);
+    console.log(`[Solo Session] Salvando sessão solo:`, session);
     
-    // Salvar no cookie como backup
+    localStorage.setItem(sessionKey, sessionData);
     setCookie(cookieKey, sessionData, 1);
   };
 
   const loadSession = (): PlayerSession | null => {
-    const today = getTodayDate();
-    const sessionKey = `termo-session-${today}`;
-    const cookieKey = `termo_session_${today}`;
+    const sessionKey = getSessionKey();
+    const cookieKey = getCookieKey();
     
-    // Tentar carregar do localStorage primeiro
     let sessionData = localStorage.getItem(sessionKey);
     
-    // Se não encontrar no localStorage, tentar no cookie
     if (!sessionData) {
       sessionData = getCookie(cookieKey);
       if (sessionData) {
-        // Se encontrou no cookie, restaurar no localStorage
         localStorage.setItem(sessionKey, sessionData);
       }
     }
     
     if (sessionData) {
       try {
-        return JSON.parse(sessionData);
+        const session = JSON.parse(sessionData);
+        console.log(`[Solo Session] Carregando sessão solo:`, session);
+        return session;
       } catch (error) {
-        return null;
+        console.error('[Solo Session] Erro ao parsear sessão:', error);
+        localStorage.removeItem(sessionKey);
       }
     }
     
     return null;
   };
 
-  const checkPlayerSession = () => {
+  const initializeSession = () => {
     const today = getTodayDate();
     const playerHash = generatePlayerHash();
     
+    console.log(`[Solo Session] Inicializando sessão solo`);
+    
     const existingSession = loadSession();
-    if (existingSession) {
-      // Verificar se é o mesmo "jogador" (mesmo hash)
-      if (existingSession.ipHash === playerHash) {
-        setSessionInfo(existingSession);
-        
-        if (existingSession.completed || existingSession.failed) {
-          setCanPlay(false);
-        } else {
-          setCanPlay(true);
-        }
-        return;
-      }
+    if (existingSession && existingSession.ipHash === playerHash) {
+      setSessionInfo(existingSession);
+      setCanPlay(!(existingSession.completed || existingSession.failed));
+      return;
     }
     
     // Criar nova sessão
@@ -156,6 +149,8 @@ export const usePlayerSession = () => {
   };
 
   const saveGameProgress = (guesses: string[], currentGuess: string, gameStatus: 'playing' | 'won' | 'lost') => {
+    console.log(`[Solo Session] Salvando progresso - Tentativas: ${guesses.length}, Status: ${gameStatus}`);
+    
     updateSession({
       guesses,
       currentGuess,
@@ -167,7 +162,7 @@ export const usePlayerSession = () => {
   };
 
   useEffect(() => {
-    checkPlayerSession();
+    initializeSession();
   }, []);
 
   return {
