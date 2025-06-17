@@ -17,7 +17,7 @@ interface MultiModeTermoGameProps {
 export type LetterState = 'correct' | 'present' | 'absent' | 'empty';
 
 export interface MultiModeGameState {
-  guesses: string[][];
+  guesses: string[];
   currentGuess: string;
   gameStatus: 'playing' | 'won' | 'lost';
   currentRow: number;
@@ -43,7 +43,7 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
         guesses: sessionInfo.guesses || [],
         currentGuess: sessionInfo.currentGuess || '',
         gameStatus: sessionInfo.gameStatus || 'playing',
-        currentRow: sessionInfo.guesses?.length || 0
+        currentRow: (sessionInfo.guesses || []).length
       };
       
       setGameState(prevState => {
@@ -109,7 +109,7 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
         if (evaluation[i] === 'correct') {
           bestState = 'correct';
           break;
-        } else if (evaluation[i] === 'present' && bestState !== 'correct') {
+        } else if (evaluation[i] === 'present' && bestState === 'absent') {
           bestState = 'present';
         }
       }

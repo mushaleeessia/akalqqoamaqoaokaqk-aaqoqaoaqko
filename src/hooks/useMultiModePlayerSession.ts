@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { GameMode } from '@/components/GameModeSelector';
 
@@ -8,7 +7,7 @@ interface MultiModePlayerSession {
   failed: boolean;
   attempts: number;
   ipHash: string;
-  guesses: string[][];
+  guesses: string[];
   currentGuess: string;
   gameStatus: 'playing' | 'won' | 'lost';
   mode: GameMode;
@@ -147,7 +146,7 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
     }
   };
 
-  const saveGameProgress = (guesses: string[][], currentGuess: string, gameStatus: 'playing' | 'won' | 'lost') => {
+  const saveGameProgress = (guesses: string[], currentGuess: string, gameStatus: 'playing' | 'won' | 'lost') => {
     updateSession({
       guesses,
       currentGuess,
