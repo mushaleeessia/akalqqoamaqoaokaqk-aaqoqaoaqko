@@ -17,30 +17,25 @@ export const useMultiModeTermoData = () => {
     return brasiliaTime.toISOString().split('T')[0];
   };
 
+  // Todas as palavras têm exatamente 5 letras
   const seedWords = [
     'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
-    'lugar', 'caso', 'vida', 'modo', 'água', 'fogo', 'vento',
-    'noite', 'morte', 'homem', 'mulher', 'filho', 'casa', 'porta',
-    'mesa', 'livro', 'papel', 'boca', 'olhos', 'dente', 'braço',
-    'perna', 'cabeça', 'corpo', 'amor', 'paz', 'guerra', 'força',
-    'poder', 'direito', 'ordem', 'união', 'festa', 'jogo',
-    'arte', 'obra', 'nome', 'ideia', 'plano', 'sorte', 'calor',
-    'frio', 'verde', 'azul', 'preto', 'branco', 'carro', 'avião',
-    'ponte', 'rádio', 'música', 'dança', 'filme', 'banco', 'praia',
-    'campo', 'flor', 'árvore', 'pedra', 'metal',
-    'amar', 'viver', 'morrer', 'saber', 'poder', 'fazer', 'dizer',
-    'partir', 'chegar', 'voltar', 'entrar', 'sair', 'subir', 'descer',
-    'correr', 'andar', 'saltar', 'pular', 'voar', 'nadar', 'dormir',
-    'comer', 'beber', 'falar', 'ouvir', 'ver', 'olhar', 'sentir',
-    'tocar', 'pegar', 'soltar', 'abrir', 'fechar', 'ligar', 'parar',
-    'começar', 'acabar', 'ganhar', 'perder', 'jogar', 'ler',
-    'escrever', 'cantar', 'dançar', 'rir', 'chorar', 'gritar',
-    'amou', 'viveu', 'morreu', 'soube', 'pôde', 'disse', 'partiu',
-    'chegou', 'voltou', 'entrou', 'saiu', 'subiu', 'desceu', 'correu',
-    'andou', 'saltou', 'pulou', 'voou', 'nadou', 'dormiu', 'comeu',
-    'bebeu', 'falou', 'ouviu', 'viu', 'olhou', 'sentiu', 'tocou',
-    'pegou', 'soltou', 'abriu', 'fechou', 'ligou', 'parou', 'ganhou',
-    'perdeu', 'jogou', 'leu', 'cantou', 'dançou', 'riu', 'chorou'
+    'lugar', 'casos', 'vidas', 'modos', 'aguas', 'fogos', 'vento',
+    'noite', 'morte', 'homem', 'mulher', 'filho', 'casas', 'porta',
+    'mesas', 'livro', 'papel', 'bocas', 'olhos', 'dente', 'braco',
+    'perna', 'cabeca', 'corpo', 'amores', 'pazes', 'guerra', 'forca',
+    'poder', 'direito', 'ordem', 'uniao', 'festa', 'jogos',
+    'artes', 'obras', 'nomes', 'ideia', 'plano', 'sorte', 'calor',
+    'frios', 'verde', 'azuis', 'preto', 'branco', 'carro', 'aviao',
+    'ponte', 'radio', 'musica', 'danca', 'filme', 'banco', 'praia',
+    'campo', 'flores', 'arvore', 'pedra', 'metal', 'vidro', 'papel',
+    'amava', 'vivia', 'morreu', 'sabia', 'podia', 'fazia', 'dizia',
+    'partiu', 'chegou', 'voltou', 'entrou', 'saius', 'subiu', 'desceu',
+    'correu', 'andou', 'saltou', 'pulou', 'voous', 'nadou', 'dormiu',
+    'comeu', 'bebeu', 'falou', 'ouviu', 'vendo', 'olhou', 'sentiu',
+    'tocou', 'pegou', 'soltou', 'abriu', 'fechou', 'ligou', 'parou',
+    'comeca', 'acaba', 'ganhou', 'perdeu', 'jogou', 'lendo',
+    'escreveu', 'cantou', 'dancou', 'rindo', 'chorou', 'gritou'
   ];
 
   const generateWordsForMode = (mode: GameMode, date: string): string[] => {

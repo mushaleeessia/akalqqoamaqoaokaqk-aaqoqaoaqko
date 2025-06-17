@@ -49,47 +49,6 @@ export const TermoGameOver = ({
     }
   };
 
-  const generateShareText = () => {
-    const today = new Date().toLocaleDateString('pt-BR');
-    const modeEmoji = getModeEmoji(mode);
-    const modeLabel = getModeLabel(mode);
-    
-    let shareText = `Termo ${modeLabel} ${modeEmoji} ${today}\n`;
-    
-    if (isWin) {
-      shareText += `✅ ${attempts}/6\n\n`;
-    } else {
-      shareText += `❌ X/6\n\n`;
-    }
-
-    // Para cada palavra no modo multi-palavra
-    if (mode !== 'solo' && allTargetWords.length > 1) {
-      shareText += `Palavras: ${allTargetWords.map(w => w.toUpperCase()).join(', ')}\n\n`;
-    } else {
-      shareText += `Palavra: ${targetWord.toUpperCase()}\n\n`;
-    }
-
-    gameState.guesses.forEach((guess, index) => {
-      allTargetWords.forEach((word, wordIndex) => {
-        if (wordIndex === 0) {
-          const evaluation = evaluateGuess(guess, word);
-          shareText += evaluation.map(state => {
-            switch (state) {
-              case 'correct': return '🟩';
-              case 'present': return '🟨';
-              default: return '⬛';
-            }
-          }).join('');
-          if (allTargetWords.length === 1) shareText += '\n';
-        }
-      });
-      if (allTargetWords.length > 1) shareText += '\n';
-    });
-
-    shareText += '\naleeessia.com/termo';
-    return shareText;
-  };
-
   const evaluateGuess = (guess: string, word: string) => {
     const result = [];
     const targetArray = word.toLowerCase().split('');
@@ -117,6 +76,52 @@ export const TermoGameOver = ({
     return result;
   };
 
+  const generateShareText = () => {
+    const today = new Date().toLocaleDateString('pt-BR');
+    const modeEmoji = getModeEmoji(mode);
+    const modeLabel = getModeLabel(mode);
+    
+    let shareText = `Termo ${modeLabel} ${modeEmoji} ${today}\n`;
+    
+    if (isWin) {
+      shareText += `✅ ${attempts}/6\n\n`;
+    } else {
+      shareText += `❌ X/6\n\n`;
+    }
+
+    // Gerar os quadrados para cada tentativa
+    gameState.guesses.forEach((guess) => {
+      if (mode === 'solo') {
+        const evaluation = evaluateGuess(guess, allTargetWords[0]);
+        shareText += evaluation.map(state => {
+          switch (state) {
+            case 'correct': return '🟩';
+            case 'present': return '🟨';
+            default: return '⬛';
+          }
+        }).join('');
+        shareText += '\n';
+      } else {
+        // Para modos multi-palavra, mostrar uma linha por palavra
+        allTargetWords.forEach((word, wordIndex) => {
+          const evaluation = evaluateGuess(guess, word);
+          shareText += evaluation.map(state => {
+            switch (state) {
+              case 'correct': return '🟩';
+              case 'present': return '🟨';
+              default: return '⬛';
+            }
+          }).join('');
+          if (wordIndex < allTargetWords.length - 1) shareText += ' ';
+        });
+        shareText += '\n';
+      }
+    });
+
+    shareText += '\naleeessia.com/termo';
+    return shareText;
+  };
+
   const handleShare = async () => {
     setIsSharing(true);
     const shareText = generateShareText();
@@ -134,11 +139,20 @@ export const TermoGameOver = ({
         });
       }
     } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível compartilhar o resultado",
-        variant: "destructive"
-      });
+      console.error('Share error:', error);
+      try {
+        await navigator.clipboard.writeText(shareText);
+        toast({
+          title: "Copiado!",
+          description: "Resultado copiado para a área de transferência",
+        });
+      } catch (clipboardError) {
+        toast({
+          title: "Erro",
+          description: "Não foi possível compartilhar o resultado",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsSharing(false);
     }
@@ -164,25 +178,6 @@ export const TermoGameOver = ({
           <p className="mb-2">
             <strong>Modo:</strong> {getModeLabel(mode)} {getModeEmoji(mode)}
           </p>
-          {mode !== 'solo' ? (
-            <div>
-              <strong>Palavras:</strong>
-              <div className="flex flex-wrap justify-center gap-2 mt-1">
-                {allTargetWords.map((word, index) => (
-                  <span key={index} className="bg-white/20 px-2 py-1 rounded text-white font-mono">
-                    {word.toUpperCase()}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p>
-              <strong>Palavra:</strong> 
-              <span className="bg-white/20 px-2 py-1 rounded ml-2 text-white font-mono">
-                {targetWord.toUpperCase()}
-              </span>
-            </p>
-          )}
         </div>
       </div>
 

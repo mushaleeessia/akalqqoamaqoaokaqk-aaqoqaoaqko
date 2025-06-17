@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { GameMode } from '@/components/GameModeSelector';
 
@@ -61,6 +62,7 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
 
   const saveSession = (session: MultiModePlayerSession) => {
     const today = getTodayDate();
+    // Chaves específicas por modo para isolar as sessões
     const sessionKey = `termo-session-${mode}-${today}`;
     const cookieKey = `termo_session_${mode}_${today}`;
     
@@ -72,6 +74,7 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
 
   const loadSession = (): MultiModePlayerSession | null => {
     const today = getTodayDate();
+    // Chaves específicas por modo
     const sessionKey = `termo-session-${mode}-${today}`;
     const cookieKey = `termo_session_${mode}_${today}`;
     
@@ -86,7 +89,11 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
     
     if (sessionData) {
       try {
-        return JSON.parse(sessionData);
+        const session = JSON.parse(sessionData);
+        // Verificar se a sessão é do modo correto
+        if (session.mode === mode) {
+          return session;
+        }
       } catch (error) {
         return null;
       }
@@ -101,7 +108,7 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
     
     const existingSession = loadSession();
     if (existingSession) {
-      if (existingSession.ipHash === playerHash) {
+      if (existingSession.ipHash === playerHash && existingSession.mode === mode) {
         setSessionInfo(existingSession);
         
         if (existingSession.completed || existingSession.failed) {
@@ -135,7 +142,8 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
     
     const updatedSession: MultiModePlayerSession = {
       ...sessionInfo,
-      ...updates
+      ...updates,
+      mode: mode // Garantir que o modo está sempre correto
     };
     
     saveSession(updatedSession);
