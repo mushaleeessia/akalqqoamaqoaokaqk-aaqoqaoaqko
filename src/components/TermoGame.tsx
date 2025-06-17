@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect, useCallback } from "react";
 import { TermoGrid } from "./TermoGrid";
 import { TermoKeyboard } from "./TermoKeyboard";
@@ -47,7 +48,14 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
       console.log('Loading session info:', sessionInfo);
       console.log('Setting game state:', newGameState);
       
-      setGameState(newGameState);
+      // Só atualizar o estado se o jogo atual não estiver em um estado final
+      setGameState(prevState => {
+        if (prevState.gameStatus === 'won' || prevState.gameStatus === 'lost') {
+          console.log('Game already ended, not overriding state');
+          return prevState;
+        }
+        return newGameState;
+      });
 
       // Recalcular keyStates baseado nas tentativas salvas
       if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
@@ -303,3 +311,4 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     </div>
   );
 };
+
