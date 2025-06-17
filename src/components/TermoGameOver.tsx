@@ -96,24 +96,17 @@ export const TermoGameOver = ({
   const handleShare = async () => {
     const shareText = generateShareText();
     
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Meu resultado no Teeermo',
-          text: shareText
-        });
-      } catch (error) {
-        await navigator.clipboard.writeText(shareText);
-        toast({
-          title: "Resultado copiado!",
-          description: "Cole onde quiser compartilhar"
-        });
-      }
-    } else {
+    try {
       await navigator.clipboard.writeText(shareText);
       toast({
         title: "Resultado copiado!",
         description: "Cole onde quiser compartilhar"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao copiar",
+        description: "Não foi possível copiar o resultado",
+        variant: "destructive"
       });
     }
   };
@@ -149,7 +142,6 @@ export const TermoGameOver = ({
         <div className="space-y-1">
           {[1, 2, 3, 4, 5, 6].map(attempt => {
             const isCurrentAttempt = gameState.gameStatus === 'won' && gameState.guesses.length === attempt;
-            const hasAttempt = gameState.guesses.length >= attempt;
             
             return (
               <div key={attempt} className="flex items-center space-x-2">
