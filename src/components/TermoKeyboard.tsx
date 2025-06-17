@@ -1,5 +1,5 @@
 
-import { LetterState } from "./TermoGame";
+import { LetterState } from "@/hooks/useMultiModeGameState";
 
 interface TermoKeyboardProps {
   onKeyPress: (key: string) => void;

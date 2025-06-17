@@ -1,5 +1,5 @@
 
-import { LetterState } from "./TermoGame";
+import { LetterState } from "@/hooks/useMultiModeGameState";
 
 interface TermoGridProps {
   guesses: string[];
