@@ -24,7 +24,7 @@ export const MultiModeGameGrid = ({
       case 3:
         return 'grid grid-cols-1 lg:grid-cols-3 gap-6 place-items-center w-full';
       case 4:
-        return 'grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 place-items-center w-full';
+        return 'grid grid-cols-2 lg:grid-cols-4 gap-2 w-full justify-items-center';
       default:
         return 'flex justify-center';
     }
@@ -39,7 +39,7 @@ export const MultiModeGameGrid = ({
       case 3:
         return 'scale-80 lg:scale-90';
       case 4:
-        return 'scale-65 lg:scale-80';
+        return 'scale-50 lg:scale-60';
       default:
         return 'scale-100';
     }
@@ -48,14 +48,14 @@ export const MultiModeGameGrid = ({
   const getItemClass = () => {
     switch (targetWords.length) {
       case 4:
-        return 'flex flex-col items-center space-y-1';
+        return 'flex flex-col items-center space-y-1 min-w-0';
       default:
         return 'flex flex-col items-center space-y-2';
     }
   };
 
   return (
-    <div className="w-full max-w-none px-2 lg:px-8">
+    <div className="w-full max-w-none px-2 lg:px-4">
       <div className={getContainerClass()}>
         {targetWords.map((targetWord, index) => (
           <div key={index} className={getItemClass()}>
