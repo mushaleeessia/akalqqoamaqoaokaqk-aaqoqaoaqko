@@ -90,7 +90,6 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
   try {
     // Gerar todas as variações da palavra (singular, plural, acentos)
     const variations = generateWordVariations(originalWord);
-    console.log(`Testando variações para "${originalWord}":`, variations);
     
     // Testar cada variação na API
     for (const variation of variations) {
@@ -101,13 +100,11 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
           const data = await response.json();
           if (data && data.length > 0) {
             const correctForm = data[0].word || variation;
-            console.log(`Palavra válida encontrada: "${variation}" -> "${correctForm}"`);
             wordCache.set(normalizedWord, { isValid: true, correctForm });
             return { isValid: true, correctForm };
           }
         }
       } catch (error) {
-        console.warn(`Erro ao testar variação "${variation}":`, error);
         continue;
       }
     }
@@ -120,20 +117,18 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
         if (fallbackResponse.ok) {
           const fallbackData = await fallbackResponse.json();
           if (fallbackData && !fallbackData.error) {
-            console.log(`Palavra válida encontrada no fallback: "${variation}"`);
             wordCache.set(normalizedWord, { isValid: true, correctForm: variation });
             return { isValid: true, correctForm: variation };
           }
         }
       } catch (error) {
-        console.warn(`Erro ao testar variação "${variation}" no fallback:`, error);
         continue;
       }
     }
     
-    // Lista expandida de palavras básicas incluindo plurais
+    // Lista expandida de palavras básicas incluindo verbos
     const basicWords = [
-      // Singulares
+      // Substantivos
       'navio', 'termo', 'palavra', 'jogo', 'casa', 'vida', 'tempo', 'mundo', 'amor', 'terra',
       'agua', 'água', 'fogo', 'vento', 'luz', 'noite', 'sol', 'lua', 'mar', 'rio', 'monte',
       'pedra', 'arvore', 'árvore', 'flor', 'fruto', 'folha', 'raiz', 'broto', 'animal', 'gato', 'cao', 'cão',
@@ -144,7 +139,19 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
       'aguas', 'águas', 'fogos', 'ventos', 'luzes', 'noites', 'sóis', 'luas', 'mares', 'rios', 'montes',
       'pedras', 'arvores', 'árvores', 'flores', 'frutos', 'folhas', 'raízes', 'brotos', 'animais', 'gatos', 'caes', 'cães',
       'aureos', 'áureos', 'acidos', 'ácidos', 'musicas', 'músicas', 'historias', 'histórias', 'homens', 'mulheres',
-      'papeis', 'papéis', 'livros', 'mesas', 'portas', 'janelas', 'carros', 'avioes', 'aviões', 'trens', 'barcas'
+      'papeis', 'papéis', 'livros', 'mesas', 'portas', 'janelas', 'carros', 'avioes', 'aviões', 'trens', 'barcas',
+      // Verbos infinitivos
+      'amar', 'viver', 'morrer', 'saber', 'poder', 'fazer', 'dizer', 'partir', 'chegar', 'voltar',
+      'entrar', 'sair', 'subir', 'descer', 'correr', 'andar', 'saltar', 'pular', 'voar', 'nadar',
+      'dormir', 'comer', 'beber', 'falar', 'ouvir', 'ver', 'olhar', 'sentir', 'tocar', 'pegar',
+      'soltar', 'abrir', 'fechar', 'ligar', 'parar', 'começar', 'acabar', 'ganhar', 'perder',
+      'jogar', 'ler', 'escrever', 'cantar', 'dançar', 'rir', 'chorar', 'gritar',
+      // Verbos conjugados
+      'amou', 'viveu', 'morreu', 'soube', 'pôde', 'disse', 'partiu', 'chegou', 'voltou',
+      'entrou', 'saiu', 'subiu', 'desceu', 'correu', 'andou', 'saltou', 'pulou', 'voou',
+      'nadou', 'dormiu', 'comeu', 'bebeu', 'falou', 'ouviu', 'viu', 'olhou', 'sentiu',
+      'tocou', 'pegou', 'soltou', 'abriu', 'fechou', 'ligou', 'parou', 'ganhou', 'perdeu',
+      'jogou', 'leu', 'cantou', 'dançou', 'riu', 'chorou', 'gritou'
     ];
     
     // Procurar todas as variações nas palavras básicas
@@ -153,7 +160,6 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
         normalizeWord(basic) === normalizeWord(variation) || basic === variation
       );
       if (foundBasic) {
-        console.log(`Palavra básica encontrada: "${variation}" -> "${foundBasic}"`);
         wordCache.set(normalizedWord, { isValid: true, correctForm: foundBasic });
         return { isValid: true, correctForm: foundBasic };
       }
@@ -163,8 +169,6 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
     return { isValid: false, correctForm: originalWord };
     
   } catch (error) {
-    console.warn('Erro ao validar palavra:', error);
-    
     // Em caso de erro de rede, usar lista básica expandida
     const basicWords = [
       'navio', 'termo', 'palavra', 'jogo', 'casa', 'vida', 'tempo', 'mundo', 'amor', 'terra',
@@ -174,7 +178,12 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
       'navios', 'termos', 'palavras', 'jogos', 'casas', 'vidas', 'tempos', 'mundos', 'amores', 'terras',
       'aguas', 'águas', 'fogos', 'ventos', 'luzes', 'noites', 'sóis', 'luas', 'mares', 'rios', 'montes',
       'pedras', 'arvores', 'árvores', 'flores', 'frutos', 'folhas', 'raízes', 'brotos', 'animais', 'gatos', 'caes', 'cães',
-      'papeis', 'papéis', 'livros', 'mesas', 'portas', 'janelas', 'carros', 'avioes', 'aviões', 'trens', 'barcas'
+      'papeis', 'papéis', 'livros', 'mesas', 'portas', 'janelas', 'carros', 'avioes', 'aviões', 'trens', 'barcas',
+      // Verbos
+      'amar', 'viver', 'morrer', 'saber', 'poder', 'fazer', 'dizer', 'partir', 'chegar', 'voltar',
+      'entrar', 'sair', 'subir', 'descer', 'correr', 'andar', 'saltar', 'pular', 'voar', 'nadar',
+      'dormir', 'comer', 'beber', 'falar', 'ouvir', 'ver', 'olhar', 'sentir', 'tocar', 'pegar',
+      'amou', 'viveu', 'morreu', 'soube', 'pôde', 'disse', 'partiu', 'chegou', 'voltou', 'entrou'
     ];
     
     const variations = generateWordVariations(originalWord);
@@ -198,7 +207,10 @@ export const getRandomWord = (): string => {
     'navio', 'termo', 'jogo', 'casa', 'vida', 'tempo', 'mundo', 'amor', 'terra',
     'água', 'fogo', 'vento', 'luz', 'noite', 'sol', 'lua', 'mar', 'rio', 'monte',
     'pedra', 'árvore', 'flor', 'fruto', 'folha', 'animal', 'gato', 'cão', 'peixe',
-    'pessoa', 'homem', 'mulher', 'filho', 'filha', 'pai', 'mãe', 'amigo', 'livro'
+    'pessoa', 'homem', 'mulher', 'filho', 'filha', 'pai', 'mãe', 'amigo', 'livro',
+    // Verbos
+    'amar', 'viver', 'saber', 'fazer', 'dizer', 'partir', 'chegar', 'voltar',
+    'entrar', 'sair', 'correr', 'andar', 'voar', 'nadar', 'dormir', 'comer'
   ];
   return commonWords[Math.floor(Math.random() * commonWords.length)];
 };

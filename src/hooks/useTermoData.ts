@@ -13,18 +13,34 @@ export const useTermoData = () => {
     return brasiliaTime.toISOString().split('T')[0]; // YYYY-MM-DD
   };
 
-  // Lista de palavras de 5 letras em português para usar como seed
+  // Lista expandida de palavras de 5 letras em português incluindo verbos
   const seedWords = [
+    // Substantivos
     'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
-    'lugar', 'caso', 'mão', 'vida', 'modo', 'água', 'fogo', 'vento',
+    'lugar', 'caso', 'vida', 'modo', 'água', 'fogo', 'vento',
     'noite', 'morte', 'homem', 'mulher', 'filho', 'casa', 'porta',
     'mesa', 'livro', 'papel', 'boca', 'olhos', 'dente', 'braço',
     'perna', 'cabeça', 'corpo', 'amor', 'paz', 'guerra', 'força',
-    'poder', 'direito', 'lei', 'ordem', 'união', 'festa', 'jogo',
+    'poder', 'direito', 'ordem', 'união', 'festa', 'jogo',
     'arte', 'obra', 'nome', 'ideia', 'plano', 'sorte', 'calor',
-    'frio', 'verde', 'azul', 'preto', 'branco', 'grande', 'pequeno',
-    'carro', 'avião', 'ponte', 'rádio', 'música', 'dança', 'filme',
-    'banco', 'praia', 'campo', 'flor', 'árvore', 'pedra', 'metal'
+    'frio', 'verde', 'azul', 'preto', 'branco', 'carro', 'avião',
+    'ponte', 'rádio', 'música', 'dança', 'filme', 'banco', 'praia',
+    'campo', 'flor', 'árvore', 'pedra', 'metal',
+    // Verbos infinitivos
+    'amar', 'viver', 'morrer', 'saber', 'poder', 'fazer', 'dizer',
+    'partir', 'chegar', 'voltar', 'entrar', 'sair', 'subir', 'descer',
+    'correr', 'andar', 'saltar', 'pular', 'voar', 'nadar', 'dormir',
+    'comer', 'beber', 'falar', 'ouvir', 'ver', 'olhar', 'sentir',
+    'tocar', 'pegar', 'soltar', 'abrir', 'fechar', 'ligar', 'parar',
+    'começar', 'acabar', 'ganhar', 'perder', 'jogar', 'ler',
+    'escrever', 'cantar', 'dançar', 'rir', 'chorar', 'gritar',
+    // Verbos conjugados (presente/passado)
+    'amou', 'viveu', 'morreu', 'soube', 'pôde', 'disse', 'partiu',
+    'chegou', 'voltou', 'entrou', 'saiu', 'subiu', 'desceu', 'correu',
+    'andou', 'saltou', 'pulou', 'voou', 'nadou', 'dormiu', 'comeu',
+    'bebeu', 'falou', 'ouviu', 'viu', 'olhou', 'sentiu', 'tocou',
+    'pegou', 'soltou', 'abriu', 'fechou', 'ligou', 'parou', 'ganhou',
+    'perdeu', 'jogou', 'leu', 'cantou', 'dançou', 'riu', 'chorou'
   ];
 
   const generateDailyWord = async (date: string): Promise<string> => {
