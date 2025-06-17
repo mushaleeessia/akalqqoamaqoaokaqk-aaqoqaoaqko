@@ -20,11 +20,11 @@ export const MultiModeGameGrid = ({
       case 1:
         return 'flex justify-center';
       case 2:
-        return 'grid grid-cols-1 lg:grid-cols-2 gap-8 place-items-center w-full';
+        return 'grid grid-cols-1 lg:grid-cols-2 gap-8 place-items-center';
       case 3:
-        return 'grid grid-cols-1 lg:grid-cols-3 gap-12 place-items-center w-full';
+        return 'grid grid-cols-1 xl:grid-cols-3 gap-6 place-items-center';
       case 4:
-        return 'grid grid-cols-2 gap-6 lg:gap-10 w-full justify-items-center max-w-6xl mx-auto';
+        return 'grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4 w-full max-w-none';
       default:
         return 'flex justify-center';
     }
@@ -35,11 +35,11 @@ export const MultiModeGameGrid = ({
       case 1:
         return 'scale-100';
       case 2:
-        return 'scale-90 lg:scale-100';
+        return 'scale-90 lg:scale-95';
       case 3:
-        return 'scale-80 lg:scale-90';
+        return 'scale-75 xl:scale-85';
       case 4:
-        return 'scale-90 lg:scale-110';
+        return 'scale-50 lg:scale-65';
       default:
         return 'scale-100';
     }
@@ -48,19 +48,19 @@ export const MultiModeGameGrid = ({
   const getItemClass = () => {
     switch (targetWords.length) {
       case 4:
-        return 'flex flex-col items-center space-y-2 min-w-0';
+        return 'flex flex-col items-center space-y-1';
       default:
         return 'flex flex-col items-center space-y-2';
     }
   };
 
   return (
-    <div className="w-full max-w-none px-2 lg:px-4">
+    <div className={`w-full ${targetWords.length === 4 ? 'px-2' : 'p-4'}`}>
       <div className={getContainerClass()}>
         {targetWords.map((targetWord, index) => (
           <div key={index} className={getItemClass()}>
             <div className={`text-white/60 font-medium text-center ${
-              targetWords.length === 4 ? 'text-sm' : 'text-sm'
+              targetWords.length === 4 ? 'text-xs' : 'text-xs'
             }`}>
               Palavra {index + 1}
             </div>
