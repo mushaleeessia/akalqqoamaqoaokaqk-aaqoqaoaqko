@@ -39,7 +39,7 @@ export const MultiModeGameGrid = ({
       case 3:
         return 'scale-80 lg:scale-90';
       case 4:
-        return 'scale-70 lg:scale-85';
+        return 'scale-85 lg:scale-100';
       default:
         return 'scale-100';
     }
