@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { TermoGrid } from "./TermoGrid";
 import { TermoKeyboard } from "./TermoKeyboard";
@@ -36,12 +37,17 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
   // Carregar progresso salvo ao inicializar
   useEffect(() => {
     if (sessionInfo) {
-      setGameState({
+      const newGameState = {
         guesses: sessionInfo.guesses || [],
         currentGuess: sessionInfo.currentGuess || '',
         gameStatus: sessionInfo.gameStatus || 'playing',
         currentRow: sessionInfo.guesses?.length || 0
-      });
+      };
+      
+      console.log('Loading session info:', sessionInfo);
+      console.log('Setting game state:', newGameState);
+      
+      setGameState(newGameState);
 
       // Recalcular keyStates baseado nas tentativas salvas
       if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
@@ -157,6 +163,9 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         currentRow: newGuesses.length
       };
       
+      console.log('Game ending - New game state:', newGameState);
+      console.log('Is win:', isWin, 'Is game over:', isGameOver, 'Status:', newGameStatus);
+      
       setGameState(newGameState);
 
       // Salvar o progresso imediatamente quando o jogo termina
@@ -226,6 +235,10 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     window.location.reload();
   };
 
+  console.log('Current game state:', gameState);
+  console.log('Can play:', canPlay);
+  console.log('Session info:', sessionInfo);
+
   // Se o jogador não pode jogar, mostrar mensagem
   if (!canPlay && sessionInfo) {
     return (
@@ -251,7 +264,9 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     );
   }
 
-  if (gameState.gameStatus !== 'playing') {
+  // Verificar se o jogo terminou
+  if (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') {
+    console.log('Showing game over screen for status:', gameState.gameStatus);
     return (
       <TermoGameOver
         gameState={gameState}
