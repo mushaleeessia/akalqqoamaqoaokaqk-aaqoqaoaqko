@@ -43,11 +43,6 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         currentRow: sessionInfo.guesses?.length || 0
       });
 
-      // Se o jogo já foi completado, mostrar que já foi mostrado
-      if (sessionInfo.gameStatus === 'won' || sessionInfo.gameStatus === 'lost') {
-        setHasShownGameOver(true);
-      }
-
       // Recalcular keyStates baseado nas tentativas salvas
       if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
         const newKeyStates: Record<string, LetterState> = {};
