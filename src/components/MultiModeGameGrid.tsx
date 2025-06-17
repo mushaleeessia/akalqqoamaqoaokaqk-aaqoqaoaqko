@@ -15,31 +15,42 @@ export const MultiModeGameGrid = ({
   maxGuesses, 
   isDarkMode 
 }: MultiModeGameGridProps) => {
+  const getGridLayout = () => {
+    switch (targetWords.length) {
+      case 1:
+        return 'grid-cols-1 justify-items-center max-w-md mx-auto';
+      case 2:
+        return 'grid-cols-1 sm:grid-cols-2 gap-8 max-w-3xl mx-auto';
+      case 3:
+        return 'grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto';
+      case 4:
+        return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 max-w-7xl mx-auto';
+      default:
+        return 'grid-cols-1 gap-6 max-w-md mx-auto';
+    }
+  };
+
   return (
-    <div className={`grid gap-6 w-full ${
-      targetWords.length === 1 
-        ? 'grid-cols-1 justify-items-center max-w-md' 
-        : targetWords.length === 2 
-          ? 'grid-cols-2 max-w-2xl' 
-          : targetWords.length === 3 
-            ? 'grid-cols-3 max-w-4xl' 
-            : 'grid-cols-2 lg:grid-cols-4 max-w-6xl'
-    }`}>
-      {targetWords.map((targetWord, index) => (
-        <div key={index} className="flex flex-col items-center">
-          <div className="text-white/60 text-sm mb-2">
-            Palavra {index + 1}
+    <div className="w-full px-2">
+      <div className={`grid ${getGridLayout()}`}>
+        {targetWords.map((targetWord, index) => (
+          <div key={index} className="flex flex-col items-center min-w-0">
+            <div className="text-white/60 text-xs sm:text-sm mb-2 text-center">
+              Palavra {index + 1}
+            </div>
+            <div className="transform scale-75 sm:scale-90 md:scale-100 origin-center">
+              <TermoGrid
+                guesses={gameState.guesses}
+                currentGuess={gameState.currentGuess}
+                targetWord={targetWord}
+                currentRow={gameState.currentRow}
+                maxGuesses={maxGuesses}
+                isDarkMode={isDarkMode}
+              />
+            </div>
           </div>
-          <TermoGrid
-            guesses={gameState.guesses}
-            currentGuess={gameState.currentGuess}
-            targetWord={targetWord}
-            currentRow={gameState.currentRow}
-            maxGuesses={maxGuesses}
-            isDarkMode={isDarkMode}
-          />
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };
