@@ -50,12 +50,32 @@ export const useTermoData = () => {
     }
   };
 
+  const clearAllGameData = (today: string) => {
+    // Limpar palavra do dia
+    localStorage.removeItem('termo-daily-word');
+    
+    // Limpar sessão do jogador para hoje
+    localStorage.removeItem(`termo-session-${today}`);
+    
+    // Limpar outras possíveis chaves antigas (para garantir)
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('termo-session-') || key.startsWith('termo-daily-'))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    console.log('Todos os dados do jogo foram limpos para:', today);
+  };
+
   useEffect(() => {
     const loadTodayWord = async () => {
       const today = getTodayDateBrasilia();
       
-      // Limpar cache antigo e forçar nova palavra
-      localStorage.removeItem('termo-daily-word');
+      // Limpar todos os dados do jogo e forçar nova palavra
+      clearAllGameData(today);
       
       // Gerar nova palavra para hoje
       try {
