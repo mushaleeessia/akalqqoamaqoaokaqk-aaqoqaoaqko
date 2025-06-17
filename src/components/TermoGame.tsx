@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { TermoGrid } from "./TermoGrid";
 import { TermoKeyboard } from "./TermoKeyboard";
@@ -241,7 +240,6 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         gameState={gameState}
         targetWord={targetWord}
         isDarkMode={isDarkMode}
-        onPlayAgain={handlePlayAgain}
       />
     );
   }
