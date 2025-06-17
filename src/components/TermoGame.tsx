@@ -31,7 +31,6 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
 
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
   const [isValidating, setIsValidating] = useState(false);
-  const [hasShownGameOver, setHasShownGameOver] = useState(false);
   const maxGuesses = 6;
 
   // Carregar progresso salvo ao inicializar
@@ -165,11 +164,8 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
       
       setGameState(newGameState);
 
-      // NÃO salvar o progresso imediatamente se o jogo acabou
-      // Só salvar depois que o usuário viu a tela de game over
-      if (!isGameOver) {
-        saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
-      }
+      // Salvar o progresso imediatamente quando o jogo termina
+      saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
       
     } catch (error) {
       toast({
@@ -232,14 +228,11 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
   }, [handleKeyPress]);
 
   const handlePlayAgain = () => {
-    // Salvar o progresso final quando o usuário clica em "Jogar Novamente"
-    saveGameProgress(gameState.guesses, gameState.currentGuess, gameState.gameStatus);
-    setHasShownGameOver(true);
     window.location.reload();
   };
 
-  // Se o jogador não pode jogar E já viu a tela de game over, mostrar mensagem
-  if (!canPlay && sessionInfo && hasShownGameOver) {
+  // Se o jogador não pode jogar, mostrar mensagem
+  if (!canPlay && sessionInfo) {
     return (
       <div className="flex flex-col items-center space-y-6 p-8 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
         <div className="text-center">
