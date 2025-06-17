@@ -15,30 +15,45 @@ export const MultiModeGameGrid = ({
   maxGuesses, 
   isDarkMode 
 }: MultiModeGameGridProps) => {
-  const getGridLayout = () => {
+  const getContainerClass = () => {
     switch (targetWords.length) {
       case 1:
-        return 'grid-cols-1 justify-items-center max-w-md mx-auto';
+        return 'flex justify-center';
       case 2:
-        return 'grid-cols-1 sm:grid-cols-2 gap-8 max-w-3xl mx-auto';
+        return 'grid grid-cols-1 lg:grid-cols-2 gap-8 place-items-center';
       case 3:
-        return 'grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto';
+        return 'grid grid-cols-1 xl:grid-cols-3 gap-6 place-items-center';
       case 4:
-        return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 max-w-7xl mx-auto';
+        return 'grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 place-items-center';
       default:
-        return 'grid-cols-1 gap-6 max-w-md mx-auto';
+        return 'flex justify-center';
+    }
+  };
+
+  const getGridScale = () => {
+    switch (targetWords.length) {
+      case 1:
+        return 'scale-100';
+      case 2:
+        return 'scale-90 lg:scale-95';
+      case 3:
+        return 'scale-75 xl:scale-85';
+      case 4:
+        return 'scale-65 lg:scale-75 xl:scale-80';
+      default:
+        return 'scale-100';
     }
   };
 
   return (
-    <div className="w-full px-2">
-      <div className={`grid ${getGridLayout()}`}>
+    <div className="w-full p-4">
+      <div className={getContainerClass()}>
         {targetWords.map((targetWord, index) => (
-          <div key={index} className="flex flex-col items-center min-w-0">
-            <div className="text-white/60 text-xs sm:text-sm mb-2 text-center">
+          <div key={index} className="flex flex-col items-center space-y-2">
+            <div className="text-white/60 text-xs font-medium text-center">
               Palavra {index + 1}
             </div>
-            <div className="transform scale-75 sm:scale-90 md:scale-100 origin-center">
+            <div className={`transform origin-center ${getGridScale()}`}>
               <TermoGrid
                 guesses={gameState.guesses}
                 currentGuess={gameState.currentGuess}
