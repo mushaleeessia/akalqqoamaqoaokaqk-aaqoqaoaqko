@@ -1,8 +1,9 @@
 
 import { GameState } from "./TermoGame";
 import { Button } from "@/components/ui/button";
-import { Share2, RotateCcw } from "lucide-react";
+import { Share2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 
 interface TermoGameOverProps {
   gameState: GameState;
@@ -18,6 +19,30 @@ export const TermoGameOver = ({
   onPlayAgain 
 }: TermoGameOverProps) => {
   
+  const [timeToNext, setTimeToNext] = useState('');
+
+  useEffect(() => {
+    const updateTimer = () => {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      
+      const diff = tomorrow.getTime() - now.getTime();
+      
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      setTimeToNext(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const generateShareText = (): string => {
     const date = new Date().toLocaleDateString('pt-BR');
     const attempts = gameState.gameStatus === 'won' ? gameState.guesses.length : 'X';
@@ -78,7 +103,6 @@ export const TermoGameOver = ({
           text: shareText
         });
       } catch (error) {
-        // Fallback para copiar para clipboard
         await navigator.clipboard.writeText(shareText);
         toast({
           title: "Resultado copiado!",
@@ -96,69 +120,71 @@ export const TermoGameOver = ({
 
   return (
     <div className={`flex flex-col items-center space-y-6 p-8 rounded-xl ${
-      isDarkMode ? 'bg-gray-800/50' : 'bg-white/10'
-    } backdrop-blur-sm border border-white/20`}>
+      isDarkMode ? 'bg-gray-800/90' : 'bg-white/10'
+    } backdrop-blur-sm border border-white/20 max-w-sm mx-auto`}>
       
-      {/* Resultado */}
+      {/* Título de progresso */}
       <div className="text-center">
-        <h2 className={`text-3xl font-bold mb-2 ${
-          gameState.gameStatus === 'won' ? 'text-green-400' : 'text-red-400'
-        }`}>
-          {gameState.gameStatus === 'won' ? '🎉 Parabéns!' : '😔 Que pena!'}
+        <h2 className="text-lg font-semibold text-white/90 mb-4">
+          progresso
         </h2>
-        
-        <p className="text-white/80 text-lg mb-4">
+      </div>
+
+      {/* Resultado do jogo */}
+      <div className="text-center">
+        <p className="text-white/80 text-lg mb-2">
           {gameState.gameStatus === 'won' 
-            ? `Você acertou em ${gameState.guesses.length} tentativa${gameState.guesses.length > 1 ? 's' : ''}!`
+            ? `Você acertou!`
             : `A palavra era: ${targetWord.toUpperCase()}`
           }
         </p>
       </div>
 
-      {/* Grid de resultado */}
-      <div className="flex flex-col space-y-2">
-        {gameState.guesses.map((guess, index) => {
-          const evaluation = evaluateGuess(guess);
-          return (
-            <div key={index} className="flex space-x-1">
-              {evaluation.map((state, i) => (
-                <div
-                  key={i}
-                  className={`w-8 h-8 rounded flex items-center justify-center text-sm ${
-                    state === 'correct' ? 'bg-green-500' :
-                    state === 'present' ? 'bg-yellow-500' : 'bg-gray-500'
-                  }`}
-                >
-                  {state === 'correct' ? '🟩' : state === 'present' ? '🟨' : '⬛'}
-                </div>
-              ))}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Botões */}
-      <div className="flex space-x-4">
-        <Button 
-          onClick={handleShare}
-          className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 text-lg"
-        >
-          <Share2 className="w-5 h-5 mr-2" />
-          Compartilhar
-        </Button>
+      {/* Distribuição de tentativas */}
+      <div className="w-full">
+        <h3 className="text-white/90 text-sm font-medium mb-3 text-center">
+          distribuição de tentativas
+        </h3>
         
-        <Button 
-          onClick={onPlayAgain}
-          className="bg-green-600 hover:bg-green-500 text-white px-6 py-3 text-lg"
-        >
-          <RotateCcw className="w-5 h-5 mr-2" />
-          Jogar Novamente
-        </Button>
+        <div className="space-y-1">
+          {[1, 2, 3, 4, 5, 6].map(attempt => {
+            const isCurrentAttempt = gameState.gameStatus === 'won' && gameState.guesses.length === attempt;
+            const hasAttempt = gameState.guesses.length >= attempt;
+            
+            return (
+              <div key={attempt} className="flex items-center space-x-2">
+                <span className="text-white/80 text-sm w-4">{attempt}</span>
+                <div className="flex-1 bg-gray-600/50 rounded h-6 relative overflow-hidden">
+                  {isCurrentAttempt && (
+                    <div className="absolute inset-0 bg-green-500 rounded flex items-center justify-end pr-2">
+                      <span className="text-white text-xs font-medium">1</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <p className="text-white/60 text-sm text-center">
-        Uma nova palavra estará disponível amanhã!
-      </p>
+      {/* Próxima palavra */}
+      <div className="text-center">
+        <p className="text-white/70 text-sm mb-2">
+          próxima palavra em
+        </p>
+        <p className="text-white font-mono text-2xl font-bold">
+          {timeToNext}
+        </p>
+      </div>
+
+      {/* Botão de compartilhar */}
+      <Button 
+        onClick={handleShare}
+        className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 text-lg font-medium"
+      >
+        <Share2 className="w-5 h-5 mr-2" />
+        compartilhe
+      </Button>
     </div>
   );
 };
