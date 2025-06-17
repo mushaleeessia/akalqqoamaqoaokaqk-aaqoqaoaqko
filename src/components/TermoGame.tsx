@@ -57,31 +57,6 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     }
   }, [sessionInfo, targetWord]);
 
-  // Se o jogador não pode jogar, mostrar mensagem
-  if (!canPlay && sessionInfo) {
-    return (
-      <div className="flex flex-col items-center space-y-6 p-8 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            {sessionInfo.completed ? '✅ Você já jogou hoje!' : '❌ Tentativas esgotadas!'}
-          </h2>
-          <p className="text-white/80 mb-2">
-            {sessionInfo.completed 
-              ? `Parabéns! Você completou o Termo de hoje.`
-              : `Você esgotou suas tentativas para hoje.`
-            }
-          </p>
-          <p className="text-white/60 text-sm">
-            Uma nova palavra estará disponível amanhã!
-          </p>
-          <div className="mt-4 text-white/50 text-xs">
-            Tentativas realizadas: {sessionInfo.attempts}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const evaluateGuess = (guess: string): LetterState[] => {
     const result: LetterState[] = [];
     const targetArray = targetWord.toLowerCase().split('');
@@ -260,6 +235,31 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
 
   console.log('Current game state:', gameState);
   console.log('Game status:', gameState.gameStatus);
+
+  // Se o jogador não pode jogar, mostrar mensagem (MOVIDO PARA DEPOIS DOS HOOKS)
+  if (!canPlay && sessionInfo) {
+    return (
+      <div className="flex flex-col items-center space-y-6 p-8 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">
+            {sessionInfo.completed ? '✅ Você já jogou hoje!' : '❌ Tentativas esgotadas!'}
+          </h2>
+          <p className="text-white/80 mb-2">
+            {sessionInfo.completed 
+              ? `Parabéns! Você completou o Termo de hoje.`
+              : `Você esgotou suas tentativas para hoje.`
+            }
+          </p>
+          <p className="text-white/60 text-sm">
+            Uma nova palavra estará disponível amanhã!
+          </p>
+          <div className="mt-4 text-white/50 text-xs">
+            Tentativas realizadas: {sessionInfo.attempts}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (gameState.gameStatus !== 'playing') {
     console.log('Rendering TermoGameOver component');
