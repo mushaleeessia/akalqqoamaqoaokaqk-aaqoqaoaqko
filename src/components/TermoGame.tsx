@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect, useCallback } from "react";
 import { TermoGrid } from "./TermoGrid";
 import { TermoKeyboard } from "./TermoKeyboard";
@@ -136,24 +134,15 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
       if (!validationResult.isValid) {
         toast({
           title: "Palavra inválida",
-          description: "Esta palavra não existe no dicionário",
+          description: "Palavra inválida",
           variant: "destructive"
         });
         setIsValidating(false);
         return;
       }
 
-      // Usar a forma correta da palavra (com acentos)
+      // Usar a forma correta da palavra (com acentos) mas não mostrar toast
       const correctWord = validationResult.correctForm;
-      
-      // Mostrar toast com a forma correta se for diferente da digitada
-      if (correctWord.toLowerCase() !== gameState.currentGuess.toLowerCase()) {
-        toast({
-          title: "Palavra aceita",
-          description: `Forma correta: "${correctWord}"`,
-          variant: "default"
-        });
-      }
 
       const evaluation = evaluateGuess(gameState.currentGuess);
       updateKeyStates(gameState.currentGuess, evaluation);
@@ -311,4 +300,3 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     </div>
   );
 };
-
