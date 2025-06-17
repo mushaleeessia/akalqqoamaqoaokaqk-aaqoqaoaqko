@@ -31,6 +31,7 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
 
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
   const [isValidating, setIsValidating] = useState(false);
+  const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
   const maxGuesses = 6;
 
   // Carregar progresso salvo ao inicializar
@@ -46,10 +47,15 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
       console.log('Loading session info:', sessionInfo);
       console.log('Setting game state:', newGameState);
       
-      // Só atualizar o estado se o jogo atual não estiver em um estado final
+      // Só atualizar o estado se não estivermos mostrando um game over fresh
+      // e se o jogo atual não estiver em um estado final ativo
       setGameState(prevState => {
+        if (showingFreshGameOver) {
+          console.log('Fresh game over active, not overriding state');
+          return prevState;
+        }
         if (prevState.gameStatus === 'won' || prevState.gameStatus === 'lost') {
-          console.log('Game already ended, not overriding state');
+          console.log('Game already ended in current session, not overriding state');
           return prevState;
         }
         return newGameState;
@@ -65,7 +71,7 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         setKeyStates(newKeyStates);
       }
     }
-  }, [sessionInfo, targetWord]);
+  }, [sessionInfo, targetWord, showingFreshGameOver]);
 
   const evaluateGuess = (guess: string): LetterState[] => {
     const result: LetterState[] = [];
@@ -165,6 +171,11 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
       
       setGameState(newGameState);
 
+      // Se o jogo terminou, marcar como fresh game over
+      if (isGameOver) {
+        setShowingFreshGameOver(true);
+      }
+
       // Salvar o progresso imediatamente quando o jogo termina
       saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
       
@@ -229,15 +240,30 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
   }, [handleKeyPress]);
 
   const handlePlayAgain = () => {
+    setShowingFreshGameOver(false);
     window.location.reload();
   };
 
   console.log('Current game state:', gameState);
   console.log('Can play:', canPlay);
   console.log('Session info:', sessionInfo);
+  console.log('Showing fresh game over:', showingFreshGameOver);
 
-  // Se o jogador não pode jogar, mostrar mensagem
-  if (!canPlay && sessionInfo) {
+  // PRIORIDADE 1: Se o jogo terminou na sessão atual, mostrar game over
+  if ((gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') && showingFreshGameOver) {
+    console.log('Showing fresh game over screen for status:', gameState.gameStatus);
+    return (
+      <TermoGameOver
+        gameState={gameState}
+        targetWord={targetWord}
+        isDarkMode={isDarkMode}
+        onPlayAgain={handlePlayAgain}
+      />
+    );
+  }
+
+  // PRIORIDADE 2: Se o jogo terminou em sessão anterior, mostrar "você já jogou"
+  if (!canPlay && sessionInfo && (sessionInfo.completed || sessionInfo.failed)) {
     return (
       <div className="flex flex-col items-center space-y-6 p-8 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
         <div className="text-center">
@@ -261,19 +287,7 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     );
   }
 
-  // Verificar se o jogo terminou
-  if (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') {
-    console.log('Showing game over screen for status:', gameState.gameStatus);
-    return (
-      <TermoGameOver
-        gameState={gameState}
-        targetWord={targetWord}
-        isDarkMode={isDarkMode}
-        onPlayAgain={handlePlayAgain}
-      />
-    );
-  }
-
+  // PRIORIDADE 3: Jogo em andamento
   return (
     <div className="flex flex-col items-center space-y-6">
       {isValidating && (
