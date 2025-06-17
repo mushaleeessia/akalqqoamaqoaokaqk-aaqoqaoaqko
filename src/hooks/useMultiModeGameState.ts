@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { GameMode } from "@/components/GameModeSelector";
 import { validatePortugueseWord } from "@/utils/portugueseWords";
@@ -25,26 +26,8 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
-  const [initializedMode, setInitializedMode] = useState<GameMode | null>(null);
   const [sessionLoaded, setSessionLoaded] = useState(false);
   const maxGuesses = 6;
-
-  // Reset tudo quando o modo muda
-  useEffect(() => {
-    if (initializedMode !== mode) {
-      console.log(`Modo mudou de ${initializedMode} para ${mode}, resetando estados`);
-      setKeyStates({});
-      setGameState({
-        guesses: [],
-        currentGuess: '',
-        gameStatus: 'playing',
-        currentRow: 0
-      });
-      setShowingFreshGameOver(false);
-      setSessionLoaded(false);
-      setInitializedMode(mode);
-    }
-  }, [mode, initializedMode]);
 
   const evaluateGuessForWord = (guess: string, targetWord: string): LetterState[] => {
     const result: LetterState[] = [];
@@ -206,17 +189,11 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     }
   }, [gameState, isValidating, submitGuess, saveGameProgress]);
 
-  // Carregar sessão apenas se for do modo correto e ainda não foi carregada
+  // Carregar sessão apenas quando sessionInfo for carregado e for do modo correto
   useEffect(() => {
-    if (sessionInfo && sessionInfo.mode === mode && initializedMode === mode && !sessionLoaded) {
+    if (sessionInfo && sessionInfo.mode === mode && !sessionLoaded) {
       console.log(`Carregando sessão para modo ${mode}:`, sessionInfo);
       
-      // Verificar se a sessão realmente pertence ao modo atual
-      if (sessionInfo.mode !== mode) {
-        console.log(`Sessão é do modo ${sessionInfo.mode}, mas estamos no modo ${mode}. Ignorando.`);
-        return;
-      }
-
       const newGameState = {
         guesses: sessionInfo.guesses || [],
         currentGuess: sessionInfo.currentGuess || '',
@@ -235,11 +212,20 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
           updateKeyStatesForGuess(guess, bestEvaluation, newKeyStates);
         });
         setKeyStates(newKeyStates);
+      } else {
+        setKeyStates({});
       }
       
       setSessionLoaded(true);
     }
-  }, [sessionInfo, targetWords, mode, initializedMode, sessionLoaded]);
+  }, [sessionInfo, targetWords, mode, sessionLoaded]);
+
+  // Reset flags when mode changes
+  useEffect(() => {
+    console.log(`Modo mudou para: ${mode}, resetando flags de controle`);
+    setSessionLoaded(false);
+    setShowingFreshGameOver(false);
+  }, [mode]);
 
   return {
     gameState,

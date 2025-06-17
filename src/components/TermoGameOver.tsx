@@ -158,32 +158,19 @@ export const TermoGameOver = ({
     const shareText = generateShareText();
     
     try {
-      if (navigator.share) {
-        await navigator.share({
-          text: shareText
-        });
-      } else {
-        await navigator.clipboard.writeText(shareText);
-        toast({
-          title: "Copiado!",
-          description: "Resultado copiado para a área de transferência",
-        });
-      }
+      // SEMPRE copiar para clipboard, nunca usar navigator.share
+      await navigator.clipboard.writeText(shareText);
+      toast({
+        title: "Copiado!",
+        description: "Resultado copiado para a área de transferência",
+      });
     } catch (error) {
-      console.error('Share error:', error);
-      try {
-        await navigator.clipboard.writeText(shareText);
-        toast({
-          title: "Copiado!",
-          description: "Resultado copiado para a área de transferência",
-        });
-      } catch (clipboardError) {
-        toast({
-          title: "Erro",
-          description: "Não foi possível compartilhar o resultado",
-          variant: "destructive"
-        });
-      }
+      console.error('Clipboard error:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível copiar o resultado",
+        variant: "destructive"
+      });
     } finally {
       setIsSharing(false);
     }
@@ -236,7 +223,7 @@ export const TermoGameOver = ({
           } text-white`}
         >
           <Share2 className="w-4 h-4" />
-          <span>{isSharing ? 'Compartilhando...' : 'Compartilhar'}</span>
+          <span>{isSharing ? 'Copiando...' : 'Copiar Resultado'}</span>
         </Button>
       </div>
 
