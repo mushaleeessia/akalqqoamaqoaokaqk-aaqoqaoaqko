@@ -1,78 +1,98 @@
-import { GameState } from "./TermoGame";
+
+import { useState } from "react";
+import { Share2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Share2 } from "lucide-react";
+import { GameState } from "./TermoGame";
+import { MultiModeGameState } from "./MultiModeTermoGame";
+import { GameMode } from "./GameModeSelector";
 import { toast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
 
 interface TermoGameOverProps {
-  gameState: GameState;
+  gameState: GameState | MultiModeGameState;
   targetWord: string;
   isDarkMode: boolean;
   onPlayAgain: () => void;
+  mode?: GameMode;
+  allTargetWords?: string[];
 }
 
 export const TermoGameOver = ({ 
   gameState, 
   targetWord, 
   isDarkMode, 
-  onPlayAgain 
+  onPlayAgain,
+  mode = 'solo',
+  allTargetWords = [targetWord]
 }: TermoGameOverProps) => {
+  const [isSharing, setIsSharing] = useState(false);
   
-  const [timeToNext, setTimeToNext] = useState('');
+  const isWin = gameState.gameStatus === 'won';
+  const attempts = gameState.guesses.length;
+  
+  const getModeEmoji = (gameMode: GameMode) => {
+    switch (gameMode) {
+      case 'solo': return '🎯';
+      case 'duo': return '👥';
+      case 'trio': return '👨‍👩‍👧';
+      case 'quarteto': return '👨‍👩‍👧‍👦';
+      default: return '🎯';
+    }
+  };
 
-  useEffect(() => {
-    const updateTimer = () => {
-      const now = new Date();
-      // Ajustar para horário de Brasília (UTC-3)
-      const brasiliaTime = new Date(now.getTime() - (3 * 60 * 60 * 1000));
-      
-      const tomorrow = new Date(brasiliaTime);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      
-      // Calcular diferença considerando o fuso horário
-      const tomorrowUTC = new Date(tomorrow.getTime() + (3 * 60 * 60 * 1000));
-      const diff = tomorrowUTC.getTime() - now.getTime();
-      
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
-      setTimeToNext(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-    };
+  const getModeLabel = (gameMode: GameMode) => {
+    switch (gameMode) {
+      case 'solo': return 'Solo';
+      case 'duo': return 'Duo';
+      case 'trio': return 'Trio';
+      case 'quarteto': return 'Quarteto';
+      default: return 'Solo';
+    }
+  };
 
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+  const generateShareText = () => {
+    const today = new Date().toLocaleDateString('pt-BR');
+    const modeEmoji = getModeEmoji(mode);
+    const modeLabel = getModeLabel(mode);
     
-    return () => clearInterval(interval);
-  }, []);
+    let shareText = `Termo ${modeLabel} ${modeEmoji} ${today}\n`;
+    
+    if (isWin) {
+      shareText += `✅ ${attempts}/6\n\n`;
+    } else {
+      shareText += `❌ X/6\n\n`;
+    }
 
-  const generateShareText = (): string => {
-    const date = new Date().toLocaleDateString('pt-BR');
-    const attempts = gameState.gameStatus === 'won' ? gameState.guesses.length : 'X';
-    
-    let shareText = `Teeermo ${date} ${attempts}/6\n\n`;
-    
-    gameState.guesses.forEach(guess => {
-      const evaluation = evaluateGuess(guess);
-      const emojis = evaluation.map(state => {
-        switch (state) {
-          case 'correct': return '🟩';
-          case 'present': return '🟨';
-          case 'absent': return '⬛';
-          default: return '⬛';
+    // Para cada palavra no modo multi-palavra
+    if (mode !== 'solo' && allTargetWords.length > 1) {
+      shareText += `Palavras: ${allTargetWords.map(w => w.toUpperCase()).join(', ')}\n\n`;
+    } else {
+      shareText += `Palavra: ${targetWord.toUpperCase()}\n\n`;
+    }
+
+    gameState.guesses.forEach((guess, index) => {
+      allTargetWords.forEach((word, wordIndex) => {
+        if (wordIndex === 0) {
+          const evaluation = evaluateGuess(guess, word);
+          shareText += evaluation.map(state => {
+            switch (state) {
+              case 'correct': return '🟩';
+              case 'present': return '🟨';
+              default: return '⬛';
+            }
+          }).join('');
+          if (allTargetWords.length === 1) shareText += '\n';
         }
-      }).join('');
-      shareText += emojis + '\n';
+      });
+      if (allTargetWords.length > 1) shareText += '\n';
     });
-    
-    shareText += '\naleeessia.com (veja também term.ooo!)';
+
+    shareText += '\naleeessia.com/termo';
     return shareText;
   };
 
-  const evaluateGuess = (guess: string) => {
+  const evaluateGuess = (guess: string, word: string) => {
     const result = [];
-    const targetArray = targetWord.toLowerCase().split('');
+    const targetArray = word.toLowerCase().split('');
     const guessArray = guess.toLowerCase().split('');
     
     for (let i = 0; i < 5; i++) {
@@ -98,89 +118,101 @@ export const TermoGameOver = ({
   };
 
   const handleShare = async () => {
+    setIsSharing(true);
     const shareText = generateShareText();
     
     try {
-      await navigator.clipboard.writeText(shareText);
-      toast({
-        title: "Resultado copiado!",
-        description: "Cole onde quiser compartilhar"
-      });
+      if (navigator.share) {
+        await navigator.share({
+          text: shareText
+        });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        toast({
+          title: "Copiado!",
+          description: "Resultado copiado para a área de transferência",
+        });
+      }
     } catch (error) {
       toast({
-        title: "Erro ao copiar",
-        description: "Não foi possível copiar o resultado",
+        title: "Erro",
+        description: "Não foi possível compartilhar o resultado",
         variant: "destructive"
       });
+    } finally {
+      setIsSharing(false);
     }
   };
 
   return (
-    <div className={`flex flex-col items-center space-y-6 p-8 rounded-xl ${
-      isDarkMode ? 'bg-gray-800/90' : 'bg-white/10'
-    } backdrop-blur-sm border border-white/20 max-w-sm mx-auto`}>
-      
-      {/* Título de progresso */}
+    <div className="flex flex-col items-center space-y-6 p-8 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
       <div className="text-center">
-        <h2 className="text-lg font-semibold text-white/90 mb-4">
-          progresso
+        <div className="text-6xl mb-4">
+          {isWin ? '🎉' : '😢'}
+        </div>
+        <h2 className="text-3xl font-bold text-white mb-2">
+          {isWin ? 'Parabéns!' : 'Que pena!'}
         </h2>
-      </div>
-
-      {/* Resultado do jogo */}
-      <div className="text-center">
-        <p className="text-white/80 text-lg mb-2">
-          {gameState.gameStatus === 'won' 
-            ? `Você acertou!`
-            : `A palavra era: ${targetWord.toUpperCase()}`
+        <p className="text-white/80 text-lg mb-4">
+          {isWin 
+            ? `Você acertou em ${attempts} tentativa${attempts !== 1 ? 's' : ''}!`
+            : 'Suas tentativas acabaram!'
           }
         </p>
-      </div>
-
-      {/* Distribuição de tentativas */}
-      <div className="w-full">
-        <h3 className="text-white/90 text-sm font-medium mb-3 text-center">
-          distribuição de tentativas
-        </h3>
         
-        <div className="space-y-1">
-          {[1, 2, 3, 4, 5, 6].map(attempt => {
-            const isCurrentAttempt = gameState.gameStatus === 'won' && gameState.guesses.length === attempt;
-            
-            return (
-              <div key={attempt} className="flex items-center space-x-2">
-                <span className="text-white/80 text-sm w-4">{attempt}</span>
-                <div className="flex-1 bg-gray-600/50 rounded h-6 relative overflow-hidden">
-                  {isCurrentAttempt && (
-                    <div className="absolute inset-0 bg-green-500 rounded flex items-center justify-end pr-2">
-                      <span className="text-white text-xs font-medium">1</span>
-                    </div>
-                  )}
-                </div>
+        <div className="text-white/70 text-sm mb-6">
+          <p className="mb-2">
+            <strong>Modo:</strong> {getModeLabel(mode)} {getModeEmoji(mode)}
+          </p>
+          {mode !== 'solo' ? (
+            <div>
+              <strong>Palavras:</strong>
+              <div className="flex flex-wrap justify-center gap-2 mt-1">
+                {allTargetWords.map((word, index) => (
+                  <span key={index} className="bg-white/20 px-2 py-1 rounded text-white font-mono">
+                    {word.toUpperCase()}
+                  </span>
+                ))}
               </div>
-            );
-          })}
+            </div>
+          ) : (
+            <p>
+              <strong>Palavra:</strong> 
+              <span className="bg-white/20 px-2 py-1 rounded ml-2 text-white font-mono">
+                {targetWord.toUpperCase()}
+              </span>
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Próxima palavra */}
-      <div className="text-center">
-        <p className="text-white/70 text-sm mb-2">
-          próxima palavra em (horário de Brasília)
-        </p>
-        <p className="text-white font-mono text-2xl font-bold">
-          {timeToNext}
-        </p>
+      <div className="flex space-x-4">
+        <Button
+          onClick={handleShare}
+          disabled={isSharing}
+          className={`flex items-center space-x-2 ${
+            isDarkMode 
+              ? 'bg-green-600 hover:bg-green-700' 
+              : 'bg-green-500 hover:bg-green-600'
+          } text-white`}
+        >
+          <Share2 className="w-4 h-4" />
+          <span>{isSharing ? 'Compartilhando...' : 'Compartilhar'}</span>
+        </Button>
+        
+        <Button
+          onClick={onPlayAgain}
+          variant="outline"
+          className="flex items-center space-x-2 bg-white/10 border-white/30 text-white hover:bg-white/20"
+        >
+          <RefreshCw className="w-4 h-4" />
+          <span>Jogar Novamente</span>
+        </Button>
       </div>
 
-      {/* Botão de compartilhar */}
-      <Button 
-        onClick={handleShare}
-        className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 text-lg font-medium"
-      >
-        <Share2 className="w-5 h-5 mr-2" />
-        compartilhe
-      </Button>
+      <p className="text-white/50 text-sm text-center">
+        Uma nova palavra estará disponível amanhã!
+      </p>
     </div>
   );
 };

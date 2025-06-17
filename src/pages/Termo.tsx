@@ -1,17 +1,21 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Share2, Sun, Moon } from "lucide-react";
+import { ArrowLeft, Sun, Moon } from "lucide-react";
 import { TermoGame } from "@/components/TermoGame";
+import { MultiModeTermoGame } from "@/components/MultiModeTermoGame";
+import { GameModeSelector, GameMode } from "@/components/GameModeSelector";
 import { Button } from "@/components/ui/button";
 import { useTermoData } from "@/hooks/useTermoData";
+import { useMultiModeTermoData } from "@/hooks/useMultiModeTermoData";
 
 const Termo = () => {
-  const [isDarkMode, setIsDarkMode] = useState(true); // Modo escuro como padrão
-  const { todayWord, loading } = useTermoData();
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [selectedMode, setSelectedMode] = useState<GameMode>('solo');
+  const { todayWord, loading: soloLoading } = useTermoData();
+  const { wordsData, loading: multiLoading } = useMultiModeTermoData();
 
   useEffect(() => {
-    // Aplicar tema escuro se ativado
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
@@ -19,13 +23,26 @@ const Termo = () => {
     }
   }, [isDarkMode]);
 
-  if (loading) {
+  if (soloLoading || multiLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center">
         <div className="text-white text-xl">Carregando...</div>
       </div>
     );
   }
+
+  const handleModeChange = (mode: GameMode) => {
+    setSelectedMode(mode);
+  };
+
+  const getCurrentWords = () => {
+    if (selectedMode === 'solo') {
+      return todayWord ? [todayWord] : [];
+    }
+    return wordsData[selectedMode] || [];
+  };
+
+  const currentWords = getCurrentWords();
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
@@ -61,16 +78,30 @@ const Termo = () => {
       </header>
 
       {/* Game Container */}
-      <div className="container mx-auto px-4 py-8 max-w-lg">
-        {todayWord ? (
-          <TermoGame 
-            targetWord={todayWord} 
-            isDarkMode={isDarkMode}
-          />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <GameModeSelector 
+          currentMode={selectedMode}
+          onModeChange={handleModeChange}
+          isDarkMode={isDarkMode}
+        />
+
+        {currentWords.length > 0 ? (
+          selectedMode === 'solo' ? (
+            <TermoGame 
+              targetWord={currentWords[0]} 
+              isDarkMode={isDarkMode}
+            />
+          ) : (
+            <MultiModeTermoGame
+              targetWords={currentWords}
+              mode={selectedMode}
+              isDarkMode={isDarkMode}
+            />
+          )
         ) : (
           <div className="text-center text-white/80">
-            <p>Palavra do dia não encontrada!</p>
-            <p className="text-sm mt-2">Verifique a configuração no Firebase.</p>
+            <p>Palavras do dia não encontradas!</p>
+            <p className="text-sm mt-2">Verifique a configuração.</p>
           </div>
         )}
       </div>
