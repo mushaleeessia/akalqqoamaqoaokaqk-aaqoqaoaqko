@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { GameMode } from "./GameModeSelector";
 import { TermoGrid } from "./TermoGrid";
@@ -233,6 +234,37 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
   }, [gameState, isValidating, submitGuess, saveGameProgress]);
 
   useEffect(() => {
+    if (sessionInfo) {
+      const newGameState = {
+        guesses: sessionInfo.guesses || [],
+        currentGuess: sessionInfo.currentGuess || '',
+        gameStatus: sessionInfo.gameStatus || 'playing',
+        currentRow: (sessionInfo.guesses || []).length
+      };
+      
+      setGameState(prevState => {
+        if (showingFreshGameOver) {
+          return prevState;
+        }
+        if (prevState.gameStatus === 'won' || prevState.gameStatus === 'lost') {
+          return prevState;
+        }
+        return newGameState;
+      });
+
+      if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
+        const newKeyStates: Record<string, LetterState> = {};
+        sessionInfo.guesses.forEach(guess => {
+          const evaluation = evaluateGuessForAllWords(guess);
+          const bestEvaluation = getBestEvaluationForKeyboard(evaluation);
+          updateKeyStatesForGuess(guess, bestEvaluation, newKeyStates);
+        });
+        setKeyStates(newKeyStates);
+      }
+    }
+  }, [sessionInfo, targetWords, showingFreshGameOver]);
+
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey) return;
       
@@ -316,15 +348,15 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
         </div>
       )}
       
-      {/* Grid layout otimizado para cada modo */}
+      {/* Grid layout corrigido */}
       <div className={`grid gap-6 w-full ${
         targetWords.length === 1 
           ? 'grid-cols-1 justify-items-center max-w-md' 
           : targetWords.length === 2 
-            ? 'grid-cols-1 md:grid-cols-2 max-w-2xl' 
+            ? 'grid-cols-2 max-w-2xl' 
             : targetWords.length === 3 
-              ? 'grid-cols-1 md:grid-cols-3 max-w-4xl' 
-              : 'grid-cols-2 md:grid-cols-4 max-w-6xl'
+              ? 'grid-cols-3 max-w-4xl' 
+              : 'grid-cols-2 lg:grid-cols-4 max-w-6xl'
       }`}>
         {targetWords.map((targetWord, index) => (
           <div key={index} className="flex flex-col items-center">
