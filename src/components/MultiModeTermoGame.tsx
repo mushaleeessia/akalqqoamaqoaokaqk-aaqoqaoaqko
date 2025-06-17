@@ -316,12 +316,15 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
         </div>
       )}
       
-      {/* Grid layout: 4x1 no desktop, 2x2 no mobile */}
-      <div className={`grid gap-6 w-full max-w-7xl ${
-        targetWords.length === 1 ? 'grid-cols-1 justify-items-center' :
-        targetWords.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
-        targetWords.length === 3 ? 'grid-cols-2 md:grid-cols-3' :
-        'grid-cols-2 md:grid-cols-4'
+      {/* Grid layout otimizado para cada modo */}
+      <div className={`grid gap-6 w-full ${
+        targetWords.length === 1 
+          ? 'grid-cols-1 justify-items-center max-w-md' 
+          : targetWords.length === 2 
+            ? 'grid-cols-1 md:grid-cols-2 max-w-2xl' 
+            : targetWords.length === 3 
+              ? 'grid-cols-1 md:grid-cols-3 max-w-4xl' 
+              : 'grid-cols-2 md:grid-cols-4 max-w-6xl'
       }`}>
         {targetWords.map((targetWord, index) => (
           <div key={index} className="flex flex-col items-center">
