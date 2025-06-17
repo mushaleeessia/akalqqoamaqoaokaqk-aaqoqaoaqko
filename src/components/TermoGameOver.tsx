@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Share2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GameState } from "./TermoGame";
-import { MultiModeGameState } from "./MultiModeTermoGame";
+import { MultiModeGameState } from "@/hooks/useMultiModeGameState";
 import { GameMode } from "./GameModeSelector";
 import { toast } from "@/hooks/use-toast";
 
