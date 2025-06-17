@@ -60,13 +60,38 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
     return null;
   };
 
+  // Limpar sessões de outros modos para garantir isolamento
+  const clearOtherModeSessions = (currentMode: GameMode, today: string) => {
+    const allModes: GameMode[] = ['solo', 'duo', 'trio', 'quarteto'];
+    allModes.forEach(otherMode => {
+      if (otherMode !== currentMode) {
+        // Remover do localStorage
+        const otherSessionKey = `termo-session-${otherMode}-${today}`;
+        if (localStorage.getItem(otherSessionKey)) {
+          console.log(`Removendo sessão do modo ${otherMode} do localStorage`);
+          localStorage.removeItem(otherSessionKey);
+        }
+        
+        // Remover cookies
+        const otherCookieKey = `termo_session_${otherMode}_${today}`;
+        if (getCookie(otherCookieKey)) {
+          console.log(`Removendo cookie do modo ${otherMode}`);
+          document.cookie = `${otherCookieKey}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        }
+      }
+    });
+  };
+
   const saveSession = (session: MultiModePlayerSession) => {
     const today = getTodayDate();
-    // Chaves específicas por modo para isolar as sessões
     const sessionKey = `termo-session-${mode}-${today}`;
     const cookieKey = `termo_session_${mode}_${today}`;
     
-    const sessionData = JSON.stringify(session);
+    // Garantir que a sessão tem o modo correto
+    const sessionWithMode = { ...session, mode };
+    const sessionData = JSON.stringify(sessionWithMode);
+    
+    console.log(`Salvando sessão para modo ${mode}:`, sessionWithMode);
     
     localStorage.setItem(sessionKey, sessionData);
     setCookie(cookieKey, sessionData, 1);
@@ -74,7 +99,6 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
 
   const loadSession = (): MultiModePlayerSession | null => {
     const today = getTodayDate();
-    // Chaves específicas por modo
     const sessionKey = `termo-session-${mode}-${today}`;
     const cookieKey = `termo_session_${mode}_${today}`;
     
@@ -90,11 +114,19 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
     if (sessionData) {
       try {
         const session = JSON.parse(sessionData);
-        // Verificar se a sessão é do modo correto
+        // CRÍTICO: Verificar se a sessão é realmente do modo correto
         if (session.mode === mode) {
+          console.log(`Carregando sessão válida para modo ${mode}:`, session);
           return session;
+        } else {
+          console.log(`Sessão inválida: esperado modo ${mode}, encontrado ${session.mode}. Ignorando.`);
+          // Remover sessão inválida
+          localStorage.removeItem(sessionKey);
+          document.cookie = `${cookieKey}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          return null;
         }
       } catch (error) {
+        console.error('Erro ao parsear sessão:', error);
         return null;
       }
     }
@@ -105,6 +137,9 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
   const checkPlayerSession = () => {
     const today = getTodayDate();
     const playerHash = generatePlayerHash();
+    
+    // Primeiro, limpar sessões de outros modos
+    clearOtherModeSessions(mode, today);
     
     const existingSession = loadSession();
     if (existingSession) {
@@ -120,6 +155,7 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
       }
     }
     
+    // Criar nova sessão
     const newSession: MultiModePlayerSession = {
       date: today,
       completed: false,
@@ -166,6 +202,7 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
   };
 
   useEffect(() => {
+    console.log(`Inicializando sessão para modo: ${mode}`);
     checkPlayerSession();
   }, [mode]);
 
