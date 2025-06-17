@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { GameMode } from "./GameModeSelector";
 import { TermoGrid } from "./TermoGrid";
@@ -36,6 +35,11 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
   const maxGuesses = 6;
+
+  // Reset keyboard states when mode changes
+  useEffect(() => {
+    setKeyStates({});
+  }, [mode]);
 
   useEffect(() => {
     if (sessionInfo) {
@@ -312,7 +316,13 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
         </div>
       )}
       
-      <div className="flex flex-wrap justify-center gap-4">
+      {/* Grid layout: 4x1 no desktop, 2x2 no mobile */}
+      <div className={`grid gap-6 w-full max-w-7xl ${
+        targetWords.length === 1 ? 'grid-cols-1 justify-items-center' :
+        targetWords.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
+        targetWords.length === 3 ? 'grid-cols-2 md:grid-cols-3' :
+        'grid-cols-2 md:grid-cols-4'
+      }`}>
         {targetWords.map((targetWord, index) => (
           <div key={index} className="flex flex-col items-center">
             <div className="text-white/60 text-sm mb-2">
