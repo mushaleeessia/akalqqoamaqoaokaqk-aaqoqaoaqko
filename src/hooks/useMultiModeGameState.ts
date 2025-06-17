@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { GameMode } from "@/components/GameModeSelector";
 import { validatePortugueseWord } from "@/utils/portugueseWords";
@@ -189,19 +188,20 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     }
   }, [gameState, isValidating, submitGuess, saveGameProgress]);
 
-  // Carregar sessão apenas quando sessionInfo for carregado e for do modo correto
+  // Carregar sessão inicial quando sessionInfo estiver disponível
   useEffect(() => {
     if (sessionInfo && sessionInfo.mode === mode && !sessionLoaded) {
-      console.log(`Carregando sessão para modo ${mode}:`, sessionInfo);
+      console.log(`Carregando sessão inicial para modo ${mode}:`, sessionInfo);
       
-      const newGameState = {
+      const loadedGameState = {
         guesses: sessionInfo.guesses || [],
         currentGuess: sessionInfo.currentGuess || '',
         gameStatus: sessionInfo.gameStatus || 'playing',
         currentRow: (sessionInfo.guesses || []).length
       };
       
-      setGameState(newGameState);
+      console.log(`Estado carregado:`, loadedGameState);
+      setGameState(loadedGameState);
 
       // Reconstruir keyStates baseado nas tentativas salvas
       if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
@@ -212,6 +212,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
           updateKeyStatesForGuess(guess, bestEvaluation, newKeyStates);
         });
         setKeyStates(newKeyStates);
+        console.log(`KeyStates reconstruídos:`, newKeyStates);
       } else {
         setKeyStates({});
       }
@@ -220,9 +221,9 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     }
   }, [sessionInfo, targetWords, mode, sessionLoaded]);
 
-  // Reset flags when mode changes
+  // Reset apenas flags de controle quando o modo muda, não o estado do jogo
   useEffect(() => {
-    console.log(`Modo mudou para: ${mode}, resetando flags de controle`);
+    console.log(`Modo mudou para: ${mode}, resetando apenas flags de controle`);
     setSessionLoaded(false);
     setShowingFreshGameOver(false);
   }, [mode]);
