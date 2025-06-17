@@ -24,7 +24,7 @@ export const MultiModeGameGrid = ({
       case 3:
         return 'grid grid-cols-1 xl:grid-cols-3 gap-6 place-items-center';
       case 4:
-        return 'grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 place-items-center';
+        return 'flex overflow-x-auto gap-4 pb-4';
       default:
         return 'flex justify-center';
     }
@@ -39,9 +39,18 @@ export const MultiModeGameGrid = ({
       case 3:
         return 'scale-75 xl:scale-85';
       case 4:
-        return 'scale-65 lg:scale-75 xl:scale-80';
+        return 'scale-60';
       default:
         return 'scale-100';
+    }
+  };
+
+  const getItemClass = () => {
+    switch (targetWords.length) {
+      case 4:
+        return 'flex flex-col items-center space-y-2 flex-shrink-0 min-w-[200px]';
+      default:
+        return 'flex flex-col items-center space-y-2';
     }
   };
 
@@ -49,7 +58,7 @@ export const MultiModeGameGrid = ({
     <div className="w-full p-4">
       <div className={getContainerClass()}>
         {targetWords.map((targetWord, index) => (
-          <div key={index} className="flex flex-col items-center space-y-2">
+          <div key={index} className={getItemClass()}>
             <div className="text-white/60 text-xs font-medium text-center">
               Palavra {index + 1}
             </div>
