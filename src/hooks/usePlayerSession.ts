@@ -47,20 +47,73 @@ export const usePlayerSession = () => {
     return Math.abs(hash).toString();
   };
 
+  // Utilitários para cookies
+  const setCookie = (name: string, value: string, days: number = 1) => {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+  };
+
+  const getCookie = (name: string): string | null => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+    return null;
+  };
+
+  const saveSession = (session: PlayerSession) => {
+    const today = getTodayDate();
+    const sessionKey = `termo-session-${today}`;
+    const cookieKey = `termo_session_${today}`;
+    
+    const sessionData = JSON.stringify(session);
+    
+    // Salvar no localStorage
+    localStorage.setItem(sessionKey, sessionData);
+    
+    // Salvar no cookie como backup
+    setCookie(cookieKey, sessionData, 1);
+  };
+
+  const loadSession = (): PlayerSession | null => {
+    const today = getTodayDate();
+    const sessionKey = `termo-session-${today}`;
+    const cookieKey = `termo_session_${today}`;
+    
+    // Tentar carregar do localStorage primeiro
+    let sessionData = localStorage.getItem(sessionKey);
+    
+    // Se não encontrar no localStorage, tentar no cookie
+    if (!sessionData) {
+      sessionData = getCookie(cookieKey);
+      if (sessionData) {
+        // Se encontrou no cookie, restaurar no localStorage
+        localStorage.setItem(sessionKey, sessionData);
+      }
+    }
+    
+    if (sessionData) {
+      try {
+        return JSON.parse(sessionData);
+      } catch (error) {
+        return null;
+      }
+    }
+    
+    return null;
+  };
+
   const checkPlayerSession = () => {
     const today = getTodayDate();
     const playerHash = generatePlayerHash();
-    const sessionKey = `termo-session-${today}`;
     
-    const existingSession = localStorage.getItem(sessionKey);
+    const existingSession = loadSession();
     if (existingSession) {
-      const session: PlayerSession = JSON.parse(existingSession);
-      
       // Verificar se é o mesmo "jogador" (mesmo hash)
-      if (session.ipHash === playerHash) {
-        setSessionInfo(session);
+      if (existingSession.ipHash === playerHash) {
+        setSessionInfo(existingSession);
         
-        if (session.completed || session.failed) {
+        if (existingSession.completed || existingSession.failed) {
           setCanPlay(false);
         } else {
           setCanPlay(true);
@@ -81,7 +134,7 @@ export const usePlayerSession = () => {
       gameStatus: 'playing'
     };
     
-    localStorage.setItem(sessionKey, JSON.stringify(newSession));
+    saveSession(newSession);
     setSessionInfo(newSession);
     setCanPlay(true);
   };
@@ -89,15 +142,12 @@ export const usePlayerSession = () => {
   const updateSession = (updates: Partial<PlayerSession>) => {
     if (!sessionInfo) return;
     
-    const today = getTodayDate();
-    const sessionKey = `termo-session-${today}`;
-    
     const updatedSession: PlayerSession = {
       ...sessionInfo,
       ...updates
     };
     
-    localStorage.setItem(sessionKey, JSON.stringify(updatedSession));
+    saveSession(updatedSession);
     setSessionInfo(updatedSession);
     
     if (updatedSession.completed || updatedSession.failed) {

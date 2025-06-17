@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { TermoGrid } from "./TermoGrid";
 import { TermoKeyboard } from "./TermoKeyboard";
@@ -44,18 +45,13 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         currentRow: sessionInfo.guesses?.length || 0
       };
       
-      console.log('Loading session info:', sessionInfo);
-      console.log('Setting game state:', newGameState);
-      
       // Só atualizar o estado se não estivermos mostrando um game over fresh
       // e se o jogo atual não estiver em um estado final ativo
       setGameState(prevState => {
         if (showingFreshGameOver) {
-          console.log('Fresh game over active, not overriding state');
           return prevState;
         }
         if (prevState.gameStatus === 'won' || prevState.gameStatus === 'lost') {
-          console.log('Game already ended in current session, not overriding state');
           return prevState;
         }
         return newGameState;
@@ -147,9 +143,6 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         return;
       }
 
-      // Usar a forma correta da palavra (com acentos) mas não mostrar toast
-      const correctWord = validationResult.correctForm;
-
       const evaluation = evaluateGuess(gameState.currentGuess);
       updateKeyStates(gameState.currentGuess, evaluation);
       
@@ -165,9 +158,6 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         gameStatus: newGameStatus as 'playing' | 'won' | 'lost',
         currentRow: newGuesses.length
       };
-      
-      console.log('Game ending - New game state:', newGameState);
-      console.log('Is win:', isWin, 'Is game over:', isGameOver, 'Status:', newGameStatus);
       
       setGameState(newGameState);
 
@@ -244,14 +234,8 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     window.location.reload();
   };
 
-  console.log('Current game state:', gameState);
-  console.log('Can play:', canPlay);
-  console.log('Session info:', sessionInfo);
-  console.log('Showing fresh game over:', showingFreshGameOver);
-
   // PRIORIDADE 1: Se o jogo terminou na sessão atual, mostrar game over
   if ((gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') && showingFreshGameOver) {
-    console.log('Showing fresh game over screen for status:', gameState.gameStatus);
     return (
       <TermoGameOver
         gameState={gameState}

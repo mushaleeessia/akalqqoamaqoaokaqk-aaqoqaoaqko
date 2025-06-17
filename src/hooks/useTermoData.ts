@@ -66,8 +66,6 @@ export const useTermoData = () => {
       }
     }
     keysToRemove.forEach(key => localStorage.removeItem(key));
-    
-    console.log('Todos os dados do jogo foram limpos para:', today);
   };
 
   useEffect(() => {
@@ -87,7 +85,6 @@ export const useTermoData = () => {
         
         localStorage.setItem('termo-daily-word', JSON.stringify(wordData));
         setTodayWord(word);
-        console.log('Nova palavra do dia:', word, 'para a data:', today);
       } catch (error) {
         setTodayWord('termo'); // fallback
       } finally {
