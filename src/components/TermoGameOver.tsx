@@ -145,17 +145,17 @@ export const TermoGameOver = ({
       <div className="flex space-x-4">
         <Button 
           onClick={handleShare}
-          className="bg-blue-600 hover:bg-blue-500 text-white"
+          className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 text-lg"
         >
-          <Share2 className="w-4 h-4 mr-2" />
+          <Share2 className="w-5 h-5 mr-2" />
           Compartilhar
         </Button>
         
         <Button 
           onClick={onPlayAgain}
-          className="bg-green-600 hover:bg-green-500 text-white"
+          className="bg-green-600 hover:bg-green-500 text-white px-6 py-3 text-lg"
         >
-          <RotateCcw className="w-4 h-4 mr-2" />
+          <RotateCcw className="w-5 h-5 mr-2" />
           Jogar Novamente
         </Button>
       </div>
