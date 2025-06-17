@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { GameMode } from "@/components/GameModeSelector";
 import { validatePortugueseWord } from "@/utils/portugueseWords";
@@ -15,6 +16,8 @@ export interface MultiModeGameState {
 
 export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => {
   const { canPlay, sessionInfo, saveGameProgress } = useMultiModePlayerSession(mode);
+  
+  // Estado do jogo - inicializado vazio e carregado do sessionInfo
   const [gameState, setGameState] = useState<MultiModeGameState>({
     guesses: [],
     currentGuess: '',
@@ -25,7 +28,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
-  const [sessionLoadedForMode, setSessionLoadedForMode] = useState<string | null>(null);
+  const [isSessionLoaded, setIsSessionLoaded] = useState(false);
   const maxGuesses = 6;
 
   const evaluateGuessForWord = (guess: string, targetWord: string): LetterState[] => {
@@ -80,23 +83,23 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     return result;
   };
 
-  const updateKeyStatesForGuess = (guess: string, evaluation: LetterState[], keyStatesObj: Record<string, LetterState>) => {
-    for (let i = 0; i < guess.length; i++) {
-      const letter = guess[i].toLowerCase();
-      const state = evaluation[i];
+  const updateKeyStatesForGuess = (guess: string, evaluation: LetterState[]) => {
+    setKeyStates(prevKeyStates => {
+      const newKeyStates = { ...prevKeyStates };
       
-      if (!keyStatesObj[letter] || 
-          (keyStatesObj[letter] === 'absent' && state !== 'absent') ||
-          (keyStatesObj[letter] === 'present' && state === 'correct')) {
-        keyStatesObj[letter] = state;
+      for (let i = 0; i < guess.length; i++) {
+        const letter = guess[i].toLowerCase();
+        const state = evaluation[i];
+        
+        if (!newKeyStates[letter] || 
+            (newKeyStates[letter] === 'absent' && state !== 'absent') ||
+            (newKeyStates[letter] === 'present' && state === 'correct')) {
+          newKeyStates[letter] = state;
+        }
       }
-    }
-  };
-
-  const updateKeyStates = (guess: string, evaluation: LetterState[]) => {
-    const newKeyStates = { ...keyStates };
-    updateKeyStatesForGuess(guess, evaluation, newKeyStates);
-    setKeyStates(newKeyStates);
+      
+      return newKeyStates;
+    });
   };
 
   const checkWinCondition = (guess: string): boolean => {
@@ -130,7 +133,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
 
       const evaluations = evaluateGuessForAllWords(gameState.currentGuess);
       const bestEvaluation = getBestEvaluationForKeyboard(evaluations);
-      updateKeyStates(gameState.currentGuess, bestEvaluation);
+      updateKeyStatesForGuess(gameState.currentGuess, bestEvaluation);
       
       const newGuesses = [...gameState.guesses, gameState.currentGuess];
       const isWin = checkWinCondition(gameState.currentGuess);
@@ -151,6 +154,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
         setShowingFreshGameOver(true);
       }
 
+      // Salvar imediatamente após atualizar o estado
       saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
       
     } catch (error) {
@@ -162,7 +166,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     } finally {
       setIsValidating(false);
     }
-  }, [gameState.currentGuess, gameState.guesses, targetWords, keyStates, saveGameProgress]);
+  }, [gameState.currentGuess, gameState.guesses, targetWords, saveGameProgress]);
 
   const handleKeyPress = useCallback((key: string) => {
     if (gameState.gameStatus !== 'playing' || isValidating) return;
@@ -170,31 +174,36 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     if (key === 'ENTER') {
       submitGuess();
     } else if (key === 'BACKSPACE') {
-      const newGameState = {
-        ...gameState,
-        currentGuess: gameState.currentGuess.slice(0, -1)
-      };
-      setGameState(newGameState);
-      
-      saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
+      setGameState(prevState => {
+        const newState = {
+          ...prevState,
+          currentGuess: prevState.currentGuess.slice(0, -1)
+        };
+        
+        // Salvar o progresso imediatamente
+        saveGameProgress(newState.guesses, newState.currentGuess, newState.gameStatus);
+        return newState;
+      });
     } else if (key.length === 1 && gameState.currentGuess.length < 5) {
-      const newGameState = {
-        ...gameState,
-        currentGuess: gameState.currentGuess + key.toLowerCase()
-      };
-      setGameState(newGameState);
-      
-      saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
+      setGameState(prevState => {
+        const newState = {
+          ...prevState,
+          currentGuess: prevState.currentGuess + key.toLowerCase()
+        };
+        
+        // Salvar o progresso imediatamente
+        saveGameProgress(newState.guesses, newState.currentGuess, newState.gameStatus);
+        return newState;
+      });
     }
   }, [gameState, isValidating, submitGuess, saveGameProgress]);
 
-  // Carregar sessão inicial quando sessionInfo estiver disponível
+  // Carregar sessão uma única vez quando sessionInfo estiver disponível
   useEffect(() => {
-    const modeKey = `${mode}-loaded`;
-    
-    if (sessionInfo && sessionInfo.mode === mode && sessionLoadedForMode !== modeKey) {
-      console.log(`Carregando sessão inicial para modo ${mode}:`, sessionInfo);
+    if (sessionInfo && sessionInfo.mode === mode && !isSessionLoaded) {
+      console.log(`[MultiMode] Carregando sessão para modo ${mode}:`, sessionInfo);
       
+      // Carregar estado do jogo da sessão
       const loadedGameState = {
         guesses: sessionInfo.guesses || [],
         currentGuess: sessionInfo.currentGuess || '',
@@ -202,30 +211,43 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
         currentRow: (sessionInfo.guesses || []).length
       };
       
-      console.log(`Estado carregado:`, loadedGameState);
       setGameState(loadedGameState);
+      console.log(`[MultiMode] Estado carregado:`, loadedGameState);
 
       // Reconstruir keyStates baseado nas tentativas salvas
       if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
         const newKeyStates: Record<string, LetterState> = {};
+        
         sessionInfo.guesses.forEach(guess => {
-          const evaluation = evaluateGuessForAllWords(guess);
-          const bestEvaluation = getBestEvaluationForKeyboard(evaluation);
-          updateKeyStatesForGuess(guess, bestEvaluation, newKeyStates);
+          const evaluations = evaluateGuessForAllWords(guess);
+          const bestEvaluation = getBestEvaluationForKeyboard(evaluations);
+          
+          for (let i = 0; i < guess.length; i++) {
+            const letter = guess[i].toLowerCase();
+            const state = bestEvaluation[i];
+            
+            if (!newKeyStates[letter] || 
+                (newKeyStates[letter] === 'absent' && state !== 'absent') ||
+                (newKeyStates[letter] === 'present' && state === 'correct')) {
+              newKeyStates[letter] = state;
+            }
+          }
         });
+        
         setKeyStates(newKeyStates);
-        console.log(`KeyStates reconstruídos:`, newKeyStates);
+        console.log(`[MultiMode] KeyStates reconstruídos:`, newKeyStates);
       } else {
         setKeyStates({});
       }
       
-      setSessionLoadedForMode(modeKey);
+      setIsSessionLoaded(true);
     }
-  }, [sessionInfo, targetWords, mode, sessionLoadedForMode]);
+  }, [sessionInfo, mode, targetWords, isSessionLoaded]);
 
-  // Reset apenas showingFreshGameOver quando o modo muda
+  // Reset estado quando o modo muda
   useEffect(() => {
-    console.log(`Modo mudou para: ${mode}, resetando apenas showingFreshGameOver`);
+    console.log(`[MultiMode] Modo mudou para: ${mode}, resetando estado de carregamento`);
+    setIsSessionLoaded(false);
     setShowingFreshGameOver(false);
   }, [mode]);
 
