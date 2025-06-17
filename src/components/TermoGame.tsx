@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { TermoGrid } from "./TermoGrid";
 import { TermoKeyboard } from "./TermoKeyboard";
@@ -32,6 +31,7 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
 
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
   const [isValidating, setIsValidating] = useState(false);
+  const [hasShownGameOver, setHasShownGameOver] = useState(false);
   const maxGuesses = 6;
 
   // Carregar progresso salvo ao inicializar
@@ -43,6 +43,11 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         gameStatus: sessionInfo.gameStatus || 'playing',
         currentRow: sessionInfo.guesses?.length || 0
       });
+
+      // Se o jogo já foi completado, mostrar que já foi mostrado
+      if (sessionInfo.gameStatus === 'won' || sessionInfo.gameStatus === 'lost') {
+        setHasShownGameOver(true);
+      }
 
       // Recalcular keyStates baseado nas tentativas salvas
       if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
@@ -160,8 +165,11 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
       
       setGameState(newGameState);
 
-      // Salvar progresso em tempo real
-      saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
+      // NÃO salvar o progresso imediatamente se o jogo acabou
+      // Só salvar depois que o usuário viu a tela de game over
+      if (!isGameOver) {
+        saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
+      }
       
     } catch (error) {
       toast({
@@ -223,8 +231,15 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyPress]);
 
-  // Se o jogador não pode jogar, mostrar mensagem (MOVIDO PARA DEPOIS DOS HOOKS)
-  if (!canPlay && sessionInfo) {
+  const handlePlayAgain = () => {
+    // Salvar o progresso final quando o usuário clica em "Jogar Novamente"
+    saveGameProgress(gameState.guesses, gameState.currentGuess, gameState.gameStatus);
+    setHasShownGameOver(true);
+    window.location.reload();
+  };
+
+  // Se o jogador não pode jogar E já viu a tela de game over, mostrar mensagem
+  if (!canPlay && sessionInfo && hasShownGameOver) {
     return (
       <div className="flex flex-col items-center space-y-6 p-8 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
         <div className="text-center">
@@ -254,7 +269,7 @@ export const TermoGame = ({ targetWord, isDarkMode }: TermoGameProps) => {
         gameState={gameState}
         targetWord={targetWord}
         isDarkMode={isDarkMode}
-        onPlayAgain={() => window.location.reload()}
+        onPlayAgain={handlePlayAgain}
       />
     );
   }
