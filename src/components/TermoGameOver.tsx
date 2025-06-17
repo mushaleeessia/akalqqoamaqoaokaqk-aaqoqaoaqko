@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Share2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GameState } from "./TermoGame";
@@ -25,9 +24,42 @@ export const TermoGameOver = ({
   allTargetWords = [targetWord]
 }: TermoGameOverProps) => {
   const [isSharing, setIsSharing] = useState(false);
+  const [showSecretWords, setShowSecretWords] = useState(false);
   
   const isWin = gameState.gameStatus === 'won';
   const attempts = gameState.guesses.length;
+
+  // Listener para a combinação de teclas CTRL+SHIFT+ALT+S+O
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.altKey && 
+          event.key.toLowerCase() === 's') {
+        // Aguardar a próxima tecla 'O'
+        const handleNextKey = (nextEvent: KeyboardEvent) => {
+          if (nextEvent.key.toLowerCase() === 'o') {
+            setShowSecretWords(true);
+            toast({
+              title: "Palavras reveladas!",
+              description: "As palavras secretas estão sendo exibidas.",
+            });
+          }
+          window.removeEventListener('keydown', handleNextKey);
+        };
+        
+        // Adicionar listener temporário para a tecla 'O'
+        setTimeout(() => {
+          window.addEventListener('keydown', handleNextKey);
+          // Remover o listener após 2 segundos se não pressionado
+          setTimeout(() => {
+            window.removeEventListener('keydown', handleNextKey);
+          }, 2000);
+        }, 100);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   
   const getModeEmoji = (gameMode: GameMode) => {
     switch (gameMode) {
@@ -179,6 +211,19 @@ export const TermoGameOver = ({
             <strong>Modo:</strong> {getModeLabel(mode)} {getModeEmoji(mode)}
           </p>
         </div>
+
+        {showSecretWords && (
+          <div className="bg-white/20 p-4 rounded-lg mb-4">
+            <h3 className="text-white font-bold mb-2">Palavras do dia:</h3>
+            <div className="text-white/90 space-y-1">
+              {allTargetWords.map((word, index) => (
+                <p key={index} className="font-mono text-lg">
+                  {word.toUpperCase()}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex space-x-4">
