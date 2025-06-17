@@ -28,12 +28,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
   const [isSessionLoaded, setIsSessionLoaded] = useState(false);
-  const maxGuesses =
-  mode === 'solo' ? 6 :
-  mode === 'duo' ? 7 :
-  mode === 'trio' ? 8 :
-  mode === 'quarteto' ? 9 :
-  6;
+  const maxGuesses = 6
 
   const evaluateGuessForWord = (guess: string, targetWord: string): LetterState[] => {
     const result: LetterState[] = [];
