@@ -25,7 +25,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
-  const [sessionLoaded, setSessionLoaded] = useState(false);
+  const [sessionLoadedForMode, setSessionLoadedForMode] = useState<string | null>(null);
   const maxGuesses = 6;
 
   const evaluateGuessForWord = (guess: string, targetWord: string): LetterState[] => {
@@ -190,7 +190,9 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
 
   // Carregar sessão inicial quando sessionInfo estiver disponível
   useEffect(() => {
-    if (sessionInfo && sessionInfo.mode === mode && !sessionLoaded) {
+    const modeKey = `${mode}-loaded`;
+    
+    if (sessionInfo && sessionInfo.mode === mode && sessionLoadedForMode !== modeKey) {
       console.log(`Carregando sessão inicial para modo ${mode}:`, sessionInfo);
       
       const loadedGameState = {
@@ -217,14 +219,13 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
         setKeyStates({});
       }
       
-      setSessionLoaded(true);
+      setSessionLoadedForMode(modeKey);
     }
-  }, [sessionInfo, targetWords, mode, sessionLoaded]);
+  }, [sessionInfo, targetWords, mode, sessionLoadedForMode]);
 
-  // Reset apenas flags de controle quando o modo muda, não o estado do jogo
+  // Reset apenas showingFreshGameOver quando o modo muda
   useEffect(() => {
-    console.log(`Modo mudou para: ${mode}, resetando apenas flags de controle`);
-    setSessionLoaded(false);
+    console.log(`Modo mudou para: ${mode}, resetando apenas showingFreshGameOver`);
     setShowingFreshGameOver(false);
   }, [mode]);
 
