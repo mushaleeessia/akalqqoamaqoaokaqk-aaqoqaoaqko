@@ -22,9 +22,9 @@ export const MultiModeGameGrid = ({
       case 2:
         return 'grid grid-cols-1 lg:grid-cols-2 gap-8 place-items-center w-full';
       case 3:
-        return 'grid grid-cols-1 lg:grid-cols-3 gap-6 place-items-center w-full';
+        return 'grid grid-cols-1 lg:grid-cols-3 gap-12 place-items-center w-full';
       case 4:
-        return 'grid grid-cols-2 lg:grid-cols-4 gap-2 w-full justify-items-center';
+        return 'grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8 w-full justify-items-center';
       default:
         return 'flex justify-center';
     }
@@ -39,7 +39,7 @@ export const MultiModeGameGrid = ({
       case 3:
         return 'scale-80 lg:scale-90';
       case 4:
-        return 'scale-50 lg:scale-60';
+        return 'scale-70 lg:scale-85';
       default:
         return 'scale-100';
     }
