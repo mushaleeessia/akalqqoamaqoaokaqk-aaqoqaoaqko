@@ -46,12 +46,15 @@ export const CruzadasGame = ({ puzzle, isDarkMode }: CruzadasGameProps) => {
 
   if (gameProgress.gameCompleted) {
     return (
-      <div className="text-center space-y-6">
+      <div className="text-center space-y-6 max-w-2xl mx-auto">
         <div className={cn(
-          "p-8 rounded-xl border-2",
-          isDarkMode ? "bg-green-900/50 border-green-500 text-green-200" : "bg-green-100 border-green-500 text-green-800"
+          "p-8 rounded-xl border-2 shadow-lg",
+          isDarkMode 
+            ? "bg-green-900/50 border-green-400 text-green-200" 
+            : "bg-green-50 border-green-400 text-green-800"
         )}>
-          <h2 className="text-3xl font-bold mb-4">🎉 Parabéns!</h2>
+          <div className="text-6xl mb-4">🎉</div>
+          <h2 className="text-3xl font-bold mb-4">Parabéns!</h2>
           <p className="text-lg mb-4">Você completou as palavras cruzadas de hoje!</p>
           <p className="text-sm opacity-80">
             Volte amanhã para um novo desafio.
@@ -61,7 +64,7 @@ export const CruzadasGame = ({ puzzle, isDarkMode }: CruzadasGameProps) => {
         <Button
           onClick={() => window.location.reload()}
           className={cn(
-            "px-6 py-3 font-bold",
+            "px-8 py-3 font-bold text-lg",
             isDarkMode ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-500 hover:bg-blue-600"
           )}
         >
@@ -72,20 +75,28 @@ export const CruzadasGame = ({ puzzle, isDarkMode }: CruzadasGameProps) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-6xl mx-auto">
       {/* Estatísticas */}
       <div className="text-center">
         <div className={cn(
-          "inline-flex items-center gap-4 px-4 py-2 rounded-lg",
-          isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+          "inline-flex items-center gap-6 px-6 py-3 rounded-lg border shadow-sm",
+          isDarkMode 
+            ? "bg-gray-800 text-white border-gray-600" 
+            : "bg-white text-gray-900 border-gray-200"
         )}>
-          <span className="text-sm">
-            Palavras: {gameProgress.completedWords.size}/{puzzle.words.length}
-          </span>
-          <div className="w-px h-4 bg-gray-400"></div>
-          <span className="text-sm">
-            Progresso: {Math.round((gameProgress.completedWords.size / puzzle.words.length) * 100)}%
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">Palavras:</span>
+            <span className="text-lg font-bold text-blue-600">
+              {gameProgress.completedWords.size}/{puzzle.words.length}
+            </span>
+          </div>
+          <div className="w-px h-6 bg-gray-400"></div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">Progresso:</span>
+            <span className="text-lg font-bold text-green-600">
+              {Math.round((gameProgress.completedWords.size / puzzle.words.length) * 100)}%
+            </span>
+          </div>
         </div>
       </div>
 
@@ -106,13 +117,11 @@ export const CruzadasGame = ({ puzzle, isDarkMode }: CruzadasGameProps) => {
       />
 
       {/* Teclado */}
-      <div className="mt-8">
-        <CruzadasKeyboard
-          onKeyPress={insertLetter}
-          onBackspace={deleteLetter}
-          isDarkMode={isDarkMode}
-        />
-      </div>
+      <CruzadasKeyboard
+        onKeyPress={insertLetter}
+        onBackspace={deleteLetter}
+        isDarkMode={isDarkMode}
+      />
     </div>
   );
 };

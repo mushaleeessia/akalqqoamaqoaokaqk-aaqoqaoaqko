@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Delete } from 'lucide-react';
@@ -16,41 +17,48 @@ export const CruzadasKeyboard = ({ onKeyPress, onBackspace, isDarkMode }: Cruzad
   ];
 
   return (
-    <div className="space-y-2">
-      {rows.map((row, rowIndex) => (
-        <div key={rowIndex} className="flex justify-center gap-1">
-          {row.map(letter => (
-            <Button
-              key={letter}
-              variant="outline"
-              size="sm"
-              className={cn(
-                "h-10 w-8 p-0 text-sm font-bold transition-all duration-200",
-                isDarkMode 
-                  ? "bg-gray-700 border-gray-600 text-white hover:bg-gray-600" 
-                  : "bg-white border-gray-300 text-gray-900 hover:bg-gray-100"
-              )}
-              onClick={() => onKeyPress(letter)}
-            >
-              {letter}
-            </Button>
-          ))}
+    <div className={cn(
+      "p-4 rounded-lg border shadow-sm",
+      isDarkMode 
+        ? "bg-gray-800/50 border-gray-600" 
+        : "bg-white/80 border-gray-200"
+    )}>
+      <div className="space-y-2">
+        {rows.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex justify-center gap-1">
+            {row.map(letter => (
+              <Button
+                key={letter}
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "h-10 w-9 p-0 text-sm font-bold transition-all duration-200 border-2",
+                  isDarkMode 
+                    ? "bg-gray-700 border-gray-500 text-white hover:bg-gray-600 hover:border-gray-400" 
+                    : "bg-white border-gray-300 text-gray-900 hover:bg-gray-50 hover:border-gray-400 hover:shadow-sm"
+                )}
+                onClick={() => onKeyPress(letter)}
+              >
+                {letter}
+              </Button>
+            ))}
+          </div>
+        ))}
+        <div className="flex justify-center mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-10 px-6 font-bold transition-all duration-200 border-2",
+              isDarkMode 
+                ? "bg-gray-700 border-gray-500 text-white hover:bg-gray-600 hover:border-gray-400" 
+                : "bg-white border-gray-300 text-gray-900 hover:bg-gray-50 hover:border-gray-400 hover:shadow-sm"
+            )}
+            onClick={onBackspace}
+          >
+            <Delete className="w-4 h-4" />
+          </Button>
         </div>
-      ))}
-      <div className="flex justify-center mt-3">
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn(
-            "h-10 px-4 font-bold transition-all duration-200",
-            isDarkMode 
-              ? "bg-gray-700 border-gray-600 text-white hover:bg-gray-600" 
-              : "bg-white border-gray-300 text-gray-900 hover:bg-gray-100"
-          )}
-          onClick={onBackspace}
-        >
-          <Delete className="w-4 h-4" />
-        </Button>
       </div>
     </div>
   );
