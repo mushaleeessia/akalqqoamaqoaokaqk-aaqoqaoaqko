@@ -10,12 +10,27 @@ const normalizeWord = (word: string): string => {
     .replace(/[\u0300-\u036f]/g, ''); // Remove acentos
 };
 
+// Função auxiliar para fetch com timeout
+const fetchWithTimeout = async (url: string, timeoutMs = 3000): Promise<Response> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+};
+
 // API 1: Dicionário Aberto
 const validateWithDicionarioAberto = async (word: string): Promise<boolean> => {
   try {
-    const response = await fetch(`https://api.dicionario-aberto.net/word/${word}`, {
-      timeout: 3000
-    });
+    const response = await fetchWithTimeout(`https://api.dicionario-aberto.net/word/${word}`);
     
     if (response.ok) {
       const data = await response.json();
@@ -30,9 +45,7 @@ const validateWithDicionarioAberto = async (word: string): Promise<boolean> => {
 // API 2: Significado.herokuapp
 const validateWithSignificado = async (word: string): Promise<boolean> => {
   try {
-    const response = await fetch(`https://significado.herokuapp.com/v2/significado/${word}`, {
-      timeout: 3000
-    });
+    const response = await fetchWithTimeout(`https://significado.herokuapp.com/v2/significado/${word}`);
     
     if (response.ok) {
       const data = await response.json();
