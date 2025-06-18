@@ -1,7 +1,6 @@
-
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Backspace } from 'lucide-react';
+import { Delete } from 'lucide-react';
 
 interface CruzadasKeyboardProps {
   onKeyPress: (key: string) => void;
@@ -50,7 +49,7 @@ export const CruzadasKeyboard = ({ onKeyPress, onBackspace, isDarkMode }: Cruzad
           )}
           onClick={onBackspace}
         >
-          <Backspace className="w-4 h-4" />
+          <Delete className="w-4 h-4" />
         </Button>
       </div>
     </div>
