@@ -28,7 +28,9 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
   const [isSessionLoaded, setIsSessionLoaded] = useState(false);
-  const maxGuesses = 6
+  
+  // Número de tentativas baseado no modo
+  const maxGuesses = mode === 'solo' ? 6 : mode === 'duo' ? 8 : mode === 'trio' ? 9 : 10;
 
   const evaluateGuessForWord = (guess: string, targetWord: string): LetterState[] => {
     const result: LetterState[] = [];
@@ -169,7 +171,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     } finally {
       setIsValidating(false);
     }
-  }, [gameState.currentGuess, gameState.guesses, targetWords, saveGameProgress]);
+  }, [gameState.currentGuess, gameState.guesses, targetWords, saveGameProgress, maxGuesses]);
 
   const handleKeyPress = useCallback((key: string) => {
     if (gameState.gameStatus !== 'playing' || isValidating) return;

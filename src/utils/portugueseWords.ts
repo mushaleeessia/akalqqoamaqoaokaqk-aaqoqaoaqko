@@ -1,4 +1,6 @@
 
+import { validateWithMultipleAPIs } from './wordValidationAPIs';
+
 // Cache para evitar múltiplas consultas da mesma palavra
 const wordCache = new Map<string, { isValid: boolean; correctForm?: string }>();
 
@@ -73,7 +75,7 @@ const generateWordVariations = (word: string): string[] => {
   return [...new Set([...variations, ...accentVariations, ...pluralVariations])];
 };
 
-// Função para validar palavra usando API de dicionário
+// Função principal de validação usando múltiplas fontes
 export const validatePortugueseWord = async (word: string): Promise<{ isValid: boolean; correctForm: string }> => {
   const originalWord = word.toLowerCase().trim();
   const normalizedWord = normalizeWord(originalWord);
@@ -87,81 +89,56 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
     };
   }
 
+  console.log(`Validando palavra: ${originalWord}`);
+
   try {
     // Gerar todas as variações da palavra (singular, plural, acentos)
     const variations = generateWordVariations(originalWord);
     
-    // Testar cada variação na API
+    // Testar cada variação no novo sistema de múltiplas APIs
     for (const variation of variations) {
       try {
-        const response = await fetch(`https://api.dicionario-aberto.net/word/${variation}`);
+        const result = await validateWithMultipleAPIs(variation);
         
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.length > 0) {
-            const correctForm = data[0].word || variation;
-            wordCache.set(normalizedWord, { isValid: true, correctForm });
-            return { isValid: true, correctForm };
-          }
+        if (result.isValid) {
+          console.log(`Palavra "${variation}" validada por: ${result.source}`);
+          const validResult = { isValid: true, correctForm: variation };
+          wordCache.set(normalizedWord, validResult);
+          return validResult;
         }
       } catch (error) {
+        console.log(`Erro ao validar "${variation}":`, error);
         continue;
       }
     }
     
-    // Fallback: tentar outra fonte com as variações
-    for (const variation of variations) {
-      try {
-        const fallbackResponse = await fetch(`https://significado.herokuapp.com/v2/significado/${variation}`);
-        
-        if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json();
-          if (fallbackData && !fallbackData.error) {
-            wordCache.set(normalizedWord, { isValid: true, correctForm: variation });
-            return { isValid: true, correctForm: variation };
-          }
-        }
-      } catch (error) {
-        continue;
-      }
-    }
+    console.log(`Palavra "${originalWord}" não foi validada por nenhuma fonte`);
     
-    // Lista expandida de palavras básicas incluindo verbos
-    const basicWords = [
-      // Substantivos
+    // Fallback final: lista expandida de palavras críticas (incluindo "olhos")
+    const criticalWords = [
+      // Palavras que sabemos que são válidas mas podem falhar nas APIs
+      'olhos', 'dentes', 'bracos', 'pernas', 'cabecas', 'corpos', 'aguas', 'fogos', 'ventos',
+      'noites', 'mortes', 'homens', 'mulheres', 'filhos', 'casas', 'portas', 'mesas', 'livros',
+      'papeis', 'bocas', 'amores', 'guerras', 'forcas', 'poderes', 'ordens', 'festas', 'jogos',
+      'artes', 'obras', 'nomes', 'ideias', 'planos', 'sortes', 'calores', 'frios', 'verdes',
+      'azuis', 'pretos', 'brancos', 'carros', 'avioes', 'pontes', 'radios', 'musicas', 'dancas',
+      'filmes', 'bancos', 'praias', 'campos', 'flores', 'arvores', 'pedras', 'metais', 'vidros',
+      // Palavras específicas que podem dar problema
       'navio', 'termo', 'palavra', 'jogo', 'casa', 'vida', 'tempo', 'mundo', 'amor', 'terra',
       'agua', 'água', 'fogo', 'vento', 'luz', 'noite', 'sol', 'lua', 'mar', 'rio', 'monte',
-      'pedra', 'arvore', 'árvore', 'flor', 'fruto', 'folha', 'raiz', 'broto', 'animal', 'gato', 'cao', 'cão',
-      'aureo', 'áureo', 'acido', 'ácido', 'musica', 'música', 'historia', 'história', 'homem', 'mulher',
-      'papel', 'livro', 'mesa', 'porta', 'janela', 'carro', 'aviao', 'avião', 'trem', 'barca',
-      // Plurais
-      'navios', 'termos', 'palavras', 'jogos', 'casas', 'vidas', 'tempos', 'mundos', 'amores', 'terras',
-      'aguas', 'águas', 'fogos', 'ventos', 'luzes', 'noites', 'sóis', 'luas', 'mares', 'rios', 'montes',
-      'pedras', 'arvores', 'árvores', 'flores', 'frutos', 'folhas', 'raízes', 'brotos', 'animais', 'gatos', 'caes', 'cães',
-      'aureos', 'áureos', 'acidos', 'ácidos', 'musicas', 'músicas', 'historias', 'histórias', 'homens', 'mulheres',
-      'papeis', 'papéis', 'livros', 'mesas', 'portas', 'janelas', 'carros', 'avioes', 'aviões', 'trens', 'barcas',
-      // Verbos infinitivos
-      'amar', 'viver', 'morrer', 'saber', 'poder', 'fazer', 'dizer', 'partir', 'chegar', 'voltar',
-      'entrar', 'sair', 'subir', 'descer', 'correr', 'andar', 'saltar', 'pular', 'voar', 'nadar',
-      'dormir', 'comer', 'beber', 'falar', 'ouvir', 'ver', 'olhar', 'sentir', 'tocar', 'pegar',
-      'soltar', 'abrir', 'fechar', 'ligar', 'parar', 'começar', 'acabar', 'ganhar', 'perder',
-      'jogar', 'ler', 'escrever', 'cantar', 'dançar', 'rir', 'chorar', 'gritar',
-      // Verbos conjugados
-      'amou', 'viveu', 'morreu', 'soube', 'pôde', 'disse', 'partiu', 'chegou', 'voltou',
-      'entrou', 'saiu', 'subiu', 'desceu', 'correu', 'andou', 'saltou', 'pulou', 'voou',
-      'nadou', 'dormiu', 'comeu', 'bebeu', 'falou', 'ouviu', 'viu', 'olhou', 'sentiu',
-      'tocou', 'pegou', 'soltou', 'abriu', 'fechou', 'ligou', 'parou', 'ganhou', 'perdeu',
-      'jogou', 'leu', 'cantou', 'dançou', 'riu', 'chorou', 'gritou'
+      'pedra', 'arvore', 'árvore', 'flor', 'fruto', 'folha', 'raiz', 'broto', 'animal', 'gato', 'cao', 'cão'
     ];
     
-    // Procurar todas as variações nas palavras básicas
+    // Procurar todas as variações nas palavras críticas
     for (const variation of variations) {
-      const foundBasic = basicWords.find(basic => 
-        normalizeWord(basic) === normalizeWord(variation) || basic === variation
+      const foundCritical = criticalWords.find(critical => 
+        normalizeWord(critical) === normalizeWord(variation) || critical === variation
       );
-      if (foundBasic) {
-        wordCache.set(normalizedWord, { isValid: true, correctForm: foundBasic });
-        return { isValid: true, correctForm: foundBasic };
+      if (foundCritical) {
+        console.log(`Palavra "${variation}" encontrada na lista crítica`);
+        const validResult = { isValid: true, correctForm: foundCritical };
+        wordCache.set(normalizedWord, validResult);
+        return validResult;
       }
     }
     
@@ -169,31 +146,19 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
     return { isValid: false, correctForm: originalWord };
     
   } catch (error) {
-    // Em caso de erro de rede, usar lista básica expandida
-    const basicWords = [
-      'navio', 'termo', 'palavra', 'jogo', 'casa', 'vida', 'tempo', 'mundo', 'amor', 'terra',
-      'agua', 'água', 'fogo', 'vento', 'luz', 'noite', 'sol', 'lua', 'mar', 'rio', 'monte',
-      'pedra', 'arvore', 'árvore', 'flor', 'fruto', 'folha', 'raiz', 'broto', 'animal', 'gato', 'cao', 'cão',
-      'aureo', 'áureo', 'acido', 'ácido', 'musica', 'música', 'historia', 'história', 'homem', 'mulher',
-      'navios', 'termos', 'palavras', 'jogos', 'casas', 'vidas', 'tempos', 'mundos', 'amores', 'terras',
-      'aguas', 'águas', 'fogos', 'ventos', 'luzes', 'noites', 'sóis', 'luas', 'mares', 'rios', 'montes',
-      'pedras', 'arvores', 'árvores', 'flores', 'frutos', 'folhas', 'raízes', 'brotos', 'animais', 'gatos', 'caes', 'cães',
-      'papeis', 'papéis', 'livros', 'mesas', 'portas', 'janelas', 'carros', 'avioes', 'aviões', 'trens', 'barcas',
-      // Verbos
-      'amar', 'viver', 'morrer', 'saber', 'poder', 'fazer', 'dizer', 'partir', 'chegar', 'voltar',
-      'entrar', 'sair', 'subir', 'descer', 'correr', 'andar', 'saltar', 'pular', 'voar', 'nadar',
-      'dormir', 'comer', 'beber', 'falar', 'ouvir', 'ver', 'olhar', 'sentir', 'tocar', 'pegar',
-      'amou', 'viveu', 'morreu', 'soube', 'pôde', 'disse', 'partiu', 'chegou', 'voltou', 'entrou'
-    ];
+    console.error('Erro geral na validação:', error);
+    // Em caso de erro total, usar apenas as palavras críticas
+    const criticalWords = ['olhos', 'navio', 'termo', 'palavra', 'jogo', 'casa', 'vida', 'tempo', 'mundo'];
     
     const variations = generateWordVariations(originalWord);
     for (const variation of variations) {
-      const foundBasic = basicWords.find(basic => 
-        normalizeWord(basic) === normalizeWord(variation) || basic === variation
+      const foundCritical = criticalWords.find(critical => 
+        normalizeWord(critical) === normalizeWord(variation) || critical === variation
       );
-      if (foundBasic) {
-        wordCache.set(normalizedWord, { isValid: true, correctForm: foundBasic });
-        return { isValid: true, correctForm: foundBasic };
+      if (foundCritical) {
+        const validResult = { isValid: true, correctForm: foundCritical };
+        wordCache.set(normalizedWord, validResult);
+        return validResult;
       }
     }
     
