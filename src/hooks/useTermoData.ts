@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 export const useTermoData = () => {
@@ -64,6 +63,7 @@ export const useTermoData = () => {
   };
 
   const clearAllGameData = (currentDate: string) => {
+    console.log('🧹 LIMPEZA FORÇADA DE CACHE - MODO SOLO');
     const keysToRemove: string[] = [];
     
     // Encontrar todas as chaves relacionadas ao jogo
@@ -75,31 +75,29 @@ export const useTermoData = () => {
         key.startsWith('termo-solo-session-') ||
         key.startsWith('termo-multi-session-')
       )) {
-        // Se não for da data atual, remover
-        if (!key.includes(currentDate)) {
-          keysToRemove.push(key);
-        }
+        keysToRemove.push(key);
       }
     }
     
-    // Remover chaves antigas
+    // Remover TODAS as chaves antigas (forçar reset completo)
     keysToRemove.forEach(key => {
-      console.log(`Removendo cache antigo: ${key}`);
+      console.log(`🗑️ Removendo cache: ${key}`);
       localStorage.removeItem(key);
     });
 
-    // Limpar cookies antigos também
+    // Limpar TODOS os cookies do termo
     const cookies = document.cookie.split(';');
     cookies.forEach(cookie => {
       const cookieName = cookie.split('=')[0].trim();
-      if (cookieName.startsWith('termo_') && !cookieName.includes(currentDate.replace(/-/g, '_'))) {
+      if (cookieName.startsWith('termo_')) {
+        console.log(`🍪 Removendo cookie: ${cookieName}`);
         document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
       }
     });
   };
 
   const forceNewWord = (date: string) => {
-    console.log(`Forçando nova palavra para ${date}`);
+    console.log(`🔄 FORÇANDO nova palavra SOLO para ${date}`);
     
     // Limpar cache antigo
     clearAllGameData(date);
@@ -113,7 +111,7 @@ export const useTermoData = () => {
       generated: new Date().toISOString()
     };
     
-    console.log(`Nova palavra gerada: ${newWord} para ${date}`);
+    console.log(`✨ Nova palavra SOLO gerada: ${newWord} para ${date}`);
     localStorage.setItem('termo-daily-word', JSON.stringify(wordData));
     
     return newWord;
@@ -122,36 +120,12 @@ export const useTermoData = () => {
   useEffect(() => {
     const loadTodayWord = () => {
       const today = getTodayDateBrasilia();
-      console.log(`Data atual em Brasília: ${today}`);
+      console.log(`📅 Data atual em Brasília (SOLO): ${today}`);
       
-      // Verificar se já temos uma palavra para hoje
-      const storedData = localStorage.getItem('termo-daily-word');
-      
-      if (storedData) {
-        try {
-          const wordData = JSON.parse(storedData);
-          
-          // Se a data mudou, forçar nova palavra
-          if (wordData.date !== today) {
-            console.log(`Data mudou de ${wordData.date} para ${today}, gerando nova palavra`);
-            const newWord = forceNewWord(today);
-            setTodayWord(newWord);
-          } else {
-            console.log(`Usando palavra existente: ${wordData.word}`);
-            setTodayWord(wordData.word);
-          }
-        } catch (error) {
-          console.error('Erro ao processar dados salvos:', error);
-          const newWord = forceNewWord(today);
-          setTodayWord(newWord);
-        }
-      } else {
-        // Primeira vez, gerar palavra
-        console.log('Primeira execução, gerando palavra');
-        const newWord = forceNewWord(today);
-        setTodayWord(newWord);
-      }
-      
+      // SEMPRE forçar nova palavra no primeiro carregamento após meia-noite
+      console.log('🚀 FORÇANDO reset completo no carregamento');
+      const newWord = forceNewWord(today);
+      setTodayWord(newWord);
       setLoading(false);
     };
 
@@ -166,12 +140,12 @@ export const useTermoData = () => {
         try {
           const wordData = JSON.parse(storedData);
           if (wordData.date !== currentDate) {
-            console.log('Detectada mudança de dia, atualizando palavra');
+            console.log('🌅 Detectada mudança de dia SOLO, atualizando palavra');
             const newWord = forceNewWord(currentDate);
             setTodayWord(newWord);
           }
         } catch (error) {
-          console.error('Erro na verificação periódica:', error);
+          console.error('Erro na verificação periódica SOLO:', error);
         }
       }
     }, 60000); // Verificar a cada minuto

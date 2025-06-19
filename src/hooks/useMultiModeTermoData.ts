@@ -64,6 +64,7 @@ export const useMultiModeTermoData = () => {
   };
 
   const clearAllMultiModeData = (currentDate: string) => {
+    console.log('🧹 LIMPEZA FORÇADA DE CACHE - MODOS MULTI');
     const keysToRemove: string[] = [];
     
     // Encontrar todas as chaves relacionadas aos modos multi
@@ -76,32 +77,29 @@ export const useMultiModeTermoData = () => {
         key.startsWith('termo-session-quarteto-') ||
         key.startsWith('termo-multi-session-')
       )) {
-        // Se não for da data atual, remover
-        if (!key.includes(currentDate)) {
-          keysToRemove.push(key);
-        }
+        keysToRemove.push(key);
       }
     }
     
-    // Remover chaves antigas
+    // Remover TODAS as chaves (forçar reset completo)
     keysToRemove.forEach(key => {
-      console.log(`Removendo cache multi-mode antigo: ${key}`);
+      console.log(`🗑️ Removendo cache multi: ${key}`);
       localStorage.removeItem(key);
     });
 
-    // Limpar cookies antigos também
+    // Limpar TODOS os cookies multi-mode
     const cookies = document.cookie.split(';');
     cookies.forEach(cookie => {
       const cookieName = cookie.split('=')[0].trim();
-      if ((cookieName.startsWith('termo_duo_') || cookieName.startsWith('termo_trio_') || cookieName.startsWith('termo_quarteto_')) && 
-          !cookieName.includes(currentDate.replace(/-/g, '_'))) {
+      if (cookieName.startsWith('termo_duo_') || cookieName.startsWith('termo_trio_') || cookieName.startsWith('termo_quarteto_') || cookieName.startsWith('termo_multi_')) {
+        console.log(`🍪 Removendo cookie multi: ${cookieName}`);
         document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
       }
     });
   };
 
   const forceNewWords = (date: string) => {
-    console.log(`Forçando novas palavras multi-mode para ${date}`);
+    console.log(`🔄 FORÇANDO novas palavras MULTI para ${date}`);
     
     // Limpar cache antigo
     clearAllMultiModeData(date);
@@ -122,7 +120,7 @@ export const useMultiModeTermoData = () => {
         generated: new Date().toISOString()
       };
       
-      console.log(`Novas palavras ${mode} geradas: ${words.join(', ')} para ${date}`);
+      console.log(`✨ Novas palavras ${mode} geradas: ${words.join(', ')} para ${date}`);
       localStorage.setItem(`termo-daily-words-${mode}`, JSON.stringify(wordData));
       newWordsData[mode] = words;
     });
@@ -133,51 +131,12 @@ export const useMultiModeTermoData = () => {
   useEffect(() => {
     const loadWords = () => {
       const today = getTodayDateBrasilia();
-      console.log(`Data atual em Brasília (multi-mode): ${today}`);
+      console.log(`📅 Data atual em Brasília (MULTI): ${today}`);
       
-      let needsUpdate = false;
-      const newWordsData: Record<GameMode, string[]> = {
-        solo: [],
-        duo: [],
-        trio: [],
-        quarteto: []
-      };
-
-      // Verificar cada modo
-      (['solo', 'duo', 'trio', 'quarteto'] as GameMode[]).forEach(mode => {
-        const storedData = localStorage.getItem(`termo-daily-words-${mode}`);
-        
-        if (storedData) {
-          try {
-            const wordData = JSON.parse(storedData);
-            
-            // Se a data mudou, marcar para atualização
-            if (wordData.date !== today) {
-              console.log(`Data mudou de ${wordData.date} para ${today} no modo ${mode}`);
-              needsUpdate = true;
-            } else {
-              console.log(`Usando palavras existentes para ${mode}: ${wordData.words.join(', ')}`);
-              newWordsData[mode] = wordData.words;
-            }
-          } catch (error) {
-            console.error(`Erro ao processar dados salvos do modo ${mode}:`, error);
-            needsUpdate = true;
-          }
-        } else {
-          // Primeira vez para este modo
-          console.log(`Primeira execução para modo ${mode}`);
-          needsUpdate = true;
-        }
-      });
-
-      // Se algum modo precisa de atualização, atualizar todos
-      if (needsUpdate) {
-        const updatedWords = forceNewWords(today);
-        setWordsData(updatedWords);
-      } else {
-        setWordsData(newWordsData);
-      }
-      
+      // SEMPRE forçar novas palavras no primeiro carregamento após meia-noite
+      console.log('🚀 FORÇANDO reset completo MULTI no carregamento');
+      const updatedWords = forceNewWords(today);
+      setWordsData(updatedWords);
       setLoading(false);
     };
 
@@ -198,14 +157,14 @@ export const useMultiModeTermoData = () => {
               needsUpdate = true;
             }
           } catch (error) {
-            console.error(`Erro na verificação periódica do modo ${mode}:`, error);
+            console.error(`Erro na verificação periódica MULTI do modo ${mode}:`, error);
             needsUpdate = true;
           }
         }
       });
 
       if (needsUpdate) {
-        console.log('Detectada mudança de dia para modos multi, atualizando palavras');
+        console.log('🌅 Detectada mudança de dia MULTI, atualizando palavras');
         const updatedWords = forceNewWords(currentDate);
         setWordsData(updatedWords);
       }
