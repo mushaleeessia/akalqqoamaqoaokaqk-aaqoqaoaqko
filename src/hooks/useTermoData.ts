@@ -20,7 +20,7 @@ export const useTermoData = () => {
     'forca','poder','ordem','uniao','festa','ideia','plano','sorte',
     'calor','verde', 'preto','branco','carro','aviao','ponte',
     'radio','musica','danca','filme','banco','praia','campo','arvore',
-    'pedra','metal','chuva','viveu','soube','disse','grande','velho','baixo', 'gringo'
+    'pedra','metal','chuva','viveu','soube','disse','grande','velho','baixo'
   ];
 
   const generateDailyWord = (date: string): string => {
