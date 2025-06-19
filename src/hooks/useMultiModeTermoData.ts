@@ -26,19 +26,18 @@ export const useMultiModeTermoData = () => {
   const seedWords = [
     'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
     'lugar', 'casos', 'vidas', 'modos', 'aguas', 'fogos', 'vento',
-    'noite', 'morte', 'homem', 'filho', 'casas', 'porta',
-    'mesas', 'livro', 'papel', 'bocas', 'olhos', 'dente', 'braco',
-    'perna', 'corpo', 'pazes', 'forca', 'poder', 'ordem', 'uniao', 'festa',
+    'noite', 'morte', 'homem', 'filho', 'casas', 'porta', 'mesas', 'livro',
+    'papel', 'bocas', 'olhos', 'dente', 'braco', 'perna', 'corpo', 'pazes',
+    'forca', 'poder', 'ordem', 'uniao', 'festa', 'lendo', 'rindo', 'solar',
     'jogos', 'artes', 'obras', 'nomes', 'ideia', 'plano', 'sorte', 'calor',
     'frios', 'verde', 'azuis', 'preto', 'carro', 'aviao', 'ponte', 'radio',
     'danca', 'filme', 'banco', 'praia', 'campo', 'pedra', 'metal', 'vidro',
     'amava', 'vivia', 'sabia', 'podia', 'fazia', 'dizia', 'saius', 'subiu',
     'andou', 'pulou', 'nadou', 'comeu', 'bebeu', 'falou', 'ouviu', 'vendo',
     'olhou', 'tocou', 'pegou', 'abriu', 'ligou', 'parou', 'acaba', 'jogou',
-    'lendo', 'rindo',
     'andar', 'viver', 'falar', 'beber', 'comer', 'ouvir', 'criar', 'mudar',
     'jogar', 'pular', 'ferir', 'fugir', 'salto', 'barco', 'poema', 'media',
-    'gerar', 'musgo', 'amado', 'brisa', 'nozes', 'igual', 'jovem', 'solar'
+    'gerar', 'musgo', 'amado', 'brisa', 'nozes', 'igual', 'jovem'
   ];
 
   const generateWordsForMode = (mode: GameMode, date: string): string[] => {
