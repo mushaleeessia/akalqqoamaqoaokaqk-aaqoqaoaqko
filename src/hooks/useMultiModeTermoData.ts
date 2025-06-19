@@ -24,23 +24,22 @@ export const useMultiModeTermoData = () => {
 
   // Todas as palavras têm exatamente 5 letras
   const seedWords = [
+  // Substantivos de 5 letras
     'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
     'lugar', 'casos', 'vidas', 'modos', 'aguas', 'fogos', 'vento',
-    'noite', 'morte', 'homem', 'mulher', 'filho', 'casas', 'porta',
+    'noite', 'morte', 'homem', 'filho', 'casas', 'porta',
     'mesas', 'livro', 'papel', 'bocas', 'olhos', 'dente', 'braco',
-    'perna', 'cabeca', 'corpo', 'amores', 'pazes', 'guerra', 'forca',
-    'poder', 'direito', 'ordem', 'uniao', 'festa', 'jogos',
-    'artes', 'obras', 'nomes', 'ideia', 'plano', 'sorte', 'calor',
-    'frios', 'verde', 'azuis', 'preto', 'branco', 'carro', 'aviao',
-    'ponte', 'radio', 'musica', 'danca', 'filme', 'banco', 'praia',
-    'campo', 'flores', 'arvore', 'pedra', 'metal', 'vidro', 'papel',
-    'amava', 'vivia', 'morreu', 'sabia', 'podia', 'fazia', 'dizia',
-    'partiu', 'chegou', 'voltou', 'entrou', 'saius', 'subiu', 'desceu',
-    'correu', 'andou', 'saltou', 'pulou', 'voous', 'nadou', 'dormiu',
-    'comeu', 'bebeu', 'falou', 'ouviu', 'vendo', 'olhou', 'sentiu',
-    'tocou', 'pegou', 'soltou', 'abriu', 'fechou', 'ligou', 'parou',
-    'comeca', 'acaba', 'ganhou', 'perdeu', 'jogou', 'lendo',
-    'escreveu', 'cantou', 'dancou', 'rindo', 'chorou', 'gritou'
+    'perna', 'corpo', 'pazes', 'forca', 'poder', 'ordem', 'uniao', 'festa',
+    'jogos', 'artes', 'obras', 'nomes', 'ideia', 'plano', 'sorte', 'calor',
+    'frios', 'verde', 'azuis', 'preto', 'carro', 'aviao', 'ponte', 'radio',
+    'danca', 'filme', 'banco', 'praia', 'campo', 'pedra', 'metal', 'vidro',
+    'amava', 'vivia', 'sabia', 'podia', 'fazia', 'dizia', 'saius', 'subiu',
+    'andou', 'pulou', 'nadou', 'comeu', 'bebeu', 'falou', 'ouviu', 'vendo',
+    'olhou', 'tocou', 'pegou', 'abriu', 'ligou', 'parou', 'acaba', 'jogou',
+    'lendo', 'rindo',
+    'andar', 'viver', 'falar', 'beber', 'comer', 'ouvir', 'criar', 'mudar',
+    'jogar', 'pular', 'ferir', 'fugir', 'salto', 'barco', 'poema', 'media',
+    'gerar', 'musgo', 'amado', 'brisa', 'nozes', 'igual', 'jovem', 'solar'
   ];
 
   const generateWordsForMode = (mode: GameMode, date: string): string[] => {
