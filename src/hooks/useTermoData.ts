@@ -5,137 +5,113 @@ export const useTermoData = () => {
   const [loading, setLoading] = useState(true);
 
   const getTodayDateBrasilia = () => {
-    // Criar data atual em UTC
     const now = new Date();
-    // Converter para horário de Brasília (UTC-3)
-    const brasiliaOffset = -3 * 60; // -3 horas em minutos
-    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const brasiliaTime = new Date(utc + (brasiliaOffset * 60000));
-    
-    // Formatear como YYYY-MM-DD
+    const brasiliaOffset = -3 * 60;
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const brasiliaTime = new Date(utc + brasiliaOffset * 60000);
     return brasiliaTime.toISOString().split('T')[0];
   };
 
-  // Lista expandida de palavras de 5 letras em português incluindo verbos
   const seedWords = [
-    // Substantivos
-    'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
-    'lugar', 'caso', 'vida', 'modo', 'agua', 'fogo', 'vento',
-    'noite', 'morte', 'homem', 'mulher', 'filho', 'casa', 'porta',
-    'livro', 'papel', 'boca', 'olhos', 'dente', 'braco',
-    'perna', 'cabeca', 'corpo', 'guerra', 'forca',
-    'poder', 'ordem', 'uniao', 'festa',
-    'ideia', 'plano', 'sorte', 'calor',
-    'verde', 'azul', 'preto', 'branco', 'carro', 'aviao',
-    'ponte', 'radio', 'musica', 'danca', 'filme', 'banco', 'praia',
-    'campo', 'arvore', 'pedra', 'metal', 'chuva',
-    // Verbos conjugados (presente/passado)
-    'viveu', 'soube', 'disse',
-    // Adjetivos
-    'grande', 'velho', 'baixo'
+    'mundo','terra','tempo','valor','ponto','grupo','parte','forma',
+    'lugar','caso','vida','modo','agua','fogo','vento','noite',
+    'morte','homem','mulher','filho','casa','porta','livro','papel',
+    'boca','olhos','dente','braco','perna','cabeca','corpo','guerra',
+    'forca','poder','ordem','uniao','festa','ideia','plano','sorte',
+    'calor','verde','azul','preto','branco','carro','aviao','ponte',
+    'radio','musica','danca','filme','banco','praia','campo','arvore',
+    'pedra','metal','chuva','viveu','soube','disse','grande','velho','baixo'
   ];
 
   const generateDailyWord = (date: string): string => {
-    // Usar a data como seed para garantir determinismo
-    const dateNumbers = date.split('-').map(num => parseInt(num));
-    const seed = dateNumbers[0] + dateNumbers[1] * 31 + dateNumbers[2] * 365;
-    
-    // Algoritmo de hash simples para distribuição mais uniforme
-    let hash = seed;
-    hash = ((hash << 5) - hash + seed) & 0xffffffff;
+    const [year, month, day] = date.split('-').map(n => parseInt(n, 10));
+    let hash = year + month * 31 + day * 365;
+    hash = ((hash << 5) - hash + hash) & 0xffffffff;
     hash = Math.abs(hash);
-    
-    const wordIndex = hash % seedWords.length;
-    return seedWords[wordIndex];
+    return seedWords[hash % seedWords.length];
   };
 
-  const clearAllGameData = (currentDate: string) => {
-    const keysToRemove: string[] = [];
-    
-    // Encontrar todas as chaves relacionadas ao jogo
-    for (let i = 0; i < localStorage.length; i++) {
+  const clearAllGameData = () => {
+    // localStorage
+    for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i);
       if (key && (
-        key.startsWith('termo-session-') || 
+        key.startsWith('termo-session-') ||
         key.startsWith('termo-daily-') ||
         key.startsWith('termo-solo-session-') ||
         key.startsWith('termo-multi-session-')
       )) {
-        keysToRemove.push(key);
+        localStorage.removeItem(key);
       }
     }
-    
-    // Remover TODAS as chaves antigas (forçar reset completo)
-    keysToRemove.forEach(key => {
-      localStorage.removeItem(key);
-    });
-
-    // Limpar TODOS os cookies do termo
-    const cookies = document.cookie.split(';');
-    cookies.forEach(cookie => {
-      const cookieName = cookie.split('=')[0].trim();
-      if (cookieName.startsWith('termo_')) {
-        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-      }
-    });
+    // cookies
+    document.cookie
+      .split(';')
+      .forEach(c => {
+        const name = c.split('=')[0].trim();
+        if (name.startsWith('termo_')) {
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        }
+      });
   };
 
-  const forceNewWord = (date: string) => {
-    console.log(`n-frc-wrd`);
-    
-    // Limpar cache antigo
-    clearAllGameData(date);
-    
-    // Gerar nova palavra
+  const forceNewWord = (date: string): string => {
+    clearAllGameData();
     const newWord = generateDailyWord(date);
-    
-    const wordData = {
-      date: date,
+    const payload = {
+      date,
       word: newWord,
       generated: new Date().toISOString()
     };
-    
-    localStorage.setItem('termo-daily-word', JSON.stringify(wordData));
-    
+    localStorage.setItem('termo-daily-word', JSON.stringify(payload));
     return newWord;
   };
 
   useEffect(() => {
-    const loadTodayWord = () => {
-      const today = getTodayDateBrasilia();
-      
-      // SEMPRE forçar nova palavra no primeiro carregamento após meia-noite
-      const newWord = forceNewWord(today);
-      setTodayWord(newWord);
-      setLoading(false);
-    };
+    const today = getTodayDateBrasilia();
+    const stored = localStorage.getItem('termo-daily-word');
 
-    loadTodayWord();
-
-    // Verificar a cada minuto se mudou o dia
-    const interval = setInterval(() => {
-      const currentDate = getTodayDateBrasilia();
-      const storedData = localStorage.getItem('termo-daily-word');
-      
-      if (storedData) {
-        try {
-          const wordData = JSON.parse(storedData);
-          if (wordData.date !== currentDate) {
-            console.log('🌅 Detectada mudança de dia SOLO, atualizando palavra');
-            const newWord = forceNewWord(currentDate);
-            setTodayWord(newWord);
-          }
-        } catch (error) {
-          console.error('Erro na verificação periódica SOLO:', error);
+    if (stored) {
+      try {
+        const { date, word } = JSON.parse(stored);
+        if (date === today) {
+          // reutiliza a palavra salva
+          setTodayWord(word);
+        } else {
+          // data antiga → força nova
+          setTodayWord(forceNewWord(today));
         }
+      } catch {
+        // parse falhou → força nova
+        setTodayWord(forceNewWord(today));
       }
-    }, 60000); // Verificar a cada minuto
+    } else {
+      // nunca jogou hoje → força nova
+      setTodayWord(forceNewWord(today));
+    }
+
+    setLoading(false);
+
+    // checagem de mudança de dia
+    const interval = setInterval(() => {
+      const nowDate = getTodayDateBrasilia();
+      const item = localStorage.getItem('termo-daily-word');
+      if (item) {
+        try {
+          const { date } = JSON.parse(item);
+          if (date !== nowDate) {
+            setTodayWord(forceNewWord(nowDate));
+          }
+        } catch {
+          setTodayWord(forceNewWord(nowDate));
+        }
+      } else {
+        setTodayWord(forceNewWord(nowDate));
+      }
+    }, 60000);
 
     return () => clearInterval(interval);
   }, []);
 
-  return { 
-    todayWord, 
-    loading
-  };
+  return { todayWord, loading };
 };
