@@ -61,7 +61,7 @@ const Termo = () => {
         
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white tracking-wider">
-            aleeessia.com
+            aleeessia.com/termo
           </h1>
           <p className="text-sm text-white/70 mt-1">
             teeermo (veja também term.ooo!)
