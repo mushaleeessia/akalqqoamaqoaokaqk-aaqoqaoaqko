@@ -14,7 +14,7 @@ export const useTermoData = () => {
 
   const seedWords = [
     'mundo','terra','tempo','valor','ponto','grupo','parte','forma',
-    'lugar' 'modo', 'vento','noite',
+    'lugar', 'modo', 'vento','noite',
     'morte','homem','mulher','filho', 'porta','livro','papel',
     'boca','olhos','dente','braco','perna','cabeca','corpo','guerra',
     'forca','poder','ordem','uniao','festa','ideia','plano','sorte',
