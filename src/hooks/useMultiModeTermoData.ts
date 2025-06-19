@@ -24,7 +24,6 @@ export const useMultiModeTermoData = () => {
 
   // Todas as palavras têm exatamente 5 letras
   const seedWords = [
-  // Substantivos de 5 letras
     'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
     'lugar', 'casos', 'vidas', 'modos', 'aguas', 'fogos', 'vento',
     'noite', 'morte', 'homem', 'filho', 'casas', 'porta',
