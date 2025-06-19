@@ -63,7 +63,6 @@ export const useTermoData = () => {
   };
 
   const clearAllGameData = (currentDate: string) => {
-    console.log('🧹 LIMPEZA FORÇADA DE CACHE - MODO SOLO');
     const keysToRemove: string[] = [];
     
     // Encontrar todas as chaves relacionadas ao jogo
@@ -81,7 +80,6 @@ export const useTermoData = () => {
     
     // Remover TODAS as chaves antigas (forçar reset completo)
     keysToRemove.forEach(key => {
-      console.log(`🗑️ Removendo cache: ${key}`);
       localStorage.removeItem(key);
     });
 
@@ -90,14 +88,12 @@ export const useTermoData = () => {
     cookies.forEach(cookie => {
       const cookieName = cookie.split('=')[0].trim();
       if (cookieName.startsWith('termo_')) {
-        console.log(`🍪 Removendo cookie: ${cookieName}`);
         document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
       }
     });
   };
 
-  const forceNewWord = (date: string) => {
-    console.log(`🔄 FORÇANDO nova palavra SOLO para ${date}`);
+  const forceNewWord = (date: string)
     
     // Limpar cache antigo
     clearAllGameData(date);
@@ -111,7 +107,6 @@ export const useTermoData = () => {
       generated: new Date().toISOString()
     };
     
-    console.log(`✨ Nova palavra SOLO gerada: ${newWord} para ${date}`);
     localStorage.setItem('termo-daily-word', JSON.stringify(wordData));
     
     return newWord;
@@ -120,10 +115,8 @@ export const useTermoData = () => {
   useEffect(() => {
     const loadTodayWord = () => {
       const today = getTodayDateBrasilia();
-      console.log(`📅 Data atual em Brasília (SOLO): ${today}`);
       
       // SEMPRE forçar nova palavra no primeiro carregamento após meia-noite
-      console.log('🚀 FORÇANDO reset completo no carregamento');
       const newWord = forceNewWord(today);
       setTodayWord(newWord);
       setLoading(false);
@@ -140,7 +133,6 @@ export const useTermoData = () => {
         try {
           const wordData = JSON.parse(storedData);
           if (wordData.date !== currentDate) {
-            console.log('🌅 Detectada mudança de dia SOLO, atualizando palavra');
             const newWord = forceNewWord(currentDate);
             setTodayWord(newWord);
           }

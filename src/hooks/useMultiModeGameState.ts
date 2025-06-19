@@ -253,7 +253,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
 
   // Reset estado quando o modo muda
   useEffect(() => {
-    console.log(`[MultiMode] Modo mudou para: ${mode}, resetando estado de carregamento`);
     setIsSessionLoaded(false);
     setShowingFreshGameOver(false);
   }, [mode]);
