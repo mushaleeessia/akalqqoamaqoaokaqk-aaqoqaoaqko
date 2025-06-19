@@ -61,7 +61,6 @@ export const useMultiModeTermoData = () => {
   };
 
   const clearAllMultiModeData = (currentDate: string) => {
-    console.log('🧹 LIMPEZA FORÇADA DE CACHE - MODOS MULTI');
     const keysToRemove: string[] = [];
     
     // Encontrar todas as chaves relacionadas aos modos multi
@@ -80,7 +79,6 @@ export const useMultiModeTermoData = () => {
     
     // Remover TODAS as chaves (forçar reset completo)
     keysToRemove.forEach(key => {
-      console.log(`🗑️ Removendo cache multi: ${key}`);
       localStorage.removeItem(key);
     });
 
@@ -89,14 +87,12 @@ export const useMultiModeTermoData = () => {
     cookies.forEach(cookie => {
       const cookieName = cookie.split('=')[0].trim();
       if (cookieName.startsWith('termo_duo_') || cookieName.startsWith('termo_trio_') || cookieName.startsWith('termo_quarteto_') || cookieName.startsWith('termo_multi_')) {
-        console.log(`🍪 Removendo cookie multi: ${cookieName}`);
         document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
       }
     });
   };
 
   const forceNewWords = (date: string) => {
-    console.log(`🔄 FORÇANDO novas palavras MULTI para ${date}`);
     
     // Limpar cache antigo
     clearAllMultiModeData(date);
@@ -116,8 +112,6 @@ export const useMultiModeTermoData = () => {
         words: words,
         generated: new Date().toISOString()
       };
-      
-      console.log(`✨ Novas palavras ${mode} geradas para ${date}`);
       localStorage.setItem(`termo-daily-words-${mode}`, JSON.stringify(wordData));
       newWordsData[mode] = words;
     });
@@ -128,10 +122,8 @@ export const useMultiModeTermoData = () => {
   useEffect(() => {
     const loadWords = () => {
       const today = getTodayDateBrasilia();
-      console.log(`📅 Data atual em Brasília (MULTI): ${today}`);
       
       // SEMPRE forçar novas palavras no primeiro carregamento após meia-noite
-      console.log('🚀 FORÇANDO reset completo MULTI no carregamento');
       const updatedWords = forceNewWords(today);
       setWordsData(updatedWords);
       setLoading(false);
@@ -161,7 +153,6 @@ export const useMultiModeTermoData = () => {
       });
 
       if (needsUpdate) {
-        console.log('🌅 Detectada mudança de dia MULTI, atualizando palavras');
         const updatedWords = forceNewWords(currentDate);
         setWordsData(updatedWords);
       }
