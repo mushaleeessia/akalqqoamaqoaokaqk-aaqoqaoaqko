@@ -22,30 +22,17 @@ export const useTermoData = () => {
     'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
     'lugar', 'caso', 'vida', 'modo', 'agua', 'fogo', 'vento',
     'noite', 'morte', 'homem', 'mulher', 'filho', 'casa', 'porta',
-    'mesa', 'livro', 'papel', 'boca', 'olhos', 'dente', 'braco',
-    'perna', 'cabeca', 'corpo', 'amor', 'paz', 'guerra', 'forca',
-    'poder', 'direito', 'ordem', 'uniao', 'festa', 'jogo',
-    'arte', 'obra', 'nome', 'ideia', 'plano', 'sorte', 'calor',
-    'frio', 'verde', 'azul', 'preto', 'branco', 'carro', 'aviao',
+    'livro', 'papel', 'boca', 'olhos', 'dente', 'braco',
+    'perna', 'cabeca', 'corpo', 'guerra', 'forca',
+    'poder', 'ordem', 'uniao', 'festa',
+    'ideia', 'plano', 'sorte', 'calor',
+    'verde', 'azul', 'preto', 'branco', 'carro', 'aviao',
     'ponte', 'radio', 'musica', 'danca', 'filme', 'banco', 'praia',
-    'campo', 'flor', 'arvore', 'pedra', 'metal', 'chuva', 'sol',
-    // Verbos infinitivos
-    'amar', 'viver', 'morrer', 'saber', 'poder', 'fazer', 'dizer',
-    'partir', 'chegar', 'voltar', 'entrar', 'sair', 'subir', 'descer',
-    'correr', 'andar', 'saltar', 'pular', 'voar', 'nadar', 'dormir',
-    'comer', 'beber', 'falar', 'ouvir', 'ver', 'olhar', 'sentir',
-    'tocar', 'pegar', 'soltar', 'abrir', 'fechar', 'ligar', 'parar',
-    'comecar', 'acabar', 'ganhar', 'perder', 'jogar', 'ler',
-    'escrever', 'cantar', 'dancar', 'rir', 'chorar', 'gritar',
+    'campo', 'arvore', 'pedra', 'metal', 'chuva',
     // Verbos conjugados (presente/passado)
-    'amou', 'viveu', 'morreu', 'soube', 'pode', 'disse', 'partiu',
-    'chegou', 'voltou', 'entrou', 'saiu', 'subiu', 'desceu', 'correu',
-    'andou', 'saltou', 'pulou', 'voou', 'nadou', 'dormiu', 'comeu',
-    'bebeu', 'falou', 'ouviu', 'viu', 'olhou', 'sentiu', 'tocou',
-    'pegou', 'soltou', 'abriu', 'fechou', 'ligou', 'parou', 'ganhou',
-    'perdeu', 'jogou', 'leu', 'cantou', 'dancou', 'riu', 'chorou',
+    'viveu', 'soube', 'disse',
     // Adjetivos
-    'belo', 'feio', 'grande', 'pequeno', 'novo', 'velho', 'alto', 'baixo'
+    'grande', 'velho', 'baixo'
   ];
 
   const generateDailyWord = (date: string): string => {
