@@ -14,13 +14,13 @@ export const useTermoData = () => {
 
   const seedWords = [
     'mundo','terra','tempo','valor','ponto','grupo','parte','forma',
-    'lugar','caso','vida','modo','agua','fogo','vento','noite',
-    'morte','homem','mulher','filho','casa','porta','livro','papel',
+    'lugar' 'modo', 'vento','noite',
+    'morte','homem','mulher','filho', 'porta','livro','papel',
     'boca','olhos','dente','braco','perna','cabeca','corpo','guerra',
     'forca','poder','ordem','uniao','festa','ideia','plano','sorte',
     'calor','verde', 'preto','branco','carro','aviao','ponte',
     'radio','musica','danca','filme','banco','praia','campo','arvore',
-    'pedra','metal','chuva','viveu','soube','disse','grande','velho','baixo'
+    'pedra','metal','chuva','viveu','soube','disse','grande','velho','baixo', 'gringo'
   ];
 
   const generateDailyWord = (date: string): string => {
