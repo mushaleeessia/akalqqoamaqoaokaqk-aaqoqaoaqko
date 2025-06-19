@@ -117,7 +117,7 @@ export const useMultiModeTermoData = () => {
         generated: new Date().toISOString()
       };
       
-      console.log(`✨ Novas palavras ${mode} geradas: ${words.join(', ')} para ${date}`);
+      console.log(`✨ Novas palavras ${mode} geradas para ${date}`);
       localStorage.setItem(`termo-daily-words-${mode}`, JSON.stringify(wordData));
       newWordsData[mode] = words;
     });
