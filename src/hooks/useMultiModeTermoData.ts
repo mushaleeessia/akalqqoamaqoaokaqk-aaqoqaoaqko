@@ -11,186 +11,170 @@ export const useMultiModeTermoData = () => {
   const [loading, setLoading] = useState(true);
 
   const getTodayDateBrasilia = () => {
+    // Criar data atual em UTC
     const now = new Date();
-    const brasiliaOffset = -3 * 60; // UTC-3 in minutes
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-    const brasiliaTime = new Date(utc + brasiliaOffset * 60000);
+    // Converter para horário de Brasília (UTC-3)
+    const brasiliaOffset = -3 * 60; // -3 horas em minutos
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const brasiliaTime = new Date(utc + (brasiliaOffset * 60000));
+    
+    // Formatear como YYYY-MM-DD
     return brasiliaTime.toISOString().split('T')[0];
   };
 
   // Todas as palavras têm exatamente 5 letras
   const seedWords = [
-    'mundo','terra','tempo','valor','ponto','grupo','parte','forma',
-    'lugar','casos','vidas','modos','aguas','fogos','vento','noite',
-    'morte','homem','filho','casas','porta','mesas','livro','papel',
-    'bocas','olhos','dente','braco','perna','corpo','pazes','forca',
-    'poder','ordem','uniao','festa','jogos','artes','obras','nomes',
-    'ideia','plano','sorte','calor','frios','verde','azuis','preto',
-    'carro','aviao','ponte','radio','danca','filme','banco','praia',
-    'campo','pedra','metal','vidro','amava','vivia','sabia','podia',
-    'fazia','dizia','saius','subiu','andou','pulou','nadou','comeu',
-    'bebeu','falou','ouviu','vendo','olhou','tocou','pegou','abriu',
-    'ligou','parou','acaba','jogou','andar','viver','falar','beber',
-    'comer','ouvir','criar','mudar','jogar','pular','ferir','fugir',
-    'salto','barco','poema','media','gerar','musgo','amado','brisa',
-    'nozes','igual','jovem','solar'
+    'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
+    'lugar', 'casos', 'vidas', 'modos', 'aguas', 'fogos', 'vento',
+    'noite', 'morte', 'homem', 'mulher', 'filho', 'casas', 'porta',
+    'mesas', 'livro', 'papel', 'bocas', 'olhos', 'dente', 'braco',
+    'perna', 'cabeca', 'corpo', 'amores', 'pazes', 'guerra', 'forca',
+    'poder', 'direito', 'ordem', 'uniao', 'festa', 'jogos',
+    'artes', 'obras', 'nomes', 'ideia', 'plano', 'sorte', 'calor',
+    'frios', 'verde', 'azuis', 'preto', 'branco', 'carro', 'aviao',
+    'ponte', 'radio', 'musica', 'danca', 'filme', 'banco', 'praia',
+    'campo', 'flores', 'arvore', 'pedra', 'metal', 'vidro', 'papel',
+    'amava', 'vivia', 'morreu', 'sabia', 'podia', 'fazia', 'dizia',
+    'partiu', 'chegou', 'voltou', 'entrou', 'saius', 'subiu', 'desceu',
+    'correu', 'andou', 'saltou', 'pulou', 'voous', 'nadou', 'dormiu',
+    'comeu', 'bebeu', 'falou', 'ouviu', 'vendo', 'olhou', 'sentiu',
+    'tocou', 'pegou', 'soltou', 'abriu', 'fechou', 'ligou', 'parou',
+    'comeca', 'acaba', 'ganhou', 'perdeu', 'jogou', 'lendo',
+    'escreveu', 'cantou', 'dancou', 'rindo', 'chorou', 'gritou'
   ];
 
   const generateWordsForMode = (mode: GameMode, date: string): string[] => {
-    const wordCount = mode === 'solo'
-      ? 1
-      : mode === 'duo'
-      ? 2
-      : mode === 'trio'
-      ? 3
-      : 4;
+    const wordCount = mode === 'solo' ? 1 : mode === 'duo' ? 2 : mode === 'trio' ? 3 : 4;
     const words: string[] = [];
-
+    
     for (let i = 0; i < wordCount; i++) {
-      const [year, month, day] = date.split('-').map(n => parseInt(n, 10));
-      const baseSeed =
-        year +
-        month * 31 +
-        day * 365 +
-        i +
-        (mode === 'solo'
-          ? 0
-          : mode === 'duo'
-          ? 100
-          : mode === 'trio'
-          ? 200
-          : 300);
-      let hash = baseSeed;
-      hash = ((hash << 5) - hash + baseSeed) & 0xffffffff;
+      const dateNumbers = date.split('-').map(num => parseInt(num));
+      const seed = dateNumbers[0] + dateNumbers[1] * 31 + dateNumbers[2] * 365 + i + (mode === 'solo' ? 0 : mode === 'duo' ? 100 : mode === 'trio' ? 200 : 300);
+      
+      // Algoritmo de hash simples para distribuição mais uniforme
+      let hash = seed;
+      hash = ((hash << 5) - hash + seed) & 0xffffffff;
       hash = Math.abs(hash);
+      
       const wordIndex = hash % seedWords.length;
       words.push(seedWords[wordIndex]);
     }
-
+    
     return words;
   };
 
-  const clearAllMultiModeData = () => {
+  const clearAllMultiModeData = (currentDate: string) => {
+    console.log('🧹 LIMPEZA FORÇADA DE CACHE - MODOS MULTI');
     const keysToRemove: string[] = [];
-
+    
+    // Encontrar todas as chaves relacionadas aos modos multi
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (
-        key &&
-        (key.startsWith('termo-daily-words-') ||
-          key.startsWith('termo-session-duo-') ||
-          key.startsWith('termo-session-trio-') ||
-          key.startsWith('termo-session-quarteto-') ||
-          key.startsWith('termo-multi-session-'))
-      ) {
+      if (key && (
+        key.startsWith('termo-daily-words-') || 
+        key.startsWith('termo-session-duo-') ||
+        key.startsWith('termo-session-trio-') ||
+        key.startsWith('termo-session-quarteto-') ||
+        key.startsWith('termo-multi-session-')
+      )) {
         keysToRemove.push(key);
       }
     }
+    
+    // Remover TODAS as chaves (forçar reset completo)
+    keysToRemove.forEach(key => {
+      console.log(`🗑️ Removendo cache multi: ${key}`);
+      localStorage.removeItem(key);
+    });
 
-    keysToRemove.forEach(k => localStorage.removeItem(k));
-
-    document.cookie
-      .split(';')
-      .forEach(c => {
-        const name = c.split('=')[0].trim();
-        if (
-          name.startsWith('termo_duo_') ||
-          name.startsWith('termo_trio_') ||
-          name.startsWith('termo_quarteto_') ||
-          name.startsWith('termo_multi_')
-        ) {
-          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-        }
-      });
+    // Limpar TODOS os cookies multi-mode
+    const cookies = document.cookie.split(';');
+    cookies.forEach(cookie => {
+      const cookieName = cookie.split('=')[0].trim();
+      if (cookieName.startsWith('termo_duo_') || cookieName.startsWith('termo_trio_') || cookieName.startsWith('termo_quarteto_') || cookieName.startsWith('termo_multi_')) {
+        console.log(`🍪 Removendo cookie multi: ${cookieName}`);
+        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      }
+    });
   };
 
   const forceNewWords = (date: string) => {
-    clearAllMultiModeData();
-    const newData: Record<GameMode, string[]> = {
+    console.log(`🔄 FORÇANDO novas palavras MULTI para ${date}`);
+    
+    // Limpar cache antigo
+    clearAllMultiModeData(date);
+    
+    const newWordsData: Record<GameMode, string[]> = {
       solo: [],
       duo: [],
       trio: [],
       quarteto: []
     };
 
+    // Gerar palavras para cada modo
     (['solo', 'duo', 'trio', 'quarteto'] as GameMode[]).forEach(mode => {
       const words = generateWordsForMode(mode, date);
-      const payload = {
-        date,
-        words,
+      const wordData = {
+        date: date,
+        words: words,
         generated: new Date().toISOString()
       };
-      localStorage.setItem(`termo-daily-words-${mode}`, JSON.stringify(payload));
-      newData[mode] = words;
+      
+      console.log(`✨ Novas palavras ${mode} geradas: ${words.join(', ')} para ${date}`);
+      localStorage.setItem(`termo-daily-words-${mode}`, JSON.stringify(wordData));
+      newWordsData[mode] = words;
     });
-
-    return newData;
+    
+    return newWordsData;
   };
 
   useEffect(() => {
-    // Track pressed keys
-    const pressedKeys = new Set<string>();
-
     const loadWords = () => {
       const today = getTodayDateBrasilia();
-      const initial = forceNewWords(today);
-      setWordsData(initial);
+      console.log(`📅 Data atual em Brasília (MULTI): ${today}`);
+      
+      // SEMPRE forçar novas palavras no primeiro carregamento após meia-noite
+      console.log('🚀 FORÇANDO reset completo MULTI no carregamento');
+      const updatedWords = forceNewWords(today);
+      setWordsData(updatedWords);
       setLoading(false);
     };
 
     loadWords();
 
+    // Verificar a cada minuto se mudou o dia
     const interval = setInterval(() => {
       const currentDate = getTodayDateBrasilia();
-      let needsReset = false;
-
+      
+      // Verificar se algum modo tem data diferente da atual
+      let needsUpdate = false;
       (['solo', 'duo', 'trio', 'quarteto'] as GameMode[]).forEach(mode => {
-        const item = localStorage.getItem(`termo-daily-words-${mode}`);
-        if (item) {
+        const storedData = localStorage.getItem(`termo-daily-words-${mode}`);
+        if (storedData) {
           try {
-            const parsed = JSON.parse(item);
-            if (parsed.date !== currentDate) {
-              needsReset = true;
+            const wordData = JSON.parse(storedData);
+            if (wordData.date !== currentDate) {
+              needsUpdate = true;
             }
-          } catch {
-            needsReset = true;
+          } catch (error) {
+            console.error(`Erro na verificação periódica MULTI do modo ${mode}:`, error);
+            needsUpdate = true;
           }
         }
       });
 
-      if (needsReset) {
-        const updated = forceNewWords(currentDate);
-        setWordsData(updated);
+      if (needsUpdate) {
+        console.log('🌅 Detectada mudança de dia MULTI, atualizando palavras');
+        const updatedWords = forceNewWords(currentDate);
+        setWordsData(updatedWords);
       }
-    }, 60000);
+    }, 60000); // Verificar a cada minuto
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-      pressedKeys.add(key);
-      const combo = ['shift', 'control', 'alt', 'r', 'e', 's', 't'];
-      if (combo.every(k => pressedKeys.has(k))) {
-        const today = getTodayDateBrasilia();
-        const forced = forceNewWords(today);
-        setWordsData(forced);
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      pressedKeys.delete(e.key.toLowerCase());
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
+    return () => clearInterval(interval);
   }, []);
 
-  return {
-    wordsData,
+  return { 
+    wordsData, 
     loading
   };
 };

@@ -18,20 +18,34 @@ export const useTermoData = () => {
 
   // Lista expandida de palavras de 5 letras em português incluindo verbos
   const seedWords = [
-    'mundo','terra','tempo','valor','ponto','grupo','parte','forma',
-    'lugar','casos','vidas','modos','aguas','fogos','vento','noite',
-    'morte','homem','filho','casas','porta','mesas','livro','papel',
-    'bocas','olhos','dente','braco','perna','corpo','pazes','forca',
-    'poder','ordem','uniao','festa','jogos','artes','obras','nomes',
-    'ideia','plano','sorte','calor','frios','verde','azuis','preto',
-    'carro','aviao','ponte','radio','danca','filme','banco','praia',
-    'campo','pedra','metal','vidro','amava','vivia','sabia','podia',
-    'fazia','dizia','saius','subiu','andou','pulou','nadou','comeu',
-    'bebeu','falou','ouviu','vendo','olhou','tocou','pegou','abriu',
-    'ligou','parou','acaba','jogou','andar','viver','falar','beber',
-    'comer','ouvir','criar','mudar','jogar','pular','ferir','fugir',
-    'salto','barco','poema','media','gerar','musgo','amado','brisa',
-    'nozes','igual','jovem','solar'
+    // Substantivos
+    'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
+    'lugar', 'caso', 'vida', 'modo', 'agua', 'fogo', 'vento',
+    'noite', 'morte', 'homem', 'mulher', 'filho', 'casa', 'porta',
+    'mesa', 'livro', 'papel', 'boca', 'olhos', 'dente', 'braco',
+    'perna', 'cabeca', 'corpo', 'amor', 'paz', 'guerra', 'forca',
+    'poder', 'direito', 'ordem', 'uniao', 'festa', 'jogo',
+    'arte', 'obra', 'nome', 'ideia', 'plano', 'sorte', 'calor',
+    'frio', 'verde', 'azul', 'preto', 'branco', 'carro', 'aviao',
+    'ponte', 'radio', 'musica', 'danca', 'filme', 'banco', 'praia',
+    'campo', 'flor', 'arvore', 'pedra', 'metal', 'chuva', 'sol',
+    // Verbos infinitivos
+    'amar', 'viver', 'morrer', 'saber', 'poder', 'fazer', 'dizer',
+    'partir', 'chegar', 'voltar', 'entrar', 'sair', 'subir', 'descer',
+    'correr', 'andar', 'saltar', 'pular', 'voar', 'nadar', 'dormir',
+    'comer', 'beber', 'falar', 'ouvir', 'ver', 'olhar', 'sentir',
+    'tocar', 'pegar', 'soltar', 'abrir', 'fechar', 'ligar', 'parar',
+    'comecar', 'acabar', 'ganhar', 'perder', 'jogar', 'ler',
+    'escrever', 'cantar', 'dancar', 'rir', 'chorar', 'gritar',
+    // Verbos conjugados (presente/passado)
+    'amou', 'viveu', 'morreu', 'soube', 'pode', 'disse', 'partiu',
+    'chegou', 'voltou', 'entrou', 'saiu', 'subiu', 'desceu', 'correu',
+    'andou', 'saltou', 'pulou', 'voou', 'nadou', 'dormiu', 'comeu',
+    'bebeu', 'falou', 'ouviu', 'viu', 'olhou', 'sentiu', 'tocou',
+    'pegou', 'soltou', 'abriu', 'fechou', 'ligou', 'parou', 'ganhou',
+    'perdeu', 'jogou', 'leu', 'cantou', 'dancou', 'riu', 'chorou',
+    // Adjetivos
+    'belo', 'feio', 'grande', 'pequeno', 'novo', 'velho', 'alto', 'baixo'
   ];
 
   const generateDailyWord = (date: string): string => {
