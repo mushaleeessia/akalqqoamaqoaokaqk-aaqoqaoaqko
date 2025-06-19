@@ -45,7 +45,7 @@ export const useTermoData = () => {
     'pegou', 'soltou', 'abriu', 'fechou', 'ligou', 'parou', 'ganhou',
     'perdeu', 'jogou', 'leu', 'cantou', 'dancou', 'riu', 'chorou',
     // Adjetivos
-    'belo', 'feio', 'grande', 'pequeno', 'novo', 'velho', 'alto', 'baixo'
+    'belo', 'feio', 'grande', 'pequeno', 'novo', 'velho'
   ];
 
   const generateDailyWord = (date: string): string => {
