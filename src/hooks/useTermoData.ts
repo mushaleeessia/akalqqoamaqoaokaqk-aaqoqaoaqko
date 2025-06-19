@@ -45,7 +45,7 @@ export const useTermoData = () => {
     'pegou', 'soltou', 'abriu', 'fechou', 'ligou', 'parou', 'ganhou',
     'perdeu', 'jogou', 'leu', 'cantou', 'dancou', 'riu', 'chorou',
     // Adjetivos
-    'belo', 'feio', 'grande', 'pequeno', 'novo', 'velho'
+    'belo', 'feio', 'grande', 'pequeno', 'novo', 'velho', 'alto', 'baixo'
   ];
 
   const generateDailyWord = (date: string): string => {
@@ -93,7 +93,8 @@ export const useTermoData = () => {
     });
   };
 
-  const forceNewWord = (date: string)
+  const forceNewWord = (date: string) => {
+    console.log(`n-frc-wrd`);
     
     // Limpar cache antigo
     clearAllGameData(date);
@@ -133,6 +134,7 @@ export const useTermoData = () => {
         try {
           const wordData = JSON.parse(storedData);
           if (wordData.date !== currentDate) {
+            console.log('🌅 Detectada mudança de dia SOLO, atualizando palavra');
             const newWord = forceNewWord(currentDate);
             setTodayWord(newWord);
           }
