@@ -31,23 +31,21 @@ export const useTermoGameState = (targetWord: string) => {
     const targetArray = targetWord.toLowerCase().split('');
     const guessArray = guess.toLowerCase().split('');
     
-    // Primeiro passo: marcar corretas
     for (let i = 0; i < 5; i++) {
       if (guessArray[i] === targetArray[i]) {
         result[i] = 'correct';
-        targetArray[i] = '#'; // Marcar como usado
+        targetArray[i] = '#';
       } else {
-        result[i] = 'absent'; // Temporário
+        result[i] = 'absent';
       }
     }
     
-    // Segundo passo: marcar presentes
     for (let i = 0; i < 5; i++) {
       if (result[i] === 'absent') {
         const letterIndex = targetArray.indexOf(guessArray[i]);
         if (letterIndex !== -1) {
           result[i] = 'present';
-          targetArray[letterIndex] = '#'; // Marcar como usado
+          targetArray[letterIndex] = '#';
         }
       }
     }
@@ -60,7 +58,6 @@ export const useTermoGameState = (targetWord: string) => {
       const letter = guess[i].toLowerCase();
       const state = evaluation[i];
       
-      // Só atualizar se for um estado "melhor"
       if (!keyStatesObj[letter] || 
           (keyStatesObj[letter] === 'absent' && state !== 'absent') ||
           (keyStatesObj[letter] === 'present' && state === 'correct')) {
@@ -118,12 +115,10 @@ export const useTermoGameState = (targetWord: string) => {
       
       setGameState(newGameState);
 
-      // Se o jogo terminou, marcar como fresh game over
       if (isGameOver) {
         setShowingFreshGameOver(true);
       }
 
-      // Salvar o progresso imediatamente quando o jogo termina
       saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
       
     } catch (error) {
@@ -148,8 +143,6 @@ export const useTermoGameState = (targetWord: string) => {
         currentGuess: gameState.currentGuess.slice(0, -1)
       };
       setGameState(newGameState);
-      
-      // Salvar progresso da digitação atual
       saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
     } else if (key.length === 1 && gameState.currentGuess.length < 5) {
       const newGameState = {
@@ -157,11 +150,35 @@ export const useTermoGameState = (targetWord: string) => {
         currentGuess: gameState.currentGuess + key.toLowerCase()
       };
       setGameState(newGameState);
-      
-      // Salvar progresso da digitação atual
       saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
     }
   }, [gameState, isValidating, submitGuess, saveGameProgress]);
+
+  // Carregar progresso salvo ao inicializar
+  useState(() => {
+    if (sessionInfo) {
+      const loadedGameState = {
+        guesses: sessionInfo.guesses || [],
+        currentGuess: sessionInfo.currentGuess || '',
+        gameStatus: sessionInfo.gameStatus || 'playing',
+        currentRow: sessionInfo.guesses?.length || 0
+      };
+      
+      if (!showingFreshGameOver && 
+          !(gameState.gameStatus === 'won' || gameState.gameStatus === 'lost')) {
+        setGameState(loadedGameState);
+      }
+
+      if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
+        const newKeyStates: Record<string, any> = {};
+        sessionInfo.guesses.forEach(guess => {
+          const evaluation = evaluateGuess(guess);
+          updateKeyStatesForGuess(guess, evaluation, newKeyStates);
+        });
+        setKeyStates(newKeyStates);
+      }
+    }
+  });
 
   return {
     gameState,

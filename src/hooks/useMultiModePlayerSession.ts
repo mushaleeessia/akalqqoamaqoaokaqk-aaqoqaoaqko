@@ -24,29 +24,30 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
     return brasiliaTime.toISOString().split('T')[0];
   };
 
-  const generatePlayerHash = (): string => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.textBaseline = 'top';
-      ctx.font = '14px Arial';
-      ctx.fillText('Player fingerprint', 2, 2);
+  const generatePlayerHash = async (): Promise<string> => {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      const ip = data.ip;
+      
+      let hash = 0;
+      for (let i = 0; i < ip.length; i++) {
+        const char = ip.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      
+      return Math.abs(hash).toString();
+    } catch (error) {
+      const fallback = navigator.userAgent + navigator.language + screen.width + screen.height;
+      let hash = 0;
+      for (let i = 0; i < fallback.length; i++) {
+        const char = fallback.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      return Math.abs(hash).toString();
     }
-    
-    const fingerprint = canvas.toDataURL() + 
-                       navigator.userAgent + 
-                       navigator.language + 
-                       screen.width + 
-                       screen.height;
-    
-    let hash = 0;
-    for (let i = 0; i < fingerprint.length; i++) {
-      const char = fingerprint.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    
-    return Math.abs(hash).toString();
   };
 
   const getSessionKey = () => `termo-multi-session-${mode}-${getTodayDate()}`;
@@ -72,25 +73,33 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
     
     localStorage.setItem(sessionKey, sessionData);
     setCookie(cookieKey, sessionData, 1);
+    
+    // Salvar também por IP
+    setCookie(`${cookieKey}_ip_${session.ipHash}`, sessionData, 1);
   };
 
-  const loadSession = (): MultiModePlayerSession | null => {
+  const loadSession = async (): Promise<MultiModePlayerSession | null> => {
     const sessionKey = getSessionKey();
     const cookieKey = getCookieKey();
+    const playerHash = await generatePlayerHash();
     
     let sessionData = localStorage.getItem(sessionKey);
     
     if (!sessionData) {
       sessionData = getCookie(cookieKey);
-      if (sessionData) {
-        localStorage.setItem(sessionKey, sessionData);
-      }
+    }
+    
+    if (!sessionData) {
+      sessionData = getCookie(`${cookieKey}_ip_${playerHash}`);
     }
     
     if (sessionData) {
       try {
         const session = JSON.parse(sessionData);
         if (session.mode === mode) {
+          if (localStorage.getItem(sessionKey) !== sessionData) {
+            localStorage.setItem(sessionKey, sessionData);
+          }
           return session;
         } else {
           localStorage.removeItem(sessionKey);
@@ -104,18 +113,17 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
     return null;
   };
 
-  const initializeSession = () => {
+  const initializeSession = async () => {
     const today = getTodayDate();
-    const playerHash = generatePlayerHash();
+    const playerHash = await generatePlayerHash();
     
-    const existingSession = loadSession();
+    const existingSession = await loadSession();
     if (existingSession && existingSession.ipHash === playerHash) {
       setSessionInfo(existingSession);
       setCanPlay(!(existingSession.completed || existingSession.failed));
       return;
     }
     
-    // Criar nova sessão
     const newSession: MultiModePlayerSession = {
       date: today,
       completed: false,

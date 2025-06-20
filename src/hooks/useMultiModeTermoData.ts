@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { GameMode } from '@/components/GameModeSelector';
 
@@ -11,18 +12,13 @@ export const useMultiModeTermoData = () => {
   const [loading, setLoading] = useState(true);
 
   const getTodayDateBrasilia = () => {
-    // Criar data atual em UTC
     const now = new Date();
-    // Converter para horário de Brasília (UTC-3)
-    const brasiliaOffset = -3 * 60; // -3 horas em minutos
+    const brasiliaOffset = -3 * 60;
     const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
     const brasiliaTime = new Date(utc + (brasiliaOffset * 60000));
-    
-    // Formatear como YYYY-MM-DD
     return brasiliaTime.toISOString().split('T')[0];
   };
 
-  // Todas as palavras têm exatamente 5 letras
   const seedWords = [
     'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
     'lugar', 'casos', 'vidas', 'modos', 'aguas', 'fogos', 'vento',
@@ -43,15 +39,41 @@ export const useMultiModeTermoData = () => {
     'escreveu', 'cantou', 'dancou', 'rindo', 'chorou', 'gritou'
   ];
 
+  const generatePlayerIpHash = async (): Promise<string> => {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      const ip = data.ip;
+      
+      let hash = 0;
+      for (let i = 0; i < ip.length; i++) {
+        const char = ip.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      
+      return Math.abs(hash).toString();
+    } catch (error) {
+      const fallback = navigator.userAgent + screen.width + screen.height;
+      let hash = 0;
+      for (let i = 0; i < fallback.length; i++) {
+        const char = fallback.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      return Math.abs(hash).toString();
+    }
+  };
+
   const generateWordsForMode = (mode: GameMode, date: string): string[] => {
     const wordCount = mode === 'solo' ? 1 : mode === 'duo' ? 2 : mode === 'trio' ? 3 : 4;
     const words: string[] = [];
     
     for (let i = 0; i < wordCount; i++) {
       const dateNumbers = date.split('-').map(num => parseInt(num));
-      const seed = dateNumbers[0] + dateNumbers[1] * 31 + dateNumbers[2] * 365 + i + (mode === 'solo' ? 0 : mode === 'duo' ? 100 : mode === 'trio' ? 200 : 300);
+      const seed = dateNumbers[0] + dateNumbers[1] * 31 + dateNumbers[2] * 365 + i + 
+                   (mode === 'solo' ? 0 : mode === 'duo' ? 100 : mode === 'trio' ? 200 : 300);
       
-      // Algoritmo de hash simples para distribuição mais uniforme
       let hash = seed;
       hash = ((hash << 5) - hash + seed) & 0xffffffff;
       hash = Math.abs(hash);
@@ -63,11 +85,9 @@ export const useMultiModeTermoData = () => {
     return words;
   };
 
-  const clearAllMultiModeData = (currentDate: string) => {
-    console.log('🧹 LIMPEZA FORÇADA DE CACHE - MODOS MULTI');
+  const clearAllMultiModeData = () => {
     const keysToRemove: string[] = [];
     
-    // Encontrar todas as chaves relacionadas aos modos multi
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && (
@@ -81,28 +101,22 @@ export const useMultiModeTermoData = () => {
       }
     }
     
-    // Remover TODAS as chaves (forçar reset completo)
     keysToRemove.forEach(key => {
-      console.log(`🗑️ Removendo cache multi: ${key}`);
       localStorage.removeItem(key);
     });
 
-    // Limpar TODOS os cookies multi-mode
     const cookies = document.cookie.split(';');
     cookies.forEach(cookie => {
       const cookieName = cookie.split('=')[0].trim();
-      if (cookieName.startsWith('termo_duo_') || cookieName.startsWith('termo_trio_') || cookieName.startsWith('termo_quarteto_') || cookieName.startsWith('termo_multi_')) {
-        console.log(`🍪 Removendo cookie multi: ${cookieName}`);
+      if (cookieName.startsWith('termo_duo_') || cookieName.startsWith('termo_trio_') || 
+          cookieName.startsWith('termo_quarteto_') || cookieName.startsWith('termo_multi_')) {
         document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
       }
     });
   };
 
-  const forceNewWords = (date: string) => {
-    console.log(`🔄 FORÇANDO novas palavras MULTI para ${date}`);
-    
-    // Limpar cache antigo
-    clearAllMultiModeData(date);
+  const forceNewWords = (date: string): Record<GameMode, string[]> => {
+    clearAllMultiModeData();
     
     const newWordsData: Record<GameMode, string[]> = {
       solo: [],
@@ -111,7 +125,6 @@ export const useMultiModeTermoData = () => {
       quarteto: []
     };
 
-    // Gerar palavras para cada modo
     (['solo', 'duo', 'trio', 'quarteto'] as GameMode[]).forEach(mode => {
       const words = generateWordsForMode(mode, date);
       const wordData = {
@@ -120,7 +133,6 @@ export const useMultiModeTermoData = () => {
         generated: new Date().toISOString()
       };
       
-      console.log(`✨ Novas palavras ${mode} geradas: ${words.join(', ')} para ${date}`);
       localStorage.setItem(`termo-daily-words-${mode}`, JSON.stringify(wordData));
       newWordsData[mode] = words;
     });
@@ -128,25 +140,65 @@ export const useMultiModeTermoData = () => {
     return newWordsData;
   };
 
+  const loadOrGenerateWords = (date: string): Record<GameMode, string[]> => {
+    const wordsData: Record<GameMode, string[]> = {
+      solo: [],
+      duo: [],
+      trio: [],
+      quarteto: []
+    };
+
+    let needsGeneration = false;
+
+    (['solo', 'duo', 'trio', 'quarteto'] as GameMode[]).forEach(mode => {
+      const storedData = localStorage.getItem(`termo-daily-words-${mode}`);
+      
+      if (storedData) {
+        try {
+          const wordData = JSON.parse(storedData);
+          if (wordData.date === date && wordData.words && wordData.words.length > 0) {
+            wordsData[mode] = wordData.words;
+          } else {
+            needsGeneration = true;
+          }
+        } catch (error) {
+          needsGeneration = true;
+        }
+      } else {
+        needsGeneration = true;
+      }
+    });
+
+    if (needsGeneration) {
+      (['solo', 'duo', 'trio', 'quarteto'] as GameMode[]).forEach(mode => {
+        const words = generateWordsForMode(mode, date);
+        const wordData = {
+          date: date,
+          words: words,
+          generated: new Date().toISOString()
+        };
+        
+        localStorage.setItem(`termo-daily-words-${mode}`, JSON.stringify(wordData));
+        wordsData[mode] = words;
+      });
+    }
+
+    return wordsData;
+  };
+
   useEffect(() => {
     const loadWords = () => {
       const today = getTodayDateBrasilia();
-      console.log(`📅 Data atual em Brasília (MULTI): ${today}`);
-      
-      // SEMPRE forçar novas palavras no primeiro carregamento após meia-noite
-      console.log('🚀 FORÇANDO reset completo MULTI no carregamento');
-      const updatedWords = forceNewWords(today);
-      setWordsData(updatedWords);
+      const words = loadOrGenerateWords(today);
+      setWordsData(words);
       setLoading(false);
     };
 
     loadWords();
 
-    // Verificar a cada minuto se mudou o dia
     const interval = setInterval(() => {
       const currentDate = getTodayDateBrasilia();
       
-      // Verificar se algum modo tem data diferente da atual
       let needsUpdate = false;
       (['solo', 'duo', 'trio', 'quarteto'] as GameMode[]).forEach(mode => {
         const storedData = localStorage.getItem(`termo-daily-words-${mode}`);
@@ -157,18 +209,18 @@ export const useMultiModeTermoData = () => {
               needsUpdate = true;
             }
           } catch (error) {
-            console.error(`Erro na verificação periódica MULTI do modo ${mode}:`, error);
             needsUpdate = true;
           }
+        } else {
+          needsUpdate = true;
         }
       });
 
       if (needsUpdate) {
-        console.log('🌅 Detectada mudança de dia MULTI, atualizando palavras');
-        const updatedWords = forceNewWords(currentDate);
+        const updatedWords = loadOrGenerateWords(currentDate);
         setWordsData(updatedWords);
       }
-    }, 60000); // Verificar a cada minuto
+    }, 60000);
 
     return () => clearInterval(interval);
   }, []);
