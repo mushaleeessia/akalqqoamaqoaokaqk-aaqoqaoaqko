@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 export const useTermoData = () => {
@@ -13,7 +12,11 @@ export const useTermoData = () => {
     return brasiliaTime.toISOString().split('T')[0];
   };
 
-  const seedWords = [
+  const validateWordLength = (words: string[]): string[] => {
+    return words.filter(word => word.length === 5);
+  };
+
+  const rawSeedWords = [
     'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
     'lugar', 'caso', 'vida', 'modo', 'agua', 'fogo', 'vento',
     'noite', 'morte', 'homem', 'mulher', 'filho', 'casa', 'porta',
@@ -39,6 +42,8 @@ export const useTermoData = () => {
     'perdeu', 'jogou', 'leu', 'cantou', 'dancou', 'riu', 'chorou',
     'belo', 'feio', 'grande', 'pequeno', 'novo', 'velho', 'alto', 'baixo'
   ];
+
+  const seedWords = validateWordLength(rawSeedWords);
 
   const generatePlayerIpHash = async (): Promise<string> => {
     try {
@@ -67,6 +72,10 @@ export const useTermoData = () => {
   };
 
   const generateDailyWord = (date: string): string => {
+    if (seedWords.length === 0) {
+      return 'mundo'; // Fallback seguro
+    }
+    
     const dateNumbers = date.split('-').map(num => parseInt(num));
     const seed = dateNumbers[0] + dateNumbers[1] * 31 + dateNumbers[2] * 365;
     

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { GameMode } from '@/components/GameModeSelector';
 
@@ -19,7 +18,11 @@ export const useMultiModeTermoData = () => {
     return brasiliaTime.toISOString().split('T')[0];
   };
 
-  const seedWords = [
+  const validateWordLength = (words: string[]): string[] => {
+    return words.filter(word => word.length === 5);
+  };
+
+  const rawSeedWords = [
     'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
     'lugar', 'casos', 'vidas', 'modos', 'aguas', 'fogos', 'vento',
     'noite', 'morte', 'homem', 'mulher', 'filho', 'casas', 'porta',
@@ -38,6 +41,8 @@ export const useMultiModeTermoData = () => {
     'comeca', 'acaba', 'ganhou', 'perdeu', 'jogou', 'lendo',
     'escreveu', 'cantou', 'dancou', 'rindo', 'chorou', 'gritou'
   ];
+
+  const seedWords = validateWordLength(rawSeedWords);
 
   const generatePlayerIpHash = async (): Promise<string> => {
     try {
@@ -66,6 +71,10 @@ export const useMultiModeTermoData = () => {
   };
 
   const generateWordsForMode = (mode: GameMode, date: string): string[] => {
+    if (seedWords.length === 0) {
+      return ['mundo']; // Fallback seguro
+    }
+    
     const wordCount = mode === 'solo' ? 1 : mode === 'duo' ? 2 : mode === 'trio' ? 3 : 4;
     const words: string[] = [];
     
