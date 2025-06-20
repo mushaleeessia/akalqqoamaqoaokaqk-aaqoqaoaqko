@@ -8,6 +8,7 @@ interface TermoGridProps {
   currentRow: number;
   maxGuesses: number;
   isDarkMode: boolean;
+  isWordCompleted?: boolean;
 }
 
 export const TermoGrid = ({ 
@@ -16,7 +17,8 @@ export const TermoGrid = ({
   targetWord, 
   currentRow, 
   maxGuesses,
-  isDarkMode 
+  isDarkMode,
+  isWordCompleted = false
 }: TermoGridProps) => {
   
   const evaluateGuess = (guess: string): LetterState[] => {
@@ -76,18 +78,41 @@ export const TermoGrid = ({
     }
   };
 
+  // Encontrar em qual tentativa a palavra foi acertada
+  const findCompletedRow = (): number => {
+    for (let i = 0; i < guesses.length; i++) {
+      if (guesses[i].toLowerCase() === targetWord.toLowerCase()) {
+        return i;
+      }
+    }
+    return -1;
+  };
+
+  const completedRow = findCompletedRow();
+
   const renderRow = (rowIndex: number) => {
     let letters: string[] = [];
     let states: LetterState[] = [];
 
     if (rowIndex < guesses.length) {
-      // Linha com guess já feito
-      letters = guesses[rowIndex].split('');
-      states = evaluateGuess(guesses[rowIndex]);
+      // Se a palavra já foi acertada e esta linha é posterior ao acerto, mostrar vazia
+      if (completedRow !== -1 && rowIndex > completedRow) {
+        letters = new Array(5).fill('');
+        states = new Array(5).fill('empty');
+      } else {
+        // Linha com guess já feito
+        letters = guesses[rowIndex].split('');
+        states = evaluateGuess(guesses[rowIndex]);
+      }
     } else if (rowIndex === currentRow) {
-      // Linha atual
-      letters = currentGuess.split('');
-      states = new Array(5).fill('empty');
+      // Linha atual - se a palavra já foi acertada, não mostrar currentGuess
+      if (completedRow !== -1) {
+        letters = new Array(5).fill('');
+        states = new Array(5).fill('empty');
+      } else {
+        letters = currentGuess.split('');
+        states = new Array(5).fill('empty');
+      }
     } else {
       // Linha vazia
       letters = new Array(5).fill('');

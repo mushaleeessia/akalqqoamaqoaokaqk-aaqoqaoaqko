@@ -15,6 +15,14 @@ export const MultiModeGameGrid = ({
   maxGuesses, 
   isDarkMode 
 }: MultiModeGameGridProps) => {
+  
+  // Verificar quais palavras já foram acertadas
+  const isWordCompleted = (targetWord: string): boolean => {
+    return gameState.guesses.some(guess => 
+      guess.toLowerCase() === targetWord.toLowerCase()
+    );
+  };
+
   const getContainerClass = () => {
     switch (targetWords.length) {
       case 1:
@@ -72,6 +80,7 @@ export const MultiModeGameGrid = ({
                 currentRow={gameState.currentRow}
                 maxGuesses={maxGuesses}
                 isDarkMode={isDarkMode}
+                isWordCompleted={isWordCompleted(targetWord)}
               />
             </div>
           </div>
