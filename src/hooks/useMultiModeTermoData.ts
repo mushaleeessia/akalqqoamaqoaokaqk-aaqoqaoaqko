@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { GameMode } from '@/components/GameModeSelector';
 
@@ -44,35 +45,9 @@ export const useMultiModeTermoData = () => {
 
   const seedWords = validateWordLength(rawSeedWords);
 
-  const generatePlayerIpHash = async (): Promise<string> => {
-    try {
-      const response = await fetch('https://api.ipify.org?format=json');
-      const data = await response.json();
-      const ip = data.ip;
-      
-      let hash = 0;
-      for (let i = 0; i < ip.length; i++) {
-        const char = ip.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-      }
-      
-      return Math.abs(hash).toString();
-    } catch (error) {
-      const fallback = navigator.userAgent + screen.width + screen.height;
-      let hash = 0;
-      for (let i = 0; i < fallback.length; i++) {
-        const char = fallback.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-      }
-      return Math.abs(hash).toString();
-    }
-  };
-
   const generateWordsForMode = (mode: GameMode, date: string): string[] => {
     if (seedWords.length === 0) {
-      return ['mundo']; // Fallback seguro
+      return ['mundo'];
     }
     
     const wordCount = mode === 'solo' ? 1 : mode === 'duo' ? 2 : mode === 'trio' ? 3 : 4;
