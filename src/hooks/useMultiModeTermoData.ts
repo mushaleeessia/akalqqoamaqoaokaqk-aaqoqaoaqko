@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { GameMode } from '@/components/GameModeSelector';
 
@@ -9,6 +10,7 @@ export const useMultiModeTermoData = () => {
     quarteto: []
   });
   const [loading, setLoading] = useState(true);
+  const [gameStartDate, setGameStartDate] = useState<string>('');
 
   const getTodayDateBrasilia = () => {
     const now = new Date();
@@ -64,6 +66,7 @@ export const useMultiModeTermoData = () => {
       words.push(seedWords[wordIndex]);
     }
     
+    console.log(`[MultiMode] Palavras geradas para ${mode} na data ${date}:`, words);
     return words;
   };
 
@@ -140,6 +143,7 @@ export const useMultiModeTermoData = () => {
           const wordData = JSON.parse(storedData);
           if (wordData.date === date && wordData.words && wordData.words.length > 0) {
             wordsData[mode] = wordData.words;
+            console.log(`[MultiMode] Palavras carregadas do localStorage para ${mode}:`, wordData.words);
           } else {
             needsGeneration = true;
           }
@@ -171,41 +175,44 @@ export const useMultiModeTermoData = () => {
   useEffect(() => {
     const loadWords = () => {
       const today = getTodayDateBrasilia();
+      console.log(`[MultiMode] Carregando palavras para data: ${today}`);
       const words = loadOrGenerateWords(today);
       setWordsData(words);
+      setGameStartDate(today);
       setLoading(false);
     };
 
     loadWords();
 
+    // CORREÇÃO: Não verificar mudança de data durante o jogo ativo
+    // Apenas verificar se há sessões de jogo ativas antes de mudar palavras
     const interval = setInterval(() => {
       const currentDate = getTodayDateBrasilia();
       
-      let needsUpdate = false;
-      (['solo', 'duo', 'trio', 'quarteto'] as GameMode[]).forEach(mode => {
-        const storedData = localStorage.getItem(`termo-daily-words-${mode}`);
-        if (storedData) {
+      // Só atualizar palavras se não há jogos em andamento
+      const hasActiveGame = (['solo', 'duo', 'trio', 'quarteto'] as GameMode[]).some(mode => {
+        const sessionData = localStorage.getItem(`termo-multi-session-${mode}`);
+        if (sessionData) {
           try {
-            const wordData = JSON.parse(storedData);
-            if (wordData.date !== currentDate) {
-              needsUpdate = true;
-            }
-          } catch (error) {
-            needsUpdate = true;
+            const session = JSON.parse(sessionData);
+            return session.gameStatus === 'playing' && session.guesses && session.guesses.length > 0;
+          } catch {
+            return false;
           }
-        } else {
-          needsUpdate = true;
         }
+        return false;
       });
 
-      if (needsUpdate) {
+      if (!hasActiveGame && gameStartDate !== currentDate) {
+        console.log(`[MultiMode] Data mudou de ${gameStartDate} para ${currentDate}, atualizando palavras`);
         const updatedWords = loadOrGenerateWords(currentDate);
         setWordsData(updatedWords);
+        setGameStartDate(currentDate);
       }
     }, 60000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [gameStartDate]);
 
   return { 
     wordsData, 

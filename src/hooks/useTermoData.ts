@@ -1,10 +1,9 @@
-
-
 import { useState, useEffect } from 'react';
 
 export const useTermoData = () => {
   const [todayWord, setTodayWord] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [gameStartDate, setGameStartDate] = useState<string>('');
 
   const getTodayDateBrasilia = () => {
     const now = new Date();
@@ -52,6 +51,7 @@ export const useTermoData = () => {
     hash = Math.abs(hash);
     
     const wordIndex = hash % seedWords.length;
+    console.log(`[Solo] Palavra gerada para data ${date}:`, seedWords[wordIndex]);
     return seedWords[wordIndex];
   };
 
@@ -126,33 +126,42 @@ export const useTermoData = () => {
   useEffect(() => {
     const loadTodayWord = () => {
       const today = getTodayDateBrasilia();
+      console.log(`[Solo] Carregando palavra para data: ${today}`);
       const word = loadOrGenerateWord(today);
       setTodayWord(word);
+      setGameStartDate(today);
       setLoading(false);
     };
 
     loadTodayWord();
 
+    // CORREÇÃO: Não verificar mudança de data durante o jogo ativo
     const interval = setInterval(() => {
       const currentDate = getTodayDateBrasilia();
-      const storedData = localStorage.getItem('termo-daily-word');
       
-      if (storedData) {
+      // Só atualizar palavra se não há jogo em andamento
+      const sessionData = localStorage.getItem('termo-session');
+      let hasActiveGame = false;
+      
+      if (sessionData) {
         try {
-          const wordData = JSON.parse(storedData);
-          if (wordData.date !== currentDate) {
-            const newWord = loadOrGenerateWord(currentDate);
-            setTodayWord(newWord);
-          }
-        } catch (error) {
-          const newWord = loadOrGenerateWord(currentDate);
-          setTodayWord(newWord);
+          const session = JSON.parse(sessionData);
+          hasActiveGame = session.gameStatus === 'playing' && session.guesses && session.guesses.length > 0;
+        } catch {
+          hasActiveGame = false;
         }
+      }
+
+      if (!hasActiveGame && gameStartDate !== currentDate) {
+        console.log(`[Solo] Data mudou de ${gameStartDate} para ${currentDate}, atualizando palavra`);
+        const newWord = loadOrGenerateWord(currentDate);
+        setTodayWord(newWord);
+        setGameStartDate(currentDate);
       }
     }, 60000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [gameStartDate]);
 
   useEffect(() => {
     const handleKeyboardShortcut = (event: KeyboardEvent) => {
@@ -195,4 +204,3 @@ export const useTermoData = () => {
     loading
   };
 };
-

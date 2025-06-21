@@ -39,25 +39,31 @@ export const TermoKeyboard = ({ onKeyPress, keyStates, isDarkMode, disabled = fa
   };
 
   const handleClick = (key: string) => {
+    console.log(`[Keyboard] Tecla clicada: "${key}"`);
     if (!disabled) {
       onKeyPress(key);
     }
   };
 
+  console.log('[Keyboard] Renderizando teclado com teclas:', rows.flat());
+
   return (
     <div className="flex flex-col space-y-2 w-full max-w-lg">
       {rows.map((row, rowIndex) => (
         <div key={rowIndex} className="flex justify-center space-x-1">
-          {row.map((key) => (
-            <button
-              key={key}
-              onClick={() => handleClick(key)}
-              className={getKeyClass(key)}
-              disabled={disabled}
-            >
-              {key === 'BACKSPACE' ? '⌫' : key}
-            </button>
-          ))}
+          {row.map((key) => {
+            console.log(`[Keyboard] Renderizando tecla: "${key}"`);
+            return (
+              <button
+                key={key}
+                onClick={() => handleClick(key)}
+                className={getKeyClass(key)}
+                disabled={disabled}
+              >
+                {key === 'BACKSPACE' ? '⌫' : key}
+              </button>
+            );
+          })}
         </div>
       ))}
     </div>
