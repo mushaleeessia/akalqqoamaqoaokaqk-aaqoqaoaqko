@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 export const useTermoData = () => {
@@ -27,12 +28,12 @@ export const useTermoData = () => {
     'artes', 'obras', 'nomes', 'ideia', 'plano', 'sorte', 'calor',
     'frios', 'verde', 'azuis', 'preto', 'carro', 'aviao',
     'ponte', 'radio', 'danca', 'filme', 'banco', 'praia',
-    'campo', 'pedra', 'metal', 'vidro', 'papel',
+    'campo', 'pedra', 'metal', 'vidro',
     'amava', 'vivia', 'sabia', 'podia', 'fazia', 'dizia',
-    'subiu', 'andou', 'pulou', 'voous', 'nadou',
+    'subiu', 'andou', 'pulou', 'nadou',
     'comeu', 'bebeu', 'falou', 'ouviu', 'vendo', 'olhou',
     'tocou', 'pegou', 'abriu', 'ligou', 'parou',
-    'ganhou', 'perdeu', 'jogou', 'lendo',
+    'perdeu', 'jogou', 'lendo',
     'cantou', 'rindo', 'chorou'
   ];
 
@@ -51,7 +52,6 @@ export const useTermoData = () => {
     hash = Math.abs(hash);
     
     const wordIndex = hash % seedWords.length;
-    console.log(`[Solo] Palavra gerada para data ${date}:`, seedWords[wordIndex]);
     return seedWords[wordIndex];
   };
 
@@ -126,7 +126,6 @@ export const useTermoData = () => {
   useEffect(() => {
     const loadTodayWord = () => {
       const today = getTodayDateBrasilia();
-      console.log(`[Solo] Carregando palavra para data: ${today}`);
       const word = loadOrGenerateWord(today);
       setTodayWord(word);
       setGameStartDate(today);
@@ -135,11 +134,10 @@ export const useTermoData = () => {
 
     loadTodayWord();
 
-    // CORREÇÃO: Não verificar mudança de data durante o jogo ativo
+    // Só atualizar palavra se não há jogo em andamento
     const interval = setInterval(() => {
       const currentDate = getTodayDateBrasilia();
       
-      // Só atualizar palavra se não há jogo em andamento
       const sessionData = localStorage.getItem('termo-session');
       let hasActiveGame = false;
       
@@ -153,7 +151,6 @@ export const useTermoData = () => {
       }
 
       if (!hasActiveGame && gameStartDate !== currentDate) {
-        console.log(`[Solo] Data mudou de ${gameStartDate} para ${currentDate}, atualizando palavra`);
         const newWord = loadOrGenerateWord(currentDate);
         setTodayWord(newWord);
         setGameStartDate(currentDate);
