@@ -28,6 +28,19 @@ export const TermoGameOver = ({
   const isWin = gameState.gameStatus === 'won';
   const attempts = gameState.guesses.length;
 
+  // Obter o número máximo de tentativas baseado no modo
+  const getMaxAttempts = (gameMode: GameMode) => {
+    switch (gameMode) {
+      case 'solo': return 6;
+      case 'duo': return 8;
+      case 'trio': return 9;
+      case 'quarteto': return 10;
+      default: return 6;
+    }
+  };
+
+  const maxAttempts = getMaxAttempts(mode);
+
   // Listener para a combinação de teclas CTRL+SHIFT+ALT+S+O
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -115,13 +128,24 @@ export const TermoGameOver = ({
     let shareText = `Termo ${modeLabel} ${modeEmoji} ${today}\n`;
     
     if (isWin) {
-      shareText += `✅ ${attempts}/6\n\n`;
+      shareText += `✅ ${attempts}/${maxAttempts}\n\n`;
     } else {
-      shareText += `❌ X/6\n\n`;
+      shareText += `❌ X/${maxAttempts}\n\n`;
     }
 
+    // Rastrear quando cada palavra foi completada
+    const wordCompletedAt: Record<string, number> = {};
+    
+    gameState.guesses.forEach((guess, guessIndex) => {
+      allTargetWords.forEach((word) => {
+        if (guess.toLowerCase() === word.toLowerCase() && !(word in wordCompletedAt)) {
+          wordCompletedAt[word] = guessIndex;
+        }
+      });
+    });
+
     // Gerar os quadrados para cada tentativa
-    gameState.guesses.forEach((guess) => {
+    gameState.guesses.forEach((guess, guessIndex) => {
       if (mode === 'solo') {
         const evaluation = evaluateGuess(guess, allTargetWords[0]);
         shareText += evaluation.map(state => {
@@ -135,14 +159,19 @@ export const TermoGameOver = ({
       } else {
         // Para modos multi-palavra, mostrar uma linha por palavra
         allTargetWords.forEach((word, wordIndex) => {
-          const evaluation = evaluateGuess(guess, word);
-          shareText += evaluation.map(state => {
-            switch (state) {
-              case 'correct': return '🟩';
-              case 'present': return '🟨';
-              default: return '⬛';
-            }
-          }).join('');
+          // Se a palavra já foi completada em uma tentativa anterior, mostrar cinza
+          if (word in wordCompletedAt && wordCompletedAt[word] < guessIndex) {
+            shareText += '⬛⬛⬛⬛⬛';
+          } else {
+            const evaluation = evaluateGuess(guess, word);
+            shareText += evaluation.map(state => {
+              switch (state) {
+                case 'correct': return '🟩';
+                case 'present': return '🟨';
+                default: return '⬛';
+              }
+            }).join('');
+          }
           if (wordIndex < allTargetWords.length - 1) shareText += ' ';
         });
         shareText += '\n';
