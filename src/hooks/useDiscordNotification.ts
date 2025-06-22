@@ -22,18 +22,31 @@ export const useDiscordNotification = ({
   showingFreshGameOver = false
 }: UseDiscordNotificationProps) => {
   const hasSentNotification = useRef(false);
+  const previousGameStatus = useRef(gameState.gameStatus);
 
   useEffect(() => {
+    // Detectar quando o jogo acabou de terminar (mudança de status)
+    const justFinished = previousGameStatus.current === 'playing' && 
+                         (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost');
+    
+    console.log('Discord notification check:', {
+      justFinished,
+      previousStatus: previousGameStatus.current,
+      currentStatus: gameState.gameStatus,
+      hasIP: !!playerIP,
+      hasGuesses: gameState.guesses.length > 0,
+      showingFreshGameOver,
+      hasSentNotification: hasSentNotification.current
+    });
+
     // Só enviar quando:
-    // 1. O jogo terminou (won ou lost)
+    // 1. O jogo acabou de terminar (mudança de playing para won/lost)
     // 2. Tem IP do jogador
     // 3. Tem tentativas
-    // 4. Está mostrando o game over da sessão atual (não carregando estado antigo)
-    // 5. Ainda não enviou notificação para esta sessão
-    if ((gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') && 
+    // 4. Ainda não enviou notificação para esta sessão
+    if (justFinished && 
         playerIP && 
         gameState.guesses.length > 0 &&
-        showingFreshGameOver &&
         !hasSentNotification.current) {
       
       const isWin = gameState.gameStatus === 'won';
@@ -45,7 +58,7 @@ export const useDiscordNotification = ({
         gameStatus: gameState.gameStatus, 
         attempts, 
         mode,
-        showingFreshGameOver
+        shareText
       });
       
       // Enviar para Discord automaticamente
@@ -54,10 +67,14 @@ export const useDiscordNotification = ({
       // Marcar como enviado para evitar envios duplicados
       hasSentNotification.current = true;
     }
+
+    // Atualizar o status anterior
+    previousGameStatus.current = gameState.gameStatus;
   }, [gameState.gameStatus, gameState.guesses.length, mode, allTargetWords, playerIP, showingFreshGameOver]);
 
   // Reset quando o modo muda
   useEffect(() => {
     hasSentNotification.current = false;
+    previousGameStatus.current = 'playing';
   }, [mode]);
 };
