@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { GameState } from '@/components/TermoGame';
 import { MultiModeGameState } from '@/hooks/useMultiModeGameState';
 import { GameMode } from '@/components/GameModeSelector';
@@ -11,19 +11,30 @@ interface UseDiscordNotificationProps {
   mode: GameMode;
   allTargetWords: string[];
   playerIP?: string;
+  showingFreshGameOver?: boolean;
 }
 
 export const useDiscordNotification = ({ 
   gameState, 
   mode, 
   allTargetWords, 
-  playerIP 
+  playerIP,
+  showingFreshGameOver = false
 }: UseDiscordNotificationProps) => {
+  const hasSentNotification = useRef(false);
+
   useEffect(() => {
-    // Só enviar quando o jogo terminar (won ou lost) E não estiver mais jogando
+    // Só enviar quando:
+    // 1. O jogo terminou (won ou lost)
+    // 2. Tem IP do jogador
+    // 3. Tem tentativas
+    // 4. Está mostrando o game over da sessão atual (não carregando estado antigo)
+    // 5. Ainda não enviou notificação para esta sessão
     if ((gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') && 
         playerIP && 
-        gameState.guesses.length > 0) {
+        gameState.guesses.length > 0 &&
+        showingFreshGameOver &&
+        !hasSentNotification.current) {
       
       const isWin = gameState.gameStatus === 'won';
       const attempts = gameState.guesses.length;
@@ -33,11 +44,20 @@ export const useDiscordNotification = ({
       console.log('Enviando resultado para Discord:', { 
         gameStatus: gameState.gameStatus, 
         attempts, 
-        mode 
+        mode,
+        showingFreshGameOver
       });
       
       // Enviar para Discord automaticamente
       sendGameResultToDiscord(shareText, playerIP);
+      
+      // Marcar como enviado para evitar envios duplicados
+      hasSentNotification.current = true;
     }
-  }, [gameState.gameStatus, gameState.guesses.length, mode, allTargetWords, playerIP]);
+  }, [gameState.gameStatus, gameState.guesses.length, mode, allTargetWords, playerIP, showingFreshGameOver]);
+
+  // Reset quando o modo muda
+  useEffect(() => {
+    hasSentNotification.current = false;
+  }, [mode]);
 };

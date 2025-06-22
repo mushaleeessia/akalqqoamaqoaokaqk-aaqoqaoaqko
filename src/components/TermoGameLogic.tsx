@@ -35,7 +35,8 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
     gameState,
     mode: 'solo',
     allTargetWords: [targetWord],
-    playerIP: sessionInfo?.ipHash
+    playerIP: sessionInfo?.ipHash,
+    showingFreshGameOver
   });
 
   const maxGuesses = 6;

@@ -31,7 +31,8 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
     gameState,
     mode,
     allTargetWords: targetWords,
-    playerIP: sessionInfo?.ipHash
+    playerIP: sessionInfo?.ipHash,
+    showingFreshGameOver
   });
 
   useEffect(() => {
