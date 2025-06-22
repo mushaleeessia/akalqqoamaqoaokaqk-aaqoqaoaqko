@@ -5,6 +5,7 @@ import { TermoKeyboard } from "./TermoKeyboard";
 import { TermoGameOver } from "./TermoGameOver";
 import { useTermoGameState } from "@/hooks/useTermoGameState";
 import { useTermoKeyboardHandler } from "@/hooks/useTermoKeyboardHandler";
+import { useDiscordNotification } from "@/hooks/useDiscordNotification";
 
 interface TermoGameLogicProps {
   targetWord: string;
@@ -29,6 +30,14 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
 
   useTermoKeyboardHandler(handleKeyPress);
 
+  // Hook para enviar resultado automaticamente para Discord
+  useDiscordNotification({
+    gameState,
+    mode: 'solo',
+    allTargetWords: [targetWord],
+    playerIP: sessionInfo?.ipHash
+  });
+
   const maxGuesses = 6;
 
   // Carregar progresso salvo ao inicializar
@@ -41,8 +50,6 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
         currentRow: sessionInfo.guesses?.length || 0
       };
       
-      // Só atualizar o estado se não estivermos mostrando um game over fresh
-      // e se o jogo atual não estiver em um estado final ativo
       setGameState(prevState => {
         if (showingFreshGameOver) {
           return prevState;
@@ -53,7 +60,6 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
         return newGameState;
       });
 
-      // Recalcular keyStates baseado nas tentativas salvas
       if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
         const newKeyStates: Record<string, any> = {};
         sessionInfo.guesses.forEach(guess => {
@@ -76,7 +82,6 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
     );
   }
 
-  // PRIORIDADE 2: Se o jogo terminou em sessão anterior, mostrar "você já jogou"
   if (!canPlay && sessionInfo && (sessionInfo.completed || sessionInfo.failed)) {
     return (
       <div className="flex flex-col items-center space-y-6 p-8 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
@@ -101,7 +106,6 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
     );
   }
 
-  // PRIORIDADE 3: Jogo em andamento
   return (
     <div className="flex flex-col items-center space-y-6">
       {isValidating && (

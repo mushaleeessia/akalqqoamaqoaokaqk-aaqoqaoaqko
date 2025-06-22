@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { GameMode } from "./GameModeSelector";
 import { TermoKeyboard } from "./TermoKeyboard";
@@ -6,6 +5,7 @@ import { TermoGameOver } from "./TermoGameOver";
 import { MultiModeCompletedMessage } from "./MultiModeCompletedMessage";
 import { MultiModeGameGrid } from "./MultiModeGameGrid";
 import { useMultiModeGameState } from "@/hooks/useMultiModeGameState";
+import { useDiscordNotification } from "@/hooks/useDiscordNotification";
 
 interface MultiModeTermoGameProps {
   targetWords: string[];
@@ -25,6 +25,14 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
     canPlay,
     sessionInfo
   } = useMultiModeGameState(targetWords, mode);
+
+  // Hook para enviar resultado automaticamente para Discord
+  useDiscordNotification({
+    gameState,
+    mode,
+    allTargetWords: targetWords,
+    playerIP: sessionInfo?.ipHash
+  });
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
