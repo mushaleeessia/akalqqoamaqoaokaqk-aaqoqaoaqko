@@ -1,19 +1,23 @@
 
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Sun, Moon } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Sun, Moon, User } from "lucide-react";
 import { TermoGame } from "@/components/TermoGame";
 import { MultiModeTermoGame } from "@/components/MultiModeTermoGame";
 import { GameModeSelector, GameMode } from "@/components/GameModeSelector";
+import { UserProfile } from "@/components/UserProfile";
 import { Button } from "@/components/ui/button";
 import { useTermoData } from "@/hooks/useTermoData";
 import { useMultiModeTermoData } from "@/hooks/useMultiModeTermoData";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Termo = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [selectedMode, setSelectedMode] = useState<GameMode>('solo');
   const { todayWord, loading: soloLoading } = useTermoData();
   const { wordsData, loading: multiLoading } = useMultiModeTermoData();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isDarkMode) {
@@ -23,12 +27,22 @@ const Termo = () => {
     }
   }, [isDarkMode]);
 
-  if (soloLoading || multiLoading) {
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/auth');
+    }
+  }, [user, authLoading, navigate]);
+
+  if (authLoading || soloLoading || multiLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center">
         <div className="text-white text-xl">Carregando...</div>
       </div>
     );
+  }
+
+  if (!user) {
+    return null; // Redirect is handled by useEffect
   }
 
   const handleModeChange = (mode: GameMode) => {
@@ -68,13 +82,17 @@ const Termo = () => {
           </p>
         </div>
         
-        <Button 
-          variant="ghost" 
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          className="text-white hover:bg-white/10"
-        >
-          {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="ghost" 
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="text-white hover:bg-white/10"
+          >
+            {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </Button>
+          
+          <UserProfile />
+        </div>
       </header>
 
       {/* Game Container */}
