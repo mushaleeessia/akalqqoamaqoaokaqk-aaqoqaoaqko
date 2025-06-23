@@ -10,13 +10,11 @@ import { HelpAssistant } from "@/components/HelpAssistant";
 import { LinkCard } from "@/components/LinkCard";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
 import { Video, Globe, MessageSquare } from "lucide-react";
 
 export default function Index() {
   const [isEnglish, setIsEnglish] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
 
   const handleLanguageChange = (newIsEnglish: boolean) => {
     setIsEnglish(newIsEnglish);
@@ -82,13 +80,6 @@ export default function Index() {
                 🎮 {isEnglish ? "Play Termo Game" : "Jogar Termo"}
               </Link>
             </Button>
-            {!user && (
-              <Button asChild variant="secondary" className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 text-sm rounded-lg">
-                <Link to="/auth">
-                  {isEnglish ? "Login to Save Progress" : "Fazer Login"}
-                </Link>
-              </Button>
-            )}
           </div>
         </div>
 
