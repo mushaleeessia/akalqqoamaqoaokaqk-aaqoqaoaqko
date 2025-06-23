@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { BlogSection } from "@/components/BlogSection";
@@ -10,6 +11,7 @@ import { LinkCard } from "@/components/LinkCard";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { Video, Globe, MessageSquare } from "lucide-react";
 
 export default function Index() {
   const [isEnglish, setIsEnglish] = useState(false);
@@ -181,7 +183,7 @@ export default function Index() {
         {/* Grid sections */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           <ProfileSection isEnglish={isEnglish} />
-          <TwitchEmbed />
+          <TwitchEmbed isEnglish={isEnglish} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
@@ -189,23 +191,39 @@ export default function Index() {
             <BlogSection isEnglish={isEnglish} />
           </div>
           <div className="space-y-6">
-            <LinkCard 
-              title={isEnglish ? "Quick Links" : "Links Rápidos"}
-              links={[
-                { title: isEnglish ? "Discord Server" : "Servidor Discord", url: "https://discord.gg/mush", isExternal: true },
-                { title: isEnglish ? "Rules" : "Regras", url: "https://mush.com.br/regras", isExternal: true },
-                { title: isEnglish ? "Vote for the Server" : "Votar no Servidor", url: "https://mush.com.br/votar", isExternal: true },
-                { title: isEnglish ? "Donate" : "Doar", url: "https://mush.com.br/loja", isExternal: true }
-              ]}
-              isEnglish={isEnglish}
-            />
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-white mb-3">
+                {isEnglish ? "Quick Links" : "Links Rápidos"}
+              </h3>
+              <LinkCard 
+                title={isEnglish ? "Discord Server" : "Servidor Discord"}
+                description={isEnglish ? "Join our community" : "Entre em nossa comunidade"}
+                url="https://discord.gg/mush"
+                icon={MessageSquare}
+                color="from-red-800 to-amber-900"
+              />
+              <LinkCard 
+                title={isEnglish ? "Server Rules" : "Regras do Servidor"}
+                description={isEnglish ? "Read the rules" : "Leia as regras"}
+                url="https://mush.com.br/regras"
+                icon={Globe}
+                color="from-amber-900 to-red-800"
+              />
+              <LinkCard 
+                title={isEnglish ? "Vote for Server" : "Votar no Servidor"}
+                description={isEnglish ? "Help us grow" : "Nos ajude a crescer"}
+                url="https://mush.com.br/votar"
+                icon={Video}
+                color="from-red-900 to-red-700"
+              />
+            </div>
             <MusicPlayer />
           </div>
         </div>
       </main>
 
       {/* Help Assistant */}
-      <HelpAssistant isEnglish={isEnglish} isMobileMenuOpen={mobileMenuOpen} />
+      <HelpAssistant isEnglish={isEnglish} />
 
       {/* Music Player */}
       <MusicPlayer hidden={mobileMenuOpen} />
