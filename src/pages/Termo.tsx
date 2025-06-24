@@ -8,10 +8,20 @@ import { GameModeSelector, GameMode } from "@/components/GameModeSelector";
 import { Button } from "@/components/ui/button";
 import { useTermoData } from "@/hooks/useTermoData";
 import { useMultiModeTermoData } from "@/hooks/useMultiModeTermoData";
+import { useAuth } from "@/contexts/AuthContext";
+import { TermoLogin } from "@/components/TermoLogin";
+import { NameSetup } from "@/components/NameSetup";
+import { UserDropdown } from "@/components/UserDropdown";
+import { supabase } from "@/integrations/supabase/client";
 
 const Termo = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [selectedMode, setSelectedMode] = useState<GameMode>('solo');
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [needsNameSetup, setNeedsNameSetup] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+  
+  const { user, loading: authLoading } = useAuth();
   const { todayWord, loading: soloLoading } = useTermoData();
   const { wordsData, loading: multiLoading } = useMultiModeTermoData();
 
@@ -23,10 +33,81 @@ const Termo = () => {
     }
   }, [isDarkMode]);
 
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) {
+        setProfileLoading(false);
+        return;
+      }
+
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          setNeedsNameSetup(true);
+        } else if (!profile?.nickname || profile.nickname.startsWith('User')) {
+          setNeedsNameSetup(true);
+        } else {
+          setUserProfile(profile);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        setNeedsNameSetup(true);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    if (!authLoading) {
+      fetchUserProfile();
+    }
+  }, [user, authLoading]);
+
+  const handleNameSetupComplete = async () => {
+    setNeedsNameSetup(false);
+    // Refetch profile
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile) {
+        setUserProfile(profile);
+      }
+    }
+  };
+
+  // Show loading while checking auth or profile
+  if (authLoading || profileLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center">
+        <div className="text-white text-xl">Carregando...</div>
+      </div>
+    );
+  }
+
+  // Show login if not authenticated
+  if (!user) {
+    return <TermoLogin />;
+  }
+
+  // Show name setup if needed
+  if (needsNameSetup) {
+    return <NameSetup onComplete={handleNameSetupComplete} />;
+  }
+
+  // Show loading for game data
   if (soloLoading || multiLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center">
-        <div className="text-white text-xl">Carregando...</div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center">
+        <div className="text-white text-xl">Carregando jogo...</div>
       </div>
     );
   }
@@ -68,13 +149,19 @@ const Termo = () => {
           </p>
         </div>
         
-        <Button 
-          variant="ghost" 
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          className="text-white hover:bg-white/10"
-        >
-          {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </Button>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="text-white hover:bg-white/10"
+          >
+            {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </Button>
+          
+          {userProfile && (
+            <UserDropdown nickname={userProfile.nickname} />
+          )}
+        </div>
       </header>
 
       {/* Game Container */}

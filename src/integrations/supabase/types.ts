@@ -9,7 +9,121 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      game_sessions: {
+        Row: {
+          attempts: number
+          completed_at: string
+          game_mode: string
+          guesses: string[]
+          id: string
+          target_words: string[]
+          user_id: string
+          won: boolean
+        }
+        Insert: {
+          attempts: number
+          completed_at?: string
+          game_mode: string
+          guesses: string[]
+          id?: string
+          target_words: string[]
+          user_id: string
+          won: boolean
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string
+          game_mode?: string
+          guesses?: string[]
+          id?: string
+          target_words?: string[]
+          user_id?: string
+          won?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      game_stats: {
+        Row: {
+          average_attempts: number | null
+          created_at: string
+          game_mode: string
+          id: string
+          last_played: string | null
+          max_win_streak: number
+          total_games: number
+          total_losses: number
+          total_wins: number
+          updated_at: string
+          user_id: string
+          win_streak: number
+        }
+        Insert: {
+          average_attempts?: number | null
+          created_at?: string
+          game_mode: string
+          id?: string
+          last_played?: string | null
+          max_win_streak?: number
+          total_games?: number
+          total_losses?: number
+          total_wins?: number
+          updated_at?: string
+          user_id: string
+          win_streak?: number
+        }
+        Update: {
+          average_attempts?: number | null
+          created_at?: string
+          game_mode?: string
+          id?: string
+          last_played?: string | null
+          max_win_streak?: number
+          total_games?: number
+          total_losses?: number
+          total_wins?: number
+          updated_at?: string
+          user_id?: string
+          win_streak?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_stats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          nickname: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          nickname: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nickname?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
