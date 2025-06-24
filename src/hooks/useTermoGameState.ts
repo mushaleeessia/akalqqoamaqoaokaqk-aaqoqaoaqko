@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react";
 import { validatePortugueseWord } from "@/utils/portugueseWords";
 import { usePlayerSession } from "@/hooks/usePlayerSession";
+import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
 import { toast } from "@/hooks/use-toast";
 
 export type LetterState = 'correct' | 'present' | 'absent' | 'empty';
@@ -15,6 +16,8 @@ export interface GameState {
 
 export const useTermoGameState = (targetWord: string) => {
   const { canPlay, sessionInfo, saveGameProgress } = usePlayerSession();
+  const { sessionExists, saveGameSession } = useSupabaseGameSession('solo', [targetWord]);
+  
   const [gameState, setGameState] = useState<GameState>({
     guesses: [],
     currentGuess: '',
@@ -117,6 +120,9 @@ export const useTermoGameState = (targetWord: string) => {
 
       if (isGameOver) {
         setShowingFreshGameOver(true);
+        // Salvar no Supabase quando o jogo terminar
+        console.log('Jogo terminou, salvando no Supabase...');
+        await saveGameSession(newGuesses, isWin);
       }
 
       saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
@@ -130,7 +136,7 @@ export const useTermoGameState = (targetWord: string) => {
     } finally {
       setIsValidating(false);
     }
-  }, [gameState.currentGuess, gameState.guesses, targetWord, keyStates, saveGameProgress]);
+  }, [gameState.currentGuess, gameState.guesses, targetWord, keyStates, saveGameProgress, saveGameSession]);
 
   const handleKeyPress = useCallback((key: string) => {
     if (gameState.gameStatus !== 'playing' || isValidating) return;
@@ -188,7 +194,7 @@ export const useTermoGameState = (targetWord: string) => {
     isValidating,
     showingFreshGameOver,
     setShowingFreshGameOver,
-    canPlay,
+    canPlay: canPlay && !sessionExists,
     sessionInfo,
     handleKeyPress,
     evaluateGuess,

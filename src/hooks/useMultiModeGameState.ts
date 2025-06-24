@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { GameMode } from "@/components/GameModeSelector";
 import { validatePortugueseWord } from "@/utils/portugueseWords";
 import { useMultiModePlayerSession } from "@/hooks/useMultiModePlayerSession";
+import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
 import { toast } from "@/hooks/use-toast";
 
 export type LetterState = 'correct' | 'present' | 'absent' | 'empty';
@@ -15,6 +16,7 @@ export interface MultiModeGameState {
 
 export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => {
   const { canPlay, sessionInfo, saveGameProgress } = useMultiModePlayerSession(mode);
+  const { sessionExists, saveGameSession } = useSupabaseGameSession(mode, targetWords);
   
   // Estado do jogo - inicializado vazio e carregado do sessionInfo
   const [gameState, setGameState] = useState<MultiModeGameState>({
@@ -158,6 +160,9 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
 
       if (isGameOver) {
         setShowingFreshGameOver(true);
+        // Salvar no Supabase quando o jogo terminar
+        console.log('Jogo multi terminou, salvando no Supabase...');
+        await saveGameSession(newGuesses, isWin);
       }
 
       saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameStatus);
@@ -171,7 +176,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     } finally {
       setIsValidating(false);
     }
-  }, [gameState.currentGuess, gameState.guesses, targetWords, saveGameProgress, maxGuesses]);
+  }, [gameState.currentGuess, gameState.guesses, targetWords, saveGameProgress, maxGuesses, saveGameSession]);
 
   const handleKeyPress = useCallback((key: string) => {
     if (gameState.gameStatus !== 'playing' || isValidating) return;
@@ -185,7 +190,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
           currentGuess: prevState.currentGuess.slice(0, -1)
         };
         
-        // Salvar o progresso imediatamente
         saveGameProgress(newState.guesses, newState.currentGuess, newState.gameStatus);
         return newState;
       });
@@ -196,7 +200,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
           currentGuess: prevState.currentGuess + key.toLowerCase()
         };
         
-        // Salvar o progresso imediatamente
         saveGameProgress(newState.guesses, newState.currentGuess, newState.gameStatus);
         return newState;
       });
@@ -267,7 +270,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     setShowingFreshGameOver,
     maxGuesses,
     handleKeyPress,
-    canPlay,
+    canPlay: canPlay && !sessionExists,
     sessionInfo,
     saveGameProgress
   };
