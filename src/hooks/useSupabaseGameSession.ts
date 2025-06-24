@@ -45,20 +45,17 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
         .maybeSingle();
 
       if (error) {
-        console.error('Error checking session:', error);
         setLoading(false);
         return null;
       }
 
       if (data) {
         setSessionExists(true);
-        console.log('Sessão existente encontrada:', data);
       }
       
       setLoading(false);
       return data;
     } catch (error) {
-      console.error('Error:', error);
       setLoading(false);
       return null;
     }
@@ -66,7 +63,6 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
 
   const saveGameSession = async (guesses: string[], won: boolean) => {
     if (!user) {
-      console.log('Usuário não autenticado, não salvando sessão');
       return;
     }
 
@@ -81,8 +77,6 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
         completed_at: new Date().toISOString()
       };
 
-      console.log('Salvando sessão no Supabase:', gameSession);
-
       const { data, error } = await supabase
         .from('game_sessions')
         .insert(gameSession)
@@ -90,18 +84,15 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
         .single();
 
       if (error) {
-        console.error('Erro ao salvar sessão:', error);
         return;
       }
 
-      console.log('Sessão salva com sucesso:', data);
       setSessionExists(true);
       
-      // Também salvar/atualizar estatísticas
       await updateGameStats(won, guesses.length);
       
     } catch (error) {
-      console.error('Erro inesperado ao salvar sessão:', error);
+      // Silent error handling
     }
   };
 
@@ -109,7 +100,6 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
     if (!user) return;
 
     try {
-      // Primeiro, tentar buscar estatísticas existentes
       const { data: existingStats, error: fetchError } = await supabase
         .from('game_stats')
         .select('*')
@@ -118,25 +108,22 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
         .maybeSingle();
 
       if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Error fetching stats:', fetchError);
         return;
       }
 
       const now = new Date().toISOString();
 
       if (existingStats) {
-        // Atualizar estatísticas existentes
         const newWinStreak = won ? existingStats.win_streak + 1 : 0;
         const newMaxWinStreak = Math.max(newWinStreak, existingStats.max_win_streak);
         const totalGames = existingStats.total_games + 1;
         const totalWins = existingStats.total_wins + (won ? 1 : 0);
         const totalLosses = existingStats.total_losses + (won ? 0 : 1);
         
-        // Calcular nova média de tentativas
         const currentAvg = existingStats.average_attempts || 0;
         const newAverage = ((currentAvg * existingStats.total_games) + attempts) / totalGames;
 
-        const { error: updateError } = await supabase
+        await supabase
           .from('game_stats')
           .update({
             win_streak: newWinStreak,
@@ -149,15 +136,8 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
             updated_at: now
           })
           .eq('id', existingStats.id);
-
-        if (updateError) {
-          console.error('Error updating stats:', updateError);
-        } else {
-          console.log('Estatísticas atualizadas com sucesso');
-        }
       } else {
-        // Criar novas estatísticas
-        const { error: insertError } = await supabase
+        await supabase
           .from('game_stats')
           .insert({
             user_id: user.id,
@@ -170,15 +150,9 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
             average_attempts: attempts,
             last_played: now
           });
-
-        if (insertError) {
-          console.error('Error creating stats:', insertError);
-        } else {
-          console.log('Novas estatísticas criadas com sucesso');
-        }
       }
     } catch (error) {
-      console.error('Erro inesperado ao atualizar estatísticas:', error);
+      // Silent error handling
     }
   };
 

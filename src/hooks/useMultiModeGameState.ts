@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { GameMode } from "@/components/GameModeSelector";
 import { validatePortugueseWord } from "@/utils/portugueseWords";
@@ -18,7 +19,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   const { canPlay, sessionInfo, saveGameProgress } = useMultiModePlayerSession(mode);
   const { sessionExists, saveGameSession } = useSupabaseGameSession(mode, targetWords);
   
-  // Estado do jogo - inicializado vazio e carregado do sessionInfo
   const [gameState, setGameState] = useState<MultiModeGameState>({
     guesses: [],
     currentGuess: '',
@@ -31,7 +31,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
   const [isSessionLoaded, setIsSessionLoaded] = useState(false);
   
-  // Número de tentativas baseado no modo
   const maxGuesses = mode === 'solo' ? 6 : mode === 'duo' ? 8 : mode === 'trio' ? 9 : 10;
 
   const evaluateGuessForWord = (guess: string, targetWord: string): LetterState[] => {
@@ -106,7 +105,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   };
 
   const checkWinCondition = (guesses: string[]): boolean => {
-    // Para cada palavra alvo, verificar se algum palpite a acertou completamente
     return targetWords.every(targetWord => 
       guesses.some(guess => guess.toLowerCase() === targetWord.toLowerCase())
     );
@@ -143,7 +141,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
       
       const newGuesses = [...gameState.guesses, gameState.currentGuess];
       
-      // Verificar vitória usando todas as tentativas até agora
       const isWin = checkWinCondition(newGuesses);
       const isGameOver = isWin || newGuesses.length >= maxGuesses;
       
@@ -160,8 +157,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
 
       if (isGameOver) {
         setShowingFreshGameOver(true);
-        // Salvar no Supabase quando o jogo terminar
-        console.log('Jogo multi terminou, salvando no Supabase...');
         await saveGameSession(newGuesses, isWin);
       }
 
@@ -206,7 +201,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     }
   }, [gameState, isValidating, submitGuess, saveGameProgress]);
 
-  // Carregar sessão uma única vez quando sessionInfo estiver disponível
   useEffect(() => {
     if (sessionInfo && sessionInfo.mode === mode && !isSessionLoaded) {
       const loadedGameState = {
@@ -216,7 +210,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
         currentRow: (sessionInfo.guesses || []).length
       };
 
-      // Verificar se deveria ter ganhado com base nas tentativas salvas
       if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
         const shouldHaveWon = checkWinCondition(sessionInfo.guesses);
         if (shouldHaveWon && loadedGameState.gameStatus === 'playing') {
@@ -254,9 +247,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     }
   }, [sessionInfo, mode, targetWords, isSessionLoaded]);
 
-  // Reset estado quando o modo muda
   useEffect(() => {
-    console.log(`[MultiMode] Modo mudou para: ${mode}, resetando estado de carregamento`);
     setIsSessionLoaded(false);
     setShowingFreshGameOver(false);
   }, [mode]);

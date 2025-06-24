@@ -12,11 +12,11 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-interface UserStats {
+interface GameStats {
+  game_mode: string;
   total_games: number;
   total_wins: number;
   win_streak: number;
-  max_win_streak: number;
 }
 
 interface UserDropdownProps {
@@ -25,12 +25,7 @@ interface UserDropdownProps {
 
 export const UserDropdown = ({ nickname }: UserDropdownProps) => {
   const { signOut } = useAuth();
-  const [stats, setStats] = useState<UserStats>({
-    total_games: 0,
-    total_wins: 0,
-    win_streak: 0,
-    max_win_streak: 0
-  });
+  const [allStats, setAllStats] = useState<GameStats[]>([]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -39,18 +34,32 @@ export const UserDropdown = ({ nickname }: UserDropdownProps) => {
 
       const { data } = await supabase
         .from('game_stats')
-        .select('total_games, total_wins, win_streak, max_win_streak')
-        .eq('user_id', user.id)
-        .eq('game_mode', 'solo')
-        .single();
+        .select('game_mode, total_games, total_wins, win_streak')
+        .eq('user_id', user.id);
 
       if (data) {
-        setStats(data);
+        setAllStats(data);
       }
     };
 
     fetchStats();
   }, []);
+
+  const getStatsForMode = (mode: string) => {
+    return allStats.find(stat => stat.game_mode === mode) || {
+      game_mode: mode,
+      total_games: 0,
+      total_wins: 0,
+      win_streak: 0
+    };
+  };
+
+  const modes = [
+    { id: 'solo', label: 'Solo' },
+    { id: 'duo', label: 'Duo' },
+    { id: 'trio', label: 'Trio' },
+    { id: 'quarteto', label: 'Quarteto' }
+  ];
 
   return (
     <DropdownMenu>
@@ -64,28 +73,34 @@ export const UserDropdown = ({ nickname }: UserDropdownProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
-        className="w-64 bg-gray-800 border-gray-700" 
+        className="w-80 bg-gray-800 border-gray-700 max-h-96 overflow-y-auto" 
         align="end"
       >
         <div className="p-3 text-white">
-          <div className="font-medium mb-3">Olá, {nickname}</div>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-300">Termos jogados:</span>
-              <span>{stats.total_games}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-300">Termos vencidos:</span>
-              <span>{stats.total_wins}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-300">Winstreak:</span>
-              <span>{stats.win_streak}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-300">Maior winstreak:</span>
-              <span>{stats.max_win_streak}</span>
-            </div>
+          <div className="font-medium mb-4">Olá, {nickname}</div>
+          <div className="space-y-4 text-sm">
+            {modes.map((mode) => {
+              const stats = getStatsForMode(mode.id);
+              return (
+                <div key={mode.id} className="border-b border-gray-600 pb-3 last:border-b-0">
+                  <div className="font-medium text-purple-300 mb-2">Teeermo {mode.label}</div>
+                  <div className="space-y-1 ml-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Jogados:</span>
+                      <span>{stats.total_games}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Vencidos:</span>
+                      <span>{stats.total_wins}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-300">Winstreak:</span>
+                      <span>{stats.win_streak}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
         <DropdownMenuSeparator className="bg-gray-700" />

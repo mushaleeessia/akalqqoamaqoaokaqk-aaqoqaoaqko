@@ -120,8 +120,6 @@ export const useTermoGameState = (targetWord: string) => {
 
       if (isGameOver) {
         setShowingFreshGameOver(true);
-        // Salvar no Supabase quando o jogo terminar
-        console.log('Jogo terminou, salvando no Supabase...');
         await saveGameSession(newGuesses, isWin);
       }
 
@@ -160,7 +158,6 @@ export const useTermoGameState = (targetWord: string) => {
     }
   }, [gameState, isValidating, submitGuess, saveGameProgress]);
 
-  // Carregar progresso salvo ao inicializar
   useState(() => {
     if (sessionInfo) {
       const loadedGameState = {
