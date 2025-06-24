@@ -56,13 +56,13 @@ export const NameSetup = ({ onComplete }: NameSetupProps) => {
                 type="text"
                 placeholder="Seu nome"
                 value={name}
-                onChange={(e) => setName(e.target.value.slice(0, 9))}
-                maxLength={9}
+                onChange={(e) => setName(e.target.value.slice(0, 16))}
+                maxLength={16}
                 className="w-full bg-white/20 border-white/30 text-white placeholder:text-white/50 rounded-lg p-3"
                 required
               />
               <p className="text-white/60 text-sm mt-2">
-                Máximo 9 caracteres ({name.length}/9)
+                Máximo 16 caracteres ({name.length}/16)
               </p>
             </div>
             
