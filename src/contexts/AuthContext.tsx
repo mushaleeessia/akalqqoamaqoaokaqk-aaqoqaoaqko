@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signInWithDiscord: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -46,10 +46,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithGoogle = async () => {
+  const signInWithDiscord = async () => {
     const redirectUrl = `${window.location.origin}/termo`;
     await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: 'discord',
       options: {
         redirectTo: redirectUrl
       }
@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     session,
     loading,
-    signInWithGoogle,
+    signInWithDiscord,
     signOut,
   };
 
