@@ -22,8 +22,15 @@ interface DiscordWebhookPayload {
 
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1386154009617891488/Vu4BqRLLm3TDhMVOpiaDU-hM_Irl720APsuUTlxogI7V7gAMpR5CGqOLI-Ale2CJp-Ch";
 
-export const sendGameResultToDiscord = async (shareText: string, playerIP: string) => {
+export type GameState = 'playing' | 'win' | 'lose' | 'already_won' | 'already_lost';
+
+export const sendGameResultToDiscord = async (shareText: string, playerIP: string, gameState: GameState) => {
   try {
+    // Só enviar webhook se o jogo terminou (win ou lose)
+    if (gameState !== 'win' && gameState !== 'lose') {
+      return;
+    }
+
     // Extrair informações do shareText
     const lines = shareText.split('\n');
     const titleLine = lines[0]; // Ex: "Termo Solo 🎯 22/06/2025"
@@ -68,9 +75,9 @@ export const sendGameResultToDiscord = async (shareText: string, playerIP: strin
     });
 
     if (!response.ok) {
-      console.error('Failed to send to Discord webhook:', response.status);
+      // Removido console.error
     }
   } catch (error) {
-    console.error('Error sending to Discord webhook:', error);
+    // Removido console.error
   }
 };
