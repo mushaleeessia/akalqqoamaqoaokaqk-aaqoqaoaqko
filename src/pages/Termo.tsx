@@ -209,7 +209,7 @@ const Termo = () => {
           {/* Stats Section - Only show for authenticated users */}
           {user && !isGuest && (
             <div className="lg:col-span-1">
-              <ProfileSection />
+              <ProfileSection isEnglish={false} />
             </div>
           )}
 
