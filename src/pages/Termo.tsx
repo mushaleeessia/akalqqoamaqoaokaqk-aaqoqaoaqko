@@ -12,6 +12,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { TermoLogin } from "@/components/TermoLogin";
 import { NameSetup } from "@/components/NameSetup";
 import { UserDropdown } from "@/components/UserDropdown";
+import { TermoStats } from "@/components/TermoStats";
+import { useGuestMode } from "@/hooks/useGuestMode";
 import { supabase } from "@/integrations/supabase/client";
 
 const Termo = () => {
@@ -24,6 +26,7 @@ const Termo = () => {
   const { user, loading: authLoading } = useAuth();
   const { todayWord, loading: soloLoading } = useTermoData();
   const { wordsData, loading: multiLoading } = useMultiModeTermoData();
+  const { isGuestMode, enableGuestMode } = useGuestMode();
 
   useEffect(() => {
     if (isDarkMode) {
@@ -63,10 +66,12 @@ const Termo = () => {
       }
     };
 
-    if (!authLoading) {
+    if (!authLoading && !isGuestMode) {
       fetchUserProfile();
+    } else if (isGuestMode) {
+      setProfileLoading(false);
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, isGuestMode]);
 
   const handleNameSetupComplete = async () => {
     setNeedsNameSetup(false);
@@ -84,6 +89,10 @@ const Termo = () => {
     }
   };
 
+  const handleGuestMode = () => {
+    enableGuestMode();
+  };
+
   // Show loading while checking auth or profile
   if (authLoading || profileLoading) {
     return (
@@ -93,13 +102,13 @@ const Termo = () => {
     );
   }
 
-  // Show login if not authenticated
-  if (!user) {
-    return <TermoLogin />;
+  // Show login if not authenticated and not in guest mode
+  if (!user && !isGuestMode) {
+    return <TermoLogin onGuestMode={handleGuestMode} />;
   }
 
-  // Show name setup if needed
-  if (needsNameSetup) {
+  // Show name setup if needed (only for authenticated users)
+  if (!isGuestMode && needsNameSetup) {
     return <NameSetup onComplete={handleNameSetupComplete} />;
   }
 
@@ -140,7 +149,7 @@ const Termo = () => {
           </Button>
         </Link>
         
-        <div className="text-center">
+        <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
           <h1 className="text-2xl font-bold text-white tracking-wider">
             aleeessia.com
           </h1>
@@ -158,8 +167,14 @@ const Termo = () => {
             {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
           
-          {userProfile && (
+          {userProfile && !isGuestMode && (
             <UserDropdown nickname={userProfile.nickname} />
+          )}
+
+          {isGuestMode && (
+            <div className="text-white bg-yellow-600/20 px-3 py-1 rounded-lg text-sm">
+              Modo Convidado
+            </div>
           )}
         </div>
       </header>
@@ -171,6 +186,9 @@ const Termo = () => {
           onModeChange={handleModeChange}
           isDarkMode={isDarkMode}
         />
+
+        {/* Statistics */}
+        <TermoStats mode={selectedMode} isGuest={isGuestMode} />
 
         {currentWords.length > 0 ? (
           selectedMode === 'solo' ? (

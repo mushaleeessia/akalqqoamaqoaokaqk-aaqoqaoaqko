@@ -1,8 +1,13 @@
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { GuestModeButton } from "./GuestModeButton";
 
-export const TermoLogin = () => {
+interface TermoLoginProps {
+  onGuestMode?: () => void;
+}
+
+export const TermoLogin = ({ onGuestMode }: TermoLoginProps) => {
   const { signInWithDiscord } = useAuth();
 
   return (
@@ -27,6 +32,8 @@ export const TermoLogin = () => {
             </svg>
             Entrar com Discord
           </Button>
+
+          {onGuestMode && <GuestModeButton onGuestMode={onGuestMode} />}
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { GameMode } from '@/components/GameModeSelector';
+import { useGuestMode } from './useGuestMode';
 
 interface GameSession {
   id?: string;
@@ -17,6 +18,7 @@ interface GameSession {
 
 export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) => {
   const { user } = useAuth();
+  const { isGuestMode, saveGuestGameSession, checkGuestSession } = useGuestMode();
   const [sessionExists, setSessionExists] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -27,6 +29,13 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
   };
 
   const checkExistingSession = async () => {
+    if (isGuestMode) {
+      const guestSession = checkGuestSession(mode);
+      setSessionExists(!!guestSession);
+      setLoading(false);
+      return guestSession;
+    }
+
     if (!user) {
       setLoading(false);
       return null;
@@ -62,6 +71,12 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
   };
 
   const saveGameSession = async (guesses: string[], won: boolean) => {
+    if (isGuestMode) {
+      saveGuestGameSession(mode, guesses, won);
+      setSessionExists(true);
+      return;
+    }
+
     if (!user) {
       return;
     }
@@ -97,7 +112,7 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
   };
 
   const updateGameStats = async (won: boolean, attempts: number) => {
-    if (!user) return;
+    if (!user || isGuestMode) return;
 
     try {
       const { data: existingStats, error: fetchError } = await supabase
@@ -157,12 +172,12 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
   };
 
   useEffect(() => {
-    if (user && targetWords.length > 0) {
+    if ((user || isGuestMode) && targetWords.length > 0) {
       checkExistingSession();
     } else {
       setLoading(false);
     }
-  }, [user, mode, targetWords]);
+  }, [user, mode, targetWords, isGuestMode]);
 
   return {
     sessionExists,
