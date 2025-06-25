@@ -5,12 +5,10 @@ import { ArrowLeft, Sun, Moon } from "lucide-react";
 import { TermoGame } from "@/components/TermoGame";
 import { MultiModeTermoGame } from "@/components/MultiModeTermoGame";
 import { GameModeSelector, GameMode } from "@/components/GameModeSelector";
-import { ProfileSection } from "@/components/ProfileSection";
 import { Button } from "@/components/ui/button";
 import { useTermoData } from "@/hooks/useTermoData";
 import { useMultiModeTermoData } from "@/hooks/useMultiModeTermoData";
 import { useAuth } from "@/contexts/AuthContext";
-import { useGuestMode } from "@/hooks/useGuestMode";
 import { TermoLogin } from "@/components/TermoLogin";
 import { NameSetup } from "@/components/NameSetup";
 import { UserDropdown } from "@/components/UserDropdown";
@@ -24,7 +22,6 @@ const Termo = () => {
   const [profileLoading, setProfileLoading] = useState(true);
   
   const { user, loading: authLoading } = useAuth();
-  const { isGuest, exitGuestMode } = useGuestMode();
   const { todayWord, loading: soloLoading } = useTermoData();
   const { wordsData, loading: multiLoading } = useMultiModeTermoData();
 
@@ -51,6 +48,7 @@ const Termo = () => {
           .single();
 
         if (error) {
+          console.error('Error fetching profile:', error);
           setNeedsNameSetup(true);
         } else if (!profile?.nickname || profile.nickname.startsWith('User')) {
           setNeedsNameSetup(true);
@@ -58,21 +56,21 @@ const Termo = () => {
           setUserProfile(profile);
         }
       } catch (error) {
+        console.error('Error:', error);
         setNeedsNameSetup(true);
       } finally {
         setProfileLoading(false);
       }
     };
 
-    if (!authLoading && !isGuest) {
+    if (!authLoading) {
       fetchUserProfile();
-    } else {
-      setProfileLoading(false);
     }
-  }, [user, authLoading, isGuest]);
+  }, [user, authLoading]);
 
   const handleNameSetupComplete = async () => {
     setNeedsNameSetup(false);
+    // Refetch profile
     if (user) {
       const { data: profile } = await supabase
         .from('profiles')
@@ -95,13 +93,13 @@ const Termo = () => {
     );
   }
 
-  // Show login if not authenticated and not guest
-  if (!user && !isGuest) {
+  // Show login if not authenticated
+  if (!user) {
     return <TermoLogin />;
   }
 
-  // Show name setup if needed (only for authenticated users)
-  if (user && needsNameSetup && !isGuest) {
+  // Show name setup if needed
+  if (needsNameSetup) {
     return <NameSetup onComplete={handleNameSetupComplete} />;
   }
 
@@ -142,7 +140,7 @@ const Termo = () => {
           </Button>
         </Link>
         
-        <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
+        <div className="text-center">
           <h1 className="text-2xl font-bold text-white tracking-wider">
             aleeessia.com
           </h1>
@@ -160,80 +158,39 @@ const Termo = () => {
             {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </Button>
           
-          {isGuest ? (
-            <Button
-              onClick={exitGuestMode}
-              variant="ghost"
-              className="text-white hover:bg-white/10 text-sm"
-            >
-              Sair do modo convidado
-            </Button>
-          ) : userProfile && (
+          {userProfile && (
             <UserDropdown nickname={userProfile.nickname} />
           )}
         </div>
       </header>
 
       {/* Game Container */}
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Game Section */}
-          <div className="lg:col-span-2">
-            <GameModeSelector 
-              currentMode={selectedMode}
-              onModeChange={handleModeChange}
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <GameModeSelector 
+          currentMode={selectedMode}
+          onModeChange={handleModeChange}
+          isDarkMode={isDarkMode}
+        />
+
+        {currentWords.length > 0 ? (
+          selectedMode === 'solo' ? (
+            <TermoGame 
+              targetWord={currentWords[0]} 
               isDarkMode={isDarkMode}
             />
-
-            {currentWords.length > 0 ? (
-              selectedMode === 'solo' ? (
-                <TermoGame 
-                  targetWord={currentWords[0]} 
-                  isDarkMode={isDarkMode}
-                />
-              ) : (
-                <MultiModeTermoGame
-                  targetWords={currentWords}
-                  mode={selectedMode}
-                  isDarkMode={isDarkMode}
-                />
-              )
-            ) : (
-              <div className="text-center text-white/80">
-                <p>Palavras do dia não encontradas!</p>
-                <p className="text-sm mt-2">Verifique a configuração.</p>
-              </div>
-            )}
+          ) : (
+            <MultiModeTermoGame
+              targetWords={currentWords}
+              mode={selectedMode}
+              isDarkMode={isDarkMode}
+            />
+          )
+        ) : (
+          <div className="text-center text-white/80">
+            <p>Palavras do dia não encontradas!</p>
+            <p className="text-sm mt-2">Verifique a configuração.</p>
           </div>
-
-          {/* Stats Section - Only show for authenticated users */}
-          {user && !isGuest && (
-            <div className="lg:col-span-1">
-              <ProfileSection isEnglish={false} />
-            </div>
-          )}
-
-          {/* Guest Mode Message */}
-          {isGuest && (
-            <div className="lg:col-span-1">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-                <div className="text-white text-center">
-                  <h3 className="text-lg font-semibold mb-2">Modo Convidado</h3>
-                  <p className="text-sm text-white/70 mb-4">
-                    Você está jogando como convidado. Suas estatísticas não serão salvas.
-                  </p>
-                  <Button
-                    onClick={() => window.location.href = '/termo'}
-                    variant="outline"
-                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                  >
-                    Criar conta para salvar progresso
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

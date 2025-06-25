@@ -6,6 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -71,7 +72,7 @@ export const UserDropdown = ({ nickname }: UserDropdownProps) => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent 
-            className="w-48 bg-gray-800 border-gray-700 z-50" 
+            className="w-48 bg-gray-800 border-gray-700" 
             align="end"
           >
             <DialogTrigger asChild>
@@ -83,7 +84,7 @@ export const UserDropdown = ({ nickname }: UserDropdownProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <DialogContent className="bg-gray-800 border-gray-700 text-white z-50">
+        <DialogContent className="bg-gray-800 border-gray-700 text-white">
           <DialogHeader>
             <DialogTitle>Opções da conta</DialogTitle>
           </DialogHeader>
@@ -111,7 +112,7 @@ export const UserDropdown = ({ nickname }: UserDropdownProps) => {
       </Dialog>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent className="bg-gray-800 border-gray-700 text-white z-50">
+        <AlertDialogContent className="bg-gray-800 border-gray-700 text-white">
           <AlertDialogHeader>
             <AlertDialogTitle>Deletar conta permanentemente?</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-300">
