@@ -27,13 +27,7 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
   } = useMultiModeGameState(targetWords, mode);
 
   // Hook para enviar resultado automaticamente para Discord
-  useDiscordNotification({
-    gameState,
-    mode,
-    allTargetWords: targetWords,
-    playerIP: sessionInfo?.ipHash,
-    showingFreshGameOver
-  });
+  useDiscordNotification();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

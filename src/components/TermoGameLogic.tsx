@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { TermoGrid } from "./TermoGrid";
 import { TermoKeyboard } from "./TermoKeyboard";
@@ -31,13 +30,7 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
   useTermoKeyboardHandler(handleKeyPress);
 
   // Hook para enviar resultado automaticamente para Discord
-  useDiscordNotification({
-    gameState,
-    mode: 'solo',
-    allTargetWords: [targetWord],
-    playerIP: sessionInfo?.ipHash,
-    showingFreshGameOver
-  });
+  useDiscordNotification();
 
   const maxGuesses = 6;
 
