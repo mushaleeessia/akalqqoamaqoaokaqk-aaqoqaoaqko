@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { ChevronDown, Settings, LogOut, Trash2 } from 'lucide-react';
+import { ChevronDown, Settings, LogOut, Trash2, BarChart3 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -28,14 +28,18 @@ import {
 } from "@/components/ui/dialog";
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { TermoStats } from './TermoStats';
+import { GameMode } from './GameModeSelector';
 
 interface UserDropdownProps {
   nickname: string;
+  currentMode: GameMode;
 }
 
-export const UserDropdown = ({ nickname }: UserDropdownProps) => {
+export const UserDropdown = ({ nickname, currentMode }: UserDropdownProps) => {
   const { signOut, user } = useAuth();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showStatsDialog, setShowStatsDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteAccount = async () => {
@@ -60,57 +64,56 @@ export const UserDropdown = ({ nickname }: UserDropdownProps) => {
 
   return (
     <>
-      <Dialog>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              className="text-white hover:bg-white/10 flex items-center gap-2"
-            >
-              {nickname}
-              <ChevronDown className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent 
-            className="w-48 bg-gray-800 border-gray-700" 
-            align="end"
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="ghost" 
+            className="text-white hover:bg-white/10 flex items-center gap-2"
           >
-            <DialogTrigger asChild>
-              <DropdownMenuItem className="text-white hover:bg-gray-700 cursor-pointer">
-                <Settings className="w-4 h-4 mr-2" />
-                Mais opções
-              </DropdownMenuItem>
-            </DialogTrigger>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            {nickname}
+            <ChevronDown className="w-4 h-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent 
+          className="w-48 bg-gray-800 border-gray-700 z-50" 
+          align="end"
+        >
+          <DropdownMenuItem 
+            className="text-white hover:bg-gray-700 cursor-pointer"
+            onClick={() => setShowStatsDialog(true)}
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Ver estatísticas
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="bg-gray-700" />
+          <DropdownMenuItem 
+            className="text-white hover:bg-gray-700 cursor-pointer"
+            onClick={signOut}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair da conta
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            className="text-white hover:bg-gray-700 cursor-pointer"
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Deletar conta
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-        <DialogContent className="bg-gray-800 border-gray-700 text-white">
+      {/* Stats Dialog */}
+      <Dialog open={showStatsDialog} onOpenChange={setShowStatsDialog}>
+        <DialogContent className="bg-gray-800 border-gray-700 text-white max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Opções da conta</DialogTitle>
+            <DialogTitle>Estatísticas do Jogo</DialogTitle>
           </DialogHeader>
-          
-          <div className="space-y-4">
-            <Button
-              onClick={signOut}
-              variant="outline"
-              className="w-full bg-gray-700 border-gray-600 text-white hover:bg-gray-600"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair da conta
-            </Button>
-            
-            <Button
-              onClick={() => setShowDeleteDialog(true)}
-              variant="destructive"
-              className="w-full"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Deletar conta
-            </Button>
-          </div>
+          <TermoStats mode={currentMode} isGuest={false} />
         </DialogContent>
       </Dialog>
 
+      {/* Delete Account Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent className="bg-gray-800 border-gray-700 text-white">
           <AlertDialogHeader>

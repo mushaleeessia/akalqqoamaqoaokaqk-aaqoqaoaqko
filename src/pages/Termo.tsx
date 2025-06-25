@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { TermoLogin } from "@/components/TermoLogin";
 import { NameSetup } from "@/components/NameSetup";
 import { UserDropdown } from "@/components/UserDropdown";
-import { TermoStats } from "@/components/TermoStats";
+import { GuestModeDropdown } from "@/components/GuestModeDropdown";
 import { useGuestMode } from "@/hooks/useGuestMode";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -168,13 +168,11 @@ const Termo = () => {
           </Button>
           
           {userProfile && !isGuestMode && (
-            <UserDropdown nickname={userProfile.nickname} />
+            <UserDropdown nickname={userProfile.nickname} currentMode={selectedMode} />
           )}
 
           {isGuestMode && (
-            <div className="text-white bg-yellow-600/20 px-3 py-1 rounded-lg text-sm">
-              Modo Convidado
-            </div>
+            <GuestModeDropdown />
           )}
         </div>
       </header>
@@ -186,9 +184,6 @@ const Termo = () => {
           onModeChange={handleModeChange}
           isDarkMode={isDarkMode}
         />
-
-        {/* Statistics */}
-        <TermoStats mode={selectedMode} isGuest={isGuestMode} />
 
         {currentWords.length > 0 ? (
           selectedMode === 'solo' ? (
