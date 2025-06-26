@@ -4,7 +4,7 @@ import { sendGameResultToDiscord, GameState } from '@/utils/discordWebhook';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGuestMode } from '@/hooks/useGuestMode';
 
-export const useDiscordNotification = (gameState?: { gameStatus: string }, shareText?: string) => {
+export const useDiscordNotification = (gameState: { gameStatus: string }, shareText: string) => {
   const { user } = useAuth();
   const { isGuestMode } = useGuestMode();
 
