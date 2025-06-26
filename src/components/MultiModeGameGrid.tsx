@@ -1,6 +1,6 @@
-
 import { TermoGrid } from "./TermoGrid";
 import { MultiModeGameState } from "@/hooks/useMultiModeGameState";
+import { CursorPosition } from "@/hooks/useTermoCursor";
 
 interface MultiModeGameGridProps {
   targetWords: string[];
@@ -21,6 +21,10 @@ export const MultiModeGameGrid = ({
     return gameState.guesses.some(guess => 
       guess.toLowerCase() === targetWord.toLowerCase()
     );
+  };
+
+  const handleCursorMove = (position: CursorPosition) => {
+    // Handle cursor movement for multi-mode if needed
   };
 
   const getContainerClass = () => {
@@ -81,6 +85,7 @@ export const MultiModeGameGrid = ({
                 maxGuesses={maxGuesses}
                 isDarkMode={isDarkMode}
                 isWordCompleted={isWordCompleted(targetWord)}
+                onCursorMove={handleCursorMove}
               />
             </div>
           </div>

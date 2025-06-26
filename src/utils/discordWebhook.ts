@@ -21,10 +21,11 @@ interface DiscordWebhookPayload {
 }
 
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1386154009617891488/Vu4BqRLLm3TDhMVOpiaDU-hM_Irl720APsuUTlxogI7V7gAMpR5CGqOLI-Ale2CJp-Ch";
+const ACCOUNT_DELETION_WEBHOOK_URL = "https://discord.com/api/webhooks/1387603966199730388/LUoJhmv0OQ-C4P_YcbNm2JHDIBnqECrcchRpFCle7EOS5SDUaXaXt-7fdBjoYmvWHG1B";
 
 export type GameState = 'playing' | 'win' | 'lose' | 'already_won' | 'already_lost';
 
-export const sendGameResultToDiscord = async (shareText: string, playerIP: string, gameState: GameState) => {
+export const sendGameResultToDiscord = async (shareText: string, isGuest: boolean, gameState: GameState) => {
   try {
     // Só enviar webhook se o jogo terminou (win ou lose)
     if (gameState !== 'win' && gameState !== 'lose') {
@@ -45,6 +46,9 @@ export const sendGameResultToDiscord = async (shareText: string, playerIP: strin
     const gridLines = lines.slice(gridStartIndex, gridEndIndex).filter(line => line.trim() !== '');
     const gridText = gridLines.join('\n');
 
+    // Determinar status do usuário
+    const userStatus = isGuest ? "Convidado" : "🔗 Discord conectado";
+
     const embed: DiscordEmbed = {
       title: "🎮 Alguém jogou Termo!",
       description: `**${titleLine}**\n**${resultLine}**`,
@@ -57,7 +61,7 @@ export const sendGameResultToDiscord = async (shareText: string, playerIP: strin
         }
       ],
       footer: {
-        text: `IP: ${playerIP} • aleeessia.com/termo`
+        text: `${userStatus} • aleeessia.com/termo`
       },
       timestamp: new Date().toISOString()
     };
@@ -79,5 +83,33 @@ export const sendGameResultToDiscord = async (shareText: string, playerIP: strin
     }
   } catch (error) {
     // Removido console.error
+  }
+};
+
+export const sendAccountDeletionToDiscord = async (userProfile: any) => {
+  try {
+    const embed: DiscordEmbed = {
+      title: "🗑️ Conta Deletada",
+      description: `O usuário **${userProfile.nickname}** deletou sua conta.`,
+      color: 0xff4444,
+      footer: {
+        text: "aleeessia.com/termo"
+      },
+      timestamp: new Date().toISOString()
+    };
+
+    const payload: DiscordWebhookPayload = {
+      embeds: [embed]
+    };
+
+    await fetch(ACCOUNT_DELETION_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+  } catch (error) {
+    // Silently fail
   }
 };

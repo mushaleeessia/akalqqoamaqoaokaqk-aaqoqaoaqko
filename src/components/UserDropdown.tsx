@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ChevronDown, Settings, LogOut, Trash2, BarChart3 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -30,6 +29,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { TermoStats } from './TermoStats';
 import { GameMode } from './GameModeSelector';
+import { sendAccountDeletionToDiscord } from '@/utils/discordWebhook';
 
 interface UserDropdownProps {
   nickname: string;
@@ -47,6 +47,19 @@ export const UserDropdown = ({ nickname, currentMode }: UserDropdownProps) => {
     
     setIsDeleting(true);
     try {
+      // Primeiro, buscar os dados do perfil antes de deletar
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      // Enviar webhook de deleção de conta
+      if (profileData) {
+        await sendAccountDeletionToDiscord(profileData);
+      }
+
+      // Depois deletar a conta
       const { error } = await supabase.rpc('delete_user_account', {
         user_uuid: user.id
       });

@@ -100,6 +100,10 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
     );
   }
 
+  const handleCursorMove = (position: any) => {
+    // Cursor position is handled internally by the grid
+  };
+
   return (
     <div className="flex flex-col items-center space-y-6">
       {isValidating && (
@@ -115,6 +119,7 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
         currentRow={gameState.currentRow}
         maxGuesses={maxGuesses}
         isDarkMode={isDarkMode}
+        onCursorMove={handleCursorMove}
       />
       
       <TermoKeyboard
