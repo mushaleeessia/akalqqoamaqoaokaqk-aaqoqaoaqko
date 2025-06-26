@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { validatePortugueseWord } from "@/utils/portugueseWords";
 import { usePlayerSession } from "@/hooks/usePlayerSession";
@@ -28,6 +27,7 @@ export const useTermoGameState = (targetWord: string) => {
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState(0);
 
   const evaluateGuess = (guess: string): LetterState[] => {
     const result: LetterState[] = [];
@@ -117,6 +117,7 @@ export const useTermoGameState = (targetWord: string) => {
       };
       
       setGameState(newGameState);
+      setCursorPosition(0);
 
       if (isGameOver) {
         setShowingFreshGameOver(true);
@@ -136,27 +137,47 @@ export const useTermoGameState = (targetWord: string) => {
     }
   }, [gameState.currentGuess, gameState.guesses, targetWord, keyStates, saveGameProgress, saveGameSession]);
 
+  const insertCharacterAtCursor = (char: string, position: number, currentWord: string): string => {
+    if (currentWord.length >= 5) return currentWord;
+    
+    const before = currentWord.slice(0, position);
+    const after = currentWord.slice(position);
+    return before + char + after;
+  };
+
+  const removeCharacterAtCursor = (position: number, currentWord: string): { newWord: string, newPosition: number } => {
+    if (position === 0) return { newWord: currentWord, newPosition: 0 };
+    
+    const before = currentWord.slice(0, position - 1);
+    const after = currentWord.slice(position);
+    return { newWord: before + after, newPosition: position - 1 };
+  };
+
   const handleKeyPress = useCallback((key: string) => {
     if (gameState.gameStatus !== 'playing' || isValidating) return;
 
     if (key === 'ENTER') {
       submitGuess();
     } else if (key === 'BACKSPACE') {
+      const { newWord, newPosition } = removeCharacterAtCursor(cursorPosition, gameState.currentGuess);
       const newGameState = {
         ...gameState,
-        currentGuess: gameState.currentGuess.slice(0, -1)
+        currentGuess: newWord
       };
       setGameState(newGameState);
+      setCursorPosition(newPosition);
       saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
     } else if (key.length === 1 && gameState.currentGuess.length < 5) {
+      const newWord = insertCharacterAtCursor(key.toLowerCase(), cursorPosition, gameState.currentGuess);
       const newGameState = {
         ...gameState,
-        currentGuess: gameState.currentGuess + key.toLowerCase()
+        currentGuess: newWord
       };
       setGameState(newGameState);
+      setCursorPosition(Math.min(cursorPosition + 1, 5));
       saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
     }
-  }, [gameState, isValidating, submitGuess, saveGameProgress]);
+  }, [gameState, isValidating, submitGuess, saveGameProgress, cursorPosition]);
 
   useState(() => {
     if (sessionInfo) {
@@ -195,6 +216,8 @@ export const useTermoGameState = (targetWord: string) => {
     sessionInfo,
     handleKeyPress,
     evaluateGuess,
-    updateKeyStatesForGuess
+    updateKeyStatesForGuess,
+    cursorPosition,
+    setCursorPosition
   };
 };

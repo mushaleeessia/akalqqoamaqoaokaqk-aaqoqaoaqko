@@ -25,11 +25,12 @@ export const TermoGrid = ({
   onCursorMove
 }: TermoGridProps) => {
   
-  const { cursorPosition, handleCellClick, updateCursorFromGuess } = useTermoCursor(currentRow, currentGuess, isWordCompleted ? 'completed' : 'playing');
+  const { cursorPosition, handleCellClick, moveCursorToEnd } = useTermoCursor(currentRow, currentGuess, isWordCompleted ? 'completed' : 'playing');
 
+  // Mover cursor para o final quando currentGuess muda externamente (teclado físico)
   useEffect(() => {
-    updateCursorFromGuess();
-  }, [currentGuess, updateCursorFromGuess]);
+    moveCursorToEnd();
+  }, [currentGuess, moveCursorToEnd]);
 
   useEffect(() => {
     if (onCursorMove) {
@@ -66,30 +67,31 @@ export const TermoGrid = ({
     return result;
   };
 
-  const getLetterClass = (state: LetterState, isDark: boolean, isActive: boolean): string => {
-    const baseClass = "w-14 h-14 border-2 flex items-center justify-center text-xl font-bold rounded transition-all duration-300 cursor-pointer relative";
+  const getLetterClass = (state: LetterState, isDark: boolean, isActive: boolean, isClickable: boolean): string => {
+    const baseClass = "w-14 h-14 border-2 flex items-center justify-center text-xl font-bold rounded transition-all duration-300 relative";
+    const cursorClass = isClickable ? "cursor-pointer hover:scale-105" : "cursor-default";
     
     if (isDark) {
       switch (state) {
         case 'correct':
-          return `${baseClass} bg-green-600 border-green-600 text-white`;
+          return `${baseClass} bg-green-600 border-green-600 text-white ${cursorClass}`;
         case 'present':
-          return `${baseClass} bg-yellow-600 border-yellow-600 text-white`;
+          return `${baseClass} bg-yellow-600 border-yellow-600 text-white ${cursorClass}`;
         case 'absent':
-          return `${baseClass} bg-gray-700 border-gray-700 text-white`;
+          return `${baseClass} bg-gray-700 border-gray-700 text-white ${cursorClass}`;
         default:
-          return `${baseClass} bg-gray-800 border-gray-600 text-white ${isActive ? 'ring-2 ring-blue-400' : 'hover:border-gray-500'}`;
+          return `${baseClass} bg-gray-800 border-gray-600 text-white ${isActive ? 'ring-2 ring-blue-400' : ''} ${isClickable ? 'hover:border-gray-500' : ''} ${cursorClass}`;
       }
     } else {
       switch (state) {
         case 'correct':
-          return `${baseClass} bg-green-500 border-green-500 text-white`;
+          return `${baseClass} bg-green-500 border-green-500 text-white ${cursorClass}`;
         case 'present':
-          return `${baseClass} bg-yellow-500 border-yellow-500 text-white`;
+          return `${baseClass} bg-yellow-500 border-yellow-500 text-white ${cursorClass}`;
         case 'absent':
-          return `${baseClass} bg-gray-500 border-gray-500 text-white`;
+          return `${baseClass} bg-gray-500 border-gray-500 text-white ${cursorClass}`;
         default:
-          return `${baseClass} bg-white border-gray-300 text-gray-800 ${isActive ? 'ring-2 ring-blue-500' : 'hover:border-gray-400'}`;
+          return `${baseClass} bg-white border-gray-300 text-gray-800 ${isActive ? 'ring-2 ring-blue-500' : ''} ${isClickable ? 'hover:border-gray-400' : ''} ${cursorClass}`;
       }
     }
   };
@@ -127,6 +129,10 @@ export const TermoGrid = ({
         states = new Array(5).fill('empty');
       } else {
         letters = currentGuess.split('');
+        // Preencher com espaços vazios até 5 posições
+        while (letters.length < 5) {
+          letters.push('');
+        }
         states = new Array(5).fill('empty');
       }
     } else {
@@ -139,23 +145,21 @@ export const TermoGrid = ({
       <div key={rowIndex} className="flex space-x-2">
         {Array.from({ length: 5 }, (_, colIndex) => {
           const isActive = cursorPosition.row === rowIndex && cursorPosition.col === colIndex;
-          const hasLetter = letters[colIndex] && letters[colIndex] !== '';
-          const canClick = rowIndex === currentRow && !isWordCompleted && states[colIndex] === 'empty';
+          const isCurrentRow = rowIndex === currentRow;
+          const isClickable = isCurrentRow && !isWordCompleted && states[colIndex] === 'empty' && colIndex <= currentGuess.length;
           
           return (
             <div
               key={colIndex}
-              className={getLetterClass(states[colIndex], isDarkMode, isActive)}
+              className={getLetterClass(states[colIndex], isDarkMode, isActive, isClickable)}
               onClick={() => {
-                if (canClick) {
-                  const success = handleCellClick(rowIndex, colIndex, hasLetter);
-                  console.log('Cell clicked:', { rowIndex, colIndex, hasLetter, success });
+                if (isClickable) {
+                  handleCellClick(rowIndex, colIndex);
                 }
               }}
-              style={{ cursor: canClick ? 'pointer' : 'default' }}
             >
               {letters[colIndex]?.toUpperCase() || ''}
-              {isActive && states[colIndex] === 'empty' && !hasLetter && (
+              {isActive && states[colIndex] === 'empty' && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-6 h-0.5 bg-blue-500 rounded-full animate-pulse"></div>
                 </div>

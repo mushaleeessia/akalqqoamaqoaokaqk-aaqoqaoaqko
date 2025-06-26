@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export interface CursorPosition {
   row: number;
@@ -15,25 +15,37 @@ export const useTermoCursor = (currentRow: number, currentGuess: string, gameSta
     }
   }, [currentRow, currentGuess, gameStatus]);
 
-  const handleCellClick = useCallback((row: number, col: number, hasLetter: boolean) => {
+  // Atualizar automaticamente quando a linha atual muda
+  useEffect(() => {
+    setCursorPosition(prev => ({ ...prev, row: currentRow }));
+  }, [currentRow]);
+
+  const handleCellClick = useCallback((row: number, col: number) => {
     // Só permite clicar na linha atual durante o jogo
     if (gameStatus !== 'playing' || row !== currentRow) {
       return false;
     }
     
-    // Permite clicar em células vazias até a posição atual + 1
-    if (!hasLetter && col <= currentGuess.length) {
+    // Permite clicar em qualquer posição até o final da palavra atual
+    if (col <= currentGuess.length) {
       setCursorPosition({ row, col });
       return true;
     }
     
     return false;
-  }, [gameStatus, currentRow, currentGuess]);
+  }, [gameStatus, currentRow, currentGuess.length]);
+
+  const moveCursorToEnd = useCallback(() => {
+    if (gameStatus === 'playing') {
+      setCursorPosition({ row: currentRow, col: currentGuess.length });
+    }
+  }, [gameStatus, currentRow, currentGuess.length]);
 
   return {
     cursorPosition,
     setCursorPosition,
     handleCellClick,
-    updateCursorFromGuess
+    updateCursorFromGuess,
+    moveCursorToEnd
   };
 };
