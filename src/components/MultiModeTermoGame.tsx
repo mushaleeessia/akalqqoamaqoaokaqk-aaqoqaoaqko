@@ -29,7 +29,13 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
 
   // Gerar texto de compartilhamento quando o jogo termina
   const shareText = (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') 
-    ? generateShareText(gameState, targetWords[0], mode, targetWords)
+    ? generateShareText(
+        gameState, 
+        mode, 
+        gameState.gameStatus === 'won',
+        gameState.currentRow,
+        targetWords
+      )
     : '';
 
   // Hook para enviar resultado automaticamente para Discord

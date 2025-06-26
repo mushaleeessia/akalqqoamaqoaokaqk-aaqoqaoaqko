@@ -33,7 +33,13 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
 
   // Gerar texto de compartilhamento quando o jogo termina
   const shareText = (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') 
-    ? generateShareText(gameState, targetWord, 'solo')
+    ? generateShareText(
+        gameState, 
+        'solo',
+        gameState.gameStatus === 'won',
+        gameState.currentRow,
+        [targetWord]
+      )
     : '';
 
   // Hook para enviar resultado automaticamente para Discord
