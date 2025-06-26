@@ -6,6 +6,7 @@ import { MultiModeCompletedMessage } from "./MultiModeCompletedMessage";
 import { MultiModeGameGrid } from "./MultiModeGameGrid";
 import { useMultiModeGameState } from "@/hooks/useMultiModeGameState";
 import { useDiscordNotification } from "@/hooks/useDiscordNotification";
+import { generateShareText } from "@/utils/shareUtils";
 
 interface MultiModeTermoGameProps {
   targetWords: string[];
@@ -26,8 +27,13 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
     sessionInfo
   } = useMultiModeGameState(targetWords, mode);
 
+  // Gerar texto de compartilhamento quando o jogo termina
+  const shareText = (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') 
+    ? generateShareText(gameState, targetWords[0], mode, targetWords)
+    : undefined;
+
   // Hook para enviar resultado automaticamente para Discord
-  useDiscordNotification();
+  useDiscordNotification(gameState, shareText);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

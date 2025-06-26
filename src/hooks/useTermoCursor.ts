@@ -16,13 +16,13 @@ export const useTermoCursor = (currentRow: number, currentGuess: string, gameSta
   }, [currentRow, currentGuess, gameStatus]);
 
   const handleCellClick = useCallback((row: number, col: number, hasLetter: boolean) => {
-    // Só permite clicar na linha atual e em células vazias
-    if (gameStatus !== 'playing' || row !== currentRow || hasLetter) {
+    // Só permite clicar na linha atual durante o jogo
+    if (gameStatus !== 'playing' || row !== currentRow) {
       return false;
     }
     
-    // Só permite clicar em posições válidas (até onde já tem letras + 1)
-    if (col <= currentGuess.length) {
+    // Permite clicar em células vazias até a posição atual + 1
+    if (!hasLetter && col <= currentGuess.length) {
       setCursorPosition({ row, col });
       return true;
     }

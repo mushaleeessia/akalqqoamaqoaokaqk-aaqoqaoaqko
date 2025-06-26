@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { TermoGrid } from "./TermoGrid";
 import { TermoKeyboard } from "./TermoKeyboard";
@@ -5,6 +6,7 @@ import { TermoGameOver } from "./TermoGameOver";
 import { useTermoGameState } from "@/hooks/useTermoGameState";
 import { useTermoKeyboardHandler } from "@/hooks/useTermoKeyboardHandler";
 import { useDiscordNotification } from "@/hooks/useDiscordNotification";
+import { generateShareText } from "@/utils/shareUtils";
 
 interface TermoGameLogicProps {
   targetWord: string;
@@ -29,8 +31,13 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
 
   useTermoKeyboardHandler(handleKeyPress);
 
+  // Gerar texto de compartilhamento quando o jogo termina
+  const shareText = (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') 
+    ? generateShareText(gameState, targetWord, 'solo')
+    : undefined;
+
   // Hook para enviar resultado automaticamente para Discord
-  useDiscordNotification();
+  useDiscordNotification(gameState, shareText);
 
   const maxGuesses = 6;
 

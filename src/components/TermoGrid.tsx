@@ -140,19 +140,24 @@ export const TermoGrid = ({
         {Array.from({ length: 5 }, (_, colIndex) => {
           const isActive = cursorPosition.row === rowIndex && cursorPosition.col === colIndex;
           const hasLetter = letters[colIndex] && letters[colIndex] !== '';
-          const canClick = rowIndex === currentRow && !hasLetter && states[colIndex] === 'empty';
+          const canClick = rowIndex === currentRow && !isWordCompleted && states[colIndex] === 'empty';
           
           return (
             <div
               key={colIndex}
               className={getLetterClass(states[colIndex], isDarkMode, isActive)}
-              onClick={() => canClick && handleCellClick(rowIndex, colIndex, hasLetter)}
+              onClick={() => {
+                if (canClick) {
+                  const success = handleCellClick(rowIndex, colIndex, hasLetter);
+                  console.log('Cell clicked:', { rowIndex, colIndex, hasLetter, success });
+                }
+              }}
               style={{ cursor: canClick ? 'pointer' : 'default' }}
             >
               {letters[colIndex]?.toUpperCase() || ''}
-              {isActive && states[colIndex] === 'empty' && (
+              {isActive && states[colIndex] === 'empty' && !hasLetter && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-0.5 h-8 bg-blue-500 animate-pulse"></div>
+                  <div className="w-6 h-0.5 bg-blue-500 rounded-full animate-pulse"></div>
                 </div>
               )}
             </div>
