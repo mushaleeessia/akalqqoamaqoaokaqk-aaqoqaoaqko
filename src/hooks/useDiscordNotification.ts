@@ -12,7 +12,8 @@ export const useDiscordNotification = (gameState?: { gameStatus: string }, share
   useEffect(() => {
     if (gameState && shareText && (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost')) {
       const isGuest = !user || isGuestMode;
-      sendGameResultToDiscord(shareText, isGuest, gameState.gameStatus as GameState);
+      const discordGameState = gameState.gameStatus === 'won' ? 'win' : 'lose';
+      sendGameResultToDiscord(shareText, isGuest, discordGameState as GameState);
     }
   }, [gameState?.gameStatus, shareText, user, isGuestMode]);
 
