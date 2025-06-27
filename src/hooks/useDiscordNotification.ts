@@ -8,13 +8,16 @@ import { supabase } from '@/integrations/supabase/client';
 export const useDiscordNotification = (gameState: { gameStatus: string }, shareText: string) => {
   const { user } = useAuth();
   const { isGuestMode } = useGuestMode();
-  const notificationSent = useRef(false);
+  const lastNotifiedGameState = useRef<string>('');
 
   // Enviar automaticamente quando o jogo termina
   useEffect(() => {
     if (gameState && shareText && (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost')) {
-      // Se já enviou notificação para este estado, não enviar novamente
-      if (notificationSent.current) {
+      // Criar uma chave única baseada no shareText para evitar duplicatas
+      const gameKey = shareText.split('\n').slice(0, 2).join('|'); // Usa título + resultado como chave única
+      
+      // Se já enviou notificação para este jogo específico, não enviar novamente
+      if (lastNotifiedGameState.current === gameKey) {
         return;
       }
 
@@ -48,17 +51,17 @@ export const useDiscordNotification = (gameState: { gameStatus: string }, shareT
         }
 
         await sendGameResultToDiscord(shareText, isGuest, discordGameState as GameState, userInfo);
-        notificationSent.current = true;
+        lastNotifiedGameState.current = gameKey;
       };
 
       sendNotificationWithUserInfo();
     }
   }, [gameState?.gameStatus, shareText, user, isGuestMode]);
 
-  // Reset quando o componente é desmontado ou quando o jogo muda
+  // Reset quando começar um novo jogo
   useEffect(() => {
     if (gameState?.gameStatus === 'playing') {
-      notificationSent.current = false;
+      // Não resetar imediatamente - manter o controle para evitar re-envios
     }
   }, [gameState?.gameStatus]);
 
