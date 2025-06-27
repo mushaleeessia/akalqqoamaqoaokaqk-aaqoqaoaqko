@@ -4,27 +4,84 @@ import { sendGameResultToDiscord, GameState } from '@/utils/discordWebhook';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGuestMode } from '@/hooks/useGuestMode';
 import { supabase } from '@/integrations/supabase/client';
+import { GameMode } from '@/components/GameModeSelector';
 
-export const useDiscordNotification = (gameState: { gameStatus: string }, shareText: string) => {
+// Função para gerar um hash único para a sessão do jogo
+const generateGameSessionHash = (gameState: any, shareText: string, mode?: GameMode) => {
+  const today = new Date().toISOString().split('T')[0];
+  const gameData = {
+    date: today,
+    status: gameState.gameStatus,
+    guesses: gameState.guesses?.length || 0,
+    mode: mode || 'solo',
+    shareTextPreview: shareText.split('\n').slice(0, 3).join('|')
+  };
+  
+  return btoa(JSON.stringify(gameData)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+};
+
+export const useDiscordNotification = (gameState: { gameStatus: string; guesses?: string[] }, shareText: string, mode?: GameMode) => {
   const { user } = useAuth();
   const { isGuestMode } = useGuestMode();
-  const lastNotifiedGameState = useRef<string>('');
+  const processedSessions = useRef<Set<string>>(new Set());
+
+  // Função para verificar se já foi enviado (para usuários logados)
+  const checkIfAlreadySent = async (sessionHash: string): Promise<boolean> => {
+    if (isGuestMode || !user) return false;
+    
+    try {
+      const { data, error } = await supabase
+        .from('discord_webhooks_sent')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('session_hash', sessionHash)
+        .maybeSingle();
+      
+      return !!data && !error;
+    } catch {
+      return false;
+    }
+  };
+
+  // Função para marcar como enviado (para usuários logados)
+  const markAsSent = async (sessionHash: string) => {
+    if (isGuestMode || !user) return;
+    
+    try {
+      await supabase
+        .from('discord_webhooks_sent')
+        .insert({
+          user_id: user.id,
+          session_hash: sessionHash,
+          sent_at: new Date().toISOString()
+        });
+    } catch {
+      // Silently fail
+    }
+  };
 
   // Enviar automaticamente quando o jogo termina
   useEffect(() => {
     if (gameState && shareText && (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost')) {
-      // Criar uma chave única baseada no shareText para evitar duplicatas
-      const gameKey = shareText.split('\n').slice(0, 2).join('|'); // Usa título + resultado como chave única
+      const sessionHash = generateGameSessionHash(gameState, shareText, mode);
       
-      // Se já enviou notificação para este jogo específico, não enviar novamente
-      if (lastNotifiedGameState.current === gameKey) {
+      // Verificar se já foi processado nesta sessão (para convidados e usuários)
+      if (processedSessions.current.has(sessionHash)) {
         return;
       }
 
-      const isGuest = !user || isGuestMode;
-      const discordGameState = gameState.gameStatus === 'won' ? 'win' : 'lose';
-      
       const sendNotificationWithUserInfo = async () => {
+        // Para usuários logados, verificar no banco
+        if (!isGuestMode && user) {
+          const alreadySent = await checkIfAlreadySent(sessionHash);
+          if (alreadySent) {
+            return;
+          }
+        }
+
+        const isGuest = !user || isGuestMode;
+        const discordGameState = gameState.gameStatus === 'won' ? 'win' : 'lose';
+        
         let userInfo = undefined;
         
         if (!isGuest && user) {
@@ -51,19 +108,24 @@ export const useDiscordNotification = (gameState: { gameStatus: string }, shareT
         }
 
         await sendGameResultToDiscord(shareText, isGuest, discordGameState as GameState, userInfo);
-        lastNotifiedGameState.current = gameKey;
+        
+        // Marcar como enviado
+        processedSessions.current.add(sessionHash);
+        if (!isGuest && user) {
+          await markAsSent(sessionHash);
+        }
       };
 
       sendNotificationWithUserInfo();
     }
-  }, [gameState?.gameStatus, shareText, user, isGuestMode]);
+  }, [gameState?.gameStatus, shareText, user, isGuestMode, mode]);
 
-  // Reset quando começar um novo jogo
+  // Limpar cache quando o componente é desmontado
   useEffect(() => {
-    if (gameState?.gameStatus === 'playing') {
-      // Não resetar imediatamente - manter o controle para evitar re-envios
-    }
-  }, [gameState?.gameStatus]);
+    return () => {
+      processedSessions.current.clear();
+    };
+  }, []);
 
   const sendNotification = async (shareText: string, gameState: GameState) => {
     const isGuest = !user || isGuestMode;

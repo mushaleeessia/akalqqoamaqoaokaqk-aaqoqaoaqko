@@ -39,7 +39,7 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
     : '';
 
   // Hook para enviar resultado automaticamente para Discord
-  useDiscordNotification(gameState, shareText);
+  useDiscordNotification(gameState, shareText, mode);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
