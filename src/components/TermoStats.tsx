@@ -22,6 +22,7 @@ export const TermoStats = ({ mode, isGuest = false }: TermoStatsProps) => {
   const { user } = useAuth();
   const [stats, setStats] = useState<GameStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasNoStats, setHasNoStats] = useState(false);
 
   const getGuestStats = (): GameStats => {
     const savedStats = localStorage.getItem(`termo_guest_stats_${mode}`);
@@ -40,7 +41,9 @@ export const TermoStats = ({ mode, isGuest = false }: TermoStatsProps) => {
 
   const fetchStats = async () => {
     if (isGuest) {
-      setStats(getGuestStats());
+      const guestStats = getGuestStats();
+      setStats(guestStats);
+      setHasNoStats(guestStats.total_games === 0);
       setLoading(false);
       return;
     }
@@ -60,11 +63,17 @@ export const TermoStats = ({ mode, isGuest = false }: TermoStatsProps) => {
 
       if (error) {
         console.error('Error fetching stats:', error);
+        setHasNoStats(true);
       } else if (data) {
         setStats(data);
+        setHasNoStats(false);
+      } else {
+        // Nenhuma estatística encontrada
+        setHasNoStats(true);
       }
     } catch (error) {
       console.error('Error:', error);
+      setHasNoStats(true);
     } finally {
       setLoading(false);
     }
@@ -91,6 +100,7 @@ export const TermoStats = ({ mode, isGuest = false }: TermoStatsProps) => {
         (payload) => {
           if (payload.new && (payload.new as any).game_mode === mode) {
             setStats(payload.new as GameStats);
+            setHasNoStats(false);
           }
         }
       )
@@ -109,8 +119,36 @@ export const TermoStats = ({ mode, isGuest = false }: TermoStatsProps) => {
     );
   }
 
-  if (!stats) {
-    return null;
+  const getModeLabel = (mode: GameMode): string => {
+    const labels = {
+      solo: 'Solo',
+      duo: 'Duo',
+      trio: 'Trio',
+      quarteto: 'Quarteto'
+    };
+    return labels[mode];
+  };
+
+  // Mostrar mensagem quando não há estatísticas
+  if (hasNoStats || !stats || stats.total_games === 0) {
+    return (
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-6">
+        <h3 className="text-white text-lg font-semibold mb-4 text-center">
+          Estatísticas - {getModeLabel(mode)}
+          {isGuest && <span className="text-yellow-400 text-sm ml-2">(Modo Convidado)</span>}
+        </h3>
+        
+        <div className="text-center py-8">
+          <div className="text-6xl mb-4">📊</div>
+          <p className="text-white/80 text-lg mb-2">
+            Você ainda não jogou nenhuma partida no modo {getModeLabel(mode)}!
+          </p>
+          <p className="text-white/60 text-sm">
+            Que tal começar uma partida agora?
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const winRate = stats.total_games > 0 ? Math.round((stats.total_wins / stats.total_games) * 100) : 0;
@@ -118,7 +156,7 @@ export const TermoStats = ({ mode, isGuest = false }: TermoStatsProps) => {
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-6">
       <h3 className="text-white text-lg font-semibold mb-4 text-center">
-        Estatísticas - {mode.charAt(0).toUpperCase() + mode.slice(1)}
+        Estatísticas - {getModeLabel(mode)}
         {isGuest && <span className="text-yellow-400 text-sm ml-2">(Modo Convidado)</span>}
       </h3>
       

@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { sendGameResultToDiscord, GameState } from '@/utils/discordWebhook';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGuestMode } from '@/hooks/useGuestMode';
@@ -8,10 +8,16 @@ import { supabase } from '@/integrations/supabase/client';
 export const useDiscordNotification = (gameState: { gameStatus: string }, shareText: string) => {
   const { user } = useAuth();
   const { isGuestMode } = useGuestMode();
+  const notificationSent = useRef(false);
 
   // Enviar automaticamente quando o jogo termina
   useEffect(() => {
     if (gameState && shareText && (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost')) {
+      // Se já enviou notificação para este estado, não enviar novamente
+      if (notificationSent.current) {
+        return;
+      }
+
       const isGuest = !user || isGuestMode;
       const discordGameState = gameState.gameStatus === 'won' ? 'win' : 'lose';
       
@@ -42,11 +48,19 @@ export const useDiscordNotification = (gameState: { gameStatus: string }, shareT
         }
 
         await sendGameResultToDiscord(shareText, isGuest, discordGameState as GameState, userInfo);
+        notificationSent.current = true;
       };
 
       sendNotificationWithUserInfo();
     }
   }, [gameState?.gameStatus, shareText, user, isGuestMode]);
+
+  // Reset quando o componente é desmontado ou quando o jogo muda
+  useEffect(() => {
+    if (gameState?.gameStatus === 'playing') {
+      notificationSent.current = false;
+    }
+  }, [gameState?.gameStatus]);
 
   const sendNotification = async (shareText: string, gameState: GameState) => {
     const isGuest = !user || isGuestMode;

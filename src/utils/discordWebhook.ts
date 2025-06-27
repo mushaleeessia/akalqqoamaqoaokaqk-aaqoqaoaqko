@@ -50,27 +50,28 @@ export const sendGameResultToDiscord = async (shareText: string, isGuest: boolea
     const gridLines = lines.slice(gridStartIndex, gridEndIndex).filter(line => line.trim() !== '');
     const gridText = gridLines.join('\n');
 
-    // Configurar autor do embed
+    let embedTitle = "🎮 Alguém jogou Termo!";
     let authorConfig = undefined;
     let footerText = "aleeessia.com/termo";
 
     if (!isGuest && userInfo) {
-      // Usuário conectado - mostrar avatar e nome
-      const displayName = userInfo.discordUsername 
-        ? `${userInfo.nickname} (${userInfo.discordUsername})`
-        : userInfo.nickname || "Usuário";
+      // Usuário conectado - mostrar nome no título e informações do autor
+      const displayName = userInfo.nickname || "Usuário";
+      embedTitle = `🎮 ${displayName} jogou Termo!`;
       
-      authorConfig = {
-        name: displayName,
-        icon_url: userInfo.discordAvatar
-      };
+      if (userInfo.discordUsername) {
+        authorConfig = {
+          name: userInfo.discordUsername,
+          icon_url: userInfo.discordAvatar
+        };
+      }
     } else {
-      // Convidado
+      // Convidado - manter título genérico
       footerText = "Convidado • aleeessia.com/termo";
     }
 
     const embed: DiscordEmbed = {
-      title: "🎮 Alguém jogou Termo!",
+      title: embedTitle,
       description: `**${titleLine}**\n**${resultLine}**`,
       color: color,
       author: authorConfig,
