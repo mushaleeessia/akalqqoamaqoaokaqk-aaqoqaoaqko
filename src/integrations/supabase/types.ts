@@ -9,6 +9,30 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      discord_webhooks_sent: {
+        Row: {
+          created_at: string
+          id: string
+          sent_at: string
+          session_hash: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          sent_at?: string
+          session_hash: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          sent_at?: string
+          session_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       game_sessions: {
         Row: {
           attempts: number
@@ -129,6 +153,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_webhook_records: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       delete_user_account: {
         Args: { user_uuid: string }
         Returns: undefined
