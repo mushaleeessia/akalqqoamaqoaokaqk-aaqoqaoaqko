@@ -21,20 +21,10 @@ export const useTermoCursor = (currentRow: number, currentGuess: string, gameSta
     }
   }, [currentGuess.length, gameStatus]);
 
-  const handleCellClick = useCallback((row: number, col: number) => {
-    // Só permite clicar na linha atual durante o jogo
-    if (gameStatus !== 'playing' || row !== currentRow) {
-      return false;
-    }
-    
-    // Permite clicar em qualquer posição da linha atual (0 a 4)
-    if (col >= 0 && col <= 4) {
-      setCursorPosition({ row, col });
-      return true;
-    }
-    
+  // Função vazia para manter compatibilidade
+  const handleCellClick = useCallback(() => {
     return false;
-  }, [gameStatus, currentRow]);
+  }, []);
 
   return {
     cursorPosition,

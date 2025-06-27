@@ -1,10 +1,8 @@
-
 import { useState, useCallback } from "react";
 import { validatePortugueseWord } from "@/utils/portugueseWords";
 import { usePlayerSession } from "@/hooks/usePlayerSession";
 import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
 import { toast } from "@/hooks/use-toast";
-import { CursorPosition } from "./useTermoCursor";
 
 export type LetterState = 'correct' | 'present' | 'absent' | 'empty';
 
@@ -29,7 +27,6 @@ export const useTermoGameState = (targetWord: string) => {
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
-  const [cursorPosition, setCursorPosition] = useState<CursorPosition>({ row: 0, col: 0 });
 
   const evaluateGuess = (guess: string): LetterState[] => {
     const result: LetterState[] = [];
@@ -119,7 +116,6 @@ export const useTermoGameState = (targetWord: string) => {
       };
       
       setGameState(newGameState);
-      setCursorPosition({ row: newGuesses.length, col: 0 });
 
       if (isGameOver) {
         setShowingFreshGameOver(true);
@@ -145,41 +141,23 @@ export const useTermoGameState = (targetWord: string) => {
     if (key === 'ENTER') {
       submitGuess();
     } else if (key === 'BACKSPACE') {
-      let newWord = gameState.currentGuess;
-      let newCursorCol = cursorPosition.col;
-      
-      // Se o cursor está no meio da palavra, remove a letra antes do cursor
-      if (cursorPosition.col > 0) {
-        const before = gameState.currentGuess.slice(0, cursorPosition.col - 1);
-        const after = gameState.currentGuess.slice(cursorPosition.col);
-        newWord = before + after;
-        newCursorCol = cursorPosition.col - 1;
-      }
-      
-      const newGameState = {
-        ...gameState,
-        currentGuess: newWord
-      };
-      setGameState(newGameState);
-      setCursorPosition(prev => ({ ...prev, col: newCursorCol }));
-      saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
-    } else if (key.length === 1 && gameState.currentGuess.length < 5) {
-      // Inserir letra na posição do cursor
-      const before = gameState.currentGuess.slice(0, cursorPosition.col);
-      const after = gameState.currentGuess.slice(cursorPosition.col);
-      const newWord = before + key.toLowerCase() + after;
-      
-      if (newWord.length <= 5) {
+      if (gameState.currentGuess.length > 0) {
         const newGameState = {
           ...gameState,
-          currentGuess: newWord
+          currentGuess: gameState.currentGuess.slice(0, -1)
         };
         setGameState(newGameState);
-        setCursorPosition(prev => ({ ...prev, col: Math.min(prev.col + 1, 5) }));
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
       }
+    } else if (key.length === 1 && gameState.currentGuess.length < 5) {
+      const newGameState = {
+        ...gameState,
+        currentGuess: gameState.currentGuess + key.toLowerCase()
+      };
+      setGameState(newGameState);
+      saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
     }
-  }, [gameState, isValidating, submitGuess, saveGameProgress, cursorPosition]);
+  }, [gameState, isValidating, submitGuess, saveGameProgress]);
 
   useState(() => {
     if (sessionInfo) {
@@ -218,8 +196,6 @@ export const useTermoGameState = (targetWord: string) => {
     sessionInfo,
     handleKeyPress,
     evaluateGuess,
-    updateKeyStatesForGuess,
-    cursorPosition,
-    setCursorPosition
+    updateKeyStatesForGuess
   };
 };

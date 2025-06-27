@@ -25,7 +25,7 @@ export const TermoGrid = ({
   onCursorMove
 }: TermoGridProps) => {
   
-  const { cursorPosition, handleCellClick } = useTermoCursor(
+  const { cursorPosition } = useTermoCursor(
     currentRow, 
     currentGuess, 
     isWordCompleted ? 'completed' : 'playing'
@@ -66,31 +66,30 @@ export const TermoGrid = ({
     return result;
   };
 
-  const getLetterClass = (state: LetterState, isDark: boolean, isActive: boolean, isClickable: boolean): string => {
-    const baseClass = "w-14 h-14 border-2 flex items-center justify-center text-xl font-bold rounded transition-all duration-200 relative";
-    const cursorClass = isClickable ? "cursor-pointer hover:scale-105 hover:border-blue-400" : "cursor-default";
+  const getLetterClass = (state: LetterState, isDark: boolean): string => {
+    const baseClass = "w-14 h-14 border-2 flex items-center justify-center text-xl font-bold rounded transition-all duration-200";
     
     if (isDark) {
       switch (state) {
         case 'correct':
-          return `${baseClass} bg-green-600 border-green-600 text-white ${cursorClass}`;
+          return `${baseClass} bg-green-600 border-green-600 text-white`;
         case 'present':
-          return `${baseClass} bg-yellow-600 border-yellow-600 text-white ${cursorClass}`;
+          return `${baseClass} bg-yellow-600 border-yellow-600 text-white`;
         case 'absent':
-          return `${baseClass} bg-gray-700 border-gray-700 text-white ${cursorClass}`;
+          return `${baseClass} bg-gray-700 border-gray-700 text-white`;
         default:
-          return `${baseClass} bg-gray-800 border-gray-600 text-white ${isActive ? 'ring-2 ring-blue-400' : ''} ${isClickable ? 'hover:border-blue-400' : ''} ${cursorClass}`;
+          return `${baseClass} bg-gray-800 border-gray-600 text-white`;
       }
     } else {
       switch (state) {
         case 'correct':
-          return `${baseClass} bg-green-500 border-green-500 text-white ${cursorClass}`;
+          return `${baseClass} bg-green-500 border-green-500 text-white`;
         case 'present':
-          return `${baseClass} bg-yellow-500 border-yellow-500 text-white ${cursorClass}`;
+          return `${baseClass} bg-yellow-500 border-yellow-500 text-white`;
         case 'absent':
-          return `${baseClass} bg-gray-500 border-gray-500 text-white ${cursorClass}`;
+          return `${baseClass} bg-gray-500 border-gray-500 text-white`;
         default:
-          return `${baseClass} bg-white border-gray-300 text-gray-800 ${isActive ? 'ring-2 ring-blue-500' : ''} ${isClickable ? 'hover:border-blue-400' : ''} ${cursorClass}`;
+          return `${baseClass} bg-white border-gray-300 text-gray-800`;
       }
     }
   };
@@ -143,26 +142,12 @@ export const TermoGrid = ({
     return (
       <div key={rowIndex} className="flex space-x-2">
         {Array.from({ length: 5 }, (_, colIndex) => {
-          const isCurrentRow = rowIndex === currentRow;
-          const isActive = cursorPosition.row === rowIndex && cursorPosition.col === colIndex;
-          const isClickable = isCurrentRow && !isWordCompleted && states[colIndex] === 'empty';
-          
           return (
             <div
               key={colIndex}
-              className={getLetterClass(states[colIndex], isDarkMode, isActive, isClickable)}
-              onClick={() => {
-                if (isClickable) {
-                  handleCellClick(rowIndex, colIndex);
-                }
-              }}
+              className={getLetterClass(states[colIndex], isDarkMode)}
             >
               {letters[colIndex]?.toUpperCase() || ''}
-              {isActive && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-0.5 h-8 bg-blue-500 animate-pulse"></div>
-                </div>
-              )}
             </div>
           );
         })}

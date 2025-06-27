@@ -14,6 +14,10 @@ interface DiscordEmbed {
     text: string;
   };
   timestamp?: string;
+  author?: {
+    name: string;
+    icon_url?: string;
+  };
 }
 
 interface DiscordWebhookPayload {
@@ -25,7 +29,7 @@ const ACCOUNT_DELETION_WEBHOOK_URL = "https://discord.com/api/webhooks/138760396
 
 export type GameState = 'playing' | 'win' | 'lose' | 'already_won' | 'already_lost';
 
-export const sendGameResultToDiscord = async (shareText: string, isGuest: boolean, gameState: GameState) => {
+export const sendGameResultToDiscord = async (shareText: string, isGuest: boolean, gameState: GameState, userInfo?: { nickname?: string; discordUsername?: string; discordAvatar?: string }) => {
   try {
     // Só enviar webhook se o jogo terminou (win ou lose)
     if (gameState !== 'win' && gameState !== 'lose') {
@@ -46,13 +50,30 @@ export const sendGameResultToDiscord = async (shareText: string, isGuest: boolea
     const gridLines = lines.slice(gridStartIndex, gridEndIndex).filter(line => line.trim() !== '');
     const gridText = gridLines.join('\n');
 
-    // Determinar status do usuário
-    const userStatus = isGuest ? "Convidado" : "🔗 Discord conectado";
+    // Configurar autor do embed
+    let authorConfig = undefined;
+    let footerText = "aleeessia.com/termo";
+
+    if (!isGuest && userInfo) {
+      // Usuário conectado - mostrar avatar e nome
+      const displayName = userInfo.discordUsername 
+        ? `${userInfo.nickname} (${userInfo.discordUsername})`
+        : userInfo.nickname || "Usuário";
+      
+      authorConfig = {
+        name: displayName,
+        icon_url: userInfo.discordAvatar
+      };
+    } else {
+      // Convidado
+      footerText = "Convidado • aleeessia.com/termo";
+    }
 
     const embed: DiscordEmbed = {
       title: "🎮 Alguém jogou Termo!",
       description: `**${titleLine}**\n**${resultLine}**`,
       color: color,
+      author: authorConfig,
       fields: [
         {
           name: "📊 Resultado",
@@ -61,7 +82,7 @@ export const sendGameResultToDiscord = async (shareText: string, isGuest: boolea
         }
       ],
       footer: {
-        text: `${userStatus} • aleeessia.com/termo`
+        text: footerText
       },
       timestamp: new Date().toISOString()
     };
