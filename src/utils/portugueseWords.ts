@@ -89,8 +89,6 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
     };
   }
 
-  console.log(`Validando palavra: ${originalWord}`);
-
   try {
     // Gerar todas as variações da palavra (singular, plural, acentos)
     const variations = generateWordVariations(originalWord);
@@ -101,18 +99,14 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
         const result = await validateWithMultipleAPIs(variation);
         
         if (result.isValid) {
-          console.log(`Palavra "${variation}" validada por: ${result.source}`);
           const validResult = { isValid: true, correctForm: variation };
           wordCache.set(normalizedWord, validResult);
           return validResult;
         }
       } catch (error) {
-        console.log(`Erro ao validar "${variation}":`, error);
         continue;
       }
     }
-    
-    console.log(`Palavra "${originalWord}" não foi validada por nenhuma fonte`);
     
     // Fallback final: lista expandida de palavras críticas (incluindo "olhos")
     const criticalWords = [
@@ -135,7 +129,6 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
         normalizeWord(critical) === normalizeWord(variation) || critical === variation
       );
       if (foundCritical) {
-        console.log(`Palavra "${variation}" encontrada na lista crítica`);
         const validResult = { isValid: true, correctForm: foundCritical };
         wordCache.set(normalizedWord, validResult);
         return validResult;
@@ -146,7 +139,6 @@ export const validatePortugueseWord = async (word: string): Promise<{ isValid: b
     return { isValid: false, correctForm: originalWord };
     
   } catch (error) {
-    console.error('Erro geral na validação:', error);
     // Em caso de erro total, usar apenas as palavras críticas
     const criticalWords = ['olhos', 'navio', 'termo', 'palavra', 'jogo', 'casa', 'vida', 'tempo', 'mundo'];
     

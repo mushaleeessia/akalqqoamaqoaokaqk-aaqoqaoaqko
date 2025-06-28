@@ -80,7 +80,6 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
 
     // Se houve mudança de modo, não enviar webhook (é apenas transição)
     if (modeChanged) {
-      console.log('Modo alterado, não enviando webhook:', previousModeRef.current, '->', mode);
       return;
     }
 
@@ -96,7 +95,6 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
       // Verificar se é um jogo verdadeiramente terminado (não uma transição)
       const hasValidGuesses = gameState.guesses && gameState.guesses.length > 0;
       if (!hasValidGuesses) {
-        console.log('Jogo sem tentativas válidas, não enviando webhook');
         return;
       }
 
@@ -106,7 +104,6 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
           if (!isGuestMode && user) {
             const alreadySent = await checkIfAlreadySent(sessionHash);
             if (alreadySent) {
-              console.log('Webhook já enviado para esta sessão');
               return;
             }
           }
@@ -139,7 +136,6 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
             }
           }
 
-          console.log('Enviando webhook para Discord:', { mode, gameState: discordGameState, isGuest });
           await sendGameResultToDiscord(shareText, isGuest, discordGameState as GameState, userInfo);
           
           // Marcar como enviado
@@ -148,7 +144,7 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
             await markAsSent(sessionHash);
           }
         } catch (error) {
-          console.error('Erro ao enviar notificação Discord:', error);
+          // Silently fail
         }
       };
 

@@ -37,7 +37,7 @@ const validateWithDicionarioAberto = async (word: string): Promise<boolean> => {
       return data && data.length > 0;
     }
   } catch (error) {
-    console.log(`Dicionário Aberto falhou para ${word}`);
+    // Silently fail
   }
   return false;
 };
@@ -52,7 +52,7 @@ const validateWithSignificado = async (word: string): Promise<boolean> => {
       return data && !data.error;
     }
   } catch (error) {
-    console.log(`Significado API falhou para ${word}`);
+    // Silently fail
   }
   return false;
 };
@@ -178,7 +178,6 @@ export const validateWithMultipleAPIs = async (word: string): Promise<{ isValid:
     return invalidResult;
     
   } catch (error) {
-    console.error('Erro na validação múltipla:', error);
     // Em caso de erro, usar apenas a base conhecida
     const isValid = await validateWithPriberam(word);
     const result = { isValid, source: isValid ? 'Base Conhecida (Fallback)' : 'Erro de rede' };
