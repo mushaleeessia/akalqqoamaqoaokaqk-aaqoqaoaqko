@@ -17,13 +17,13 @@ export const useTermoCursor = (currentRow: number, currentGuess: string, gameSta
   // Função para lidar com cliques nas células
   const handleCellClick = useCallback((row: number, col: number) => {
     if (gameStatus === 'playing' && row === currentRow) {
-      // Permitir clicar em qualquer posição até o final da palavra + 1
-      const targetCol = Math.min(col, currentGuess.length);
+      // Permitir clicar em qualquer posição de 0 a 4 (5 colunas)
+      const targetCol = Math.max(0, Math.min(col, 4));
       setCursorPosition({ row, col: targetCol });
       return true;
     }
     return false;
-  }, [currentRow, gameStatus, currentGuess.length]);
+  }, [currentRow, gameStatus]);
 
   return {
     cursorPosition,
