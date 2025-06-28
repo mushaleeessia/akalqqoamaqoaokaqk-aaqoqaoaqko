@@ -111,11 +111,9 @@ export const useGameKeyboardHandler = ({
     if (key === 'ENTER') {
       submitGuess();
     } else if (key === 'BACKSPACE') {
-      // Se o cursor está no meio da palavra, remover a letra na posição anterior ao cursor
-      if (cursorPosition.col > 0) {
-        const currentGuessArray = gameState.currentGuess.split('');
-        currentGuessArray.splice(cursorPosition.col - 1, 1);
-        const newGuess = currentGuessArray.join('');
+      if (gameState.currentGuess.length > 0) {
+        // Sempre remover do final da palavra atual
+        const newGuess = gameState.currentGuess.slice(0, -1);
         
         const newGameState = {
           ...gameState,
@@ -125,43 +123,29 @@ export const useGameKeyboardHandler = ({
         setGameState(newGameState);
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
         
-        // Mover cursor para a esquerda
+        // Ajustar cursor para o final da palavra
         setCursorPosition({ 
           row: cursorPosition.row, 
-          col: Math.max(0, cursorPosition.col - 1)
+          col: newGuess.length
         });
       }
     } else if (key.length === 1 && /^[a-zA-Z]$/.test(key)) {
-      // Inserir letra na posição do cursor se ainda há espaço
       if (gameState.currentGuess.length < 5) {
-        const currentGuessArray = gameState.currentGuess.split('');
+        const newGuess = gameState.currentGuess + key.toLowerCase();
         
-        // Se o cursor está no final ou além do final, adicionar no final
-        if (cursorPosition.col >= currentGuessArray.length) {
-          currentGuessArray.push(key.toLowerCase());
-        } else {
-          // Inserir na posição do cursor
-          currentGuessArray.splice(cursorPosition.col, 0, key.toLowerCase());
-        }
+        const newGameState = {
+          ...gameState,
+          currentGuess: newGuess
+        };
         
-        const newGuess = currentGuessArray.join('');
+        setGameState(newGameState);
+        saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
         
-        // Limitar a 5 letras
-        if (newGuess.length <= 5) {
-          const newGameState = {
-            ...gameState,
-            currentGuess: newGuess
-          };
-          
-          setGameState(newGameState);
-          saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
-          
-          // Mover cursor para a direita
-          setCursorPosition({ 
-            row: cursorPosition.row, 
-            col: Math.min(5, cursorPosition.col + 1)
-          });
-        }
+        // Mover cursor para o final da palavra
+        setCursorPosition({ 
+          row: cursorPosition.row, 
+          col: newGuess.length
+        });
       }
     }
   }, [gameState, cursorPosition, submitGuess, saveGameProgress, setCursorPosition]);
