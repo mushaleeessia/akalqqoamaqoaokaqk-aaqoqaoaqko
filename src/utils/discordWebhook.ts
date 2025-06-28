@@ -31,22 +31,13 @@ export type GameState = 'playing' | 'win' | 'lose' | 'already_won' | 'already_lo
 
 export const sendGameResultToDiscord = async (shareText: string, isGuest: boolean, gameState: GameState, userInfo?: { nickname?: string; discordUsername?: string; discordAvatar?: string }) => {
   try {
-    console.log('📨 Iniciando envio para Discord:', {
-      gameState,
-      isGuest,
-      shareTextLength: shareText.length,
-      userInfo: userInfo ? { nickname: userInfo.nickname, hasDiscordUsername: !!userInfo.discordUsername } : null
-    });
-
     // Só enviar webhook se o jogo terminou (win ou lose)
     if (gameState !== 'win' && gameState !== 'lose') {
-      console.log('⚠️ GameState não é win/lose:', gameState);
       return;
     }
 
     // Validar se o shareText tem conteúdo suficiente
     if (!shareText || shareText.length < 10) {
-      console.log('⚠️ ShareText inválido ou muito curto:', shareText);
       return;
     }
 
@@ -54,14 +45,11 @@ export const sendGameResultToDiscord = async (shareText: string, isGuest: boolea
     const lines = shareText.split('\n').filter(line => line.trim() !== '');
     
     if (lines.length < 2) {
-      console.log('⚠️ ShareText não tem linhas suficientes:', lines);
       return;
     }
 
     const titleLine = lines[0]; // Ex: "Termo Solo 🎯 22/06/2025"
     const resultLine = lines[1]; // Ex: "✅ 3/6" ou "❌ X/6"
-    
-    console.log('📝 Dados extraídos:', { titleLine, resultLine });
     
     const isWin = resultLine.includes('✅');
     const color = isWin ? 0x00ff00 : 0xff0000; // Verde para vitória, vermelho para derrota
@@ -83,8 +71,6 @@ export const sendGameResultToDiscord = async (shareText: string, isGuest: boolea
     const actualGridEndIndex = gridEndIndex > -1 ? gridEndIndex : lines.length;
     const gridLines = lines.slice(gridStartIndex, actualGridEndIndex).filter(line => line.trim() !== '');
     const gridText = gridLines.join('\n');
-
-    console.log('🎮 Grid extraído:', { gridStartIndex, actualGridEndIndex, gridLines: gridLines.length });
 
     let embedTitle = "🎮 Alguém jogou Termo!";
     let authorConfig = undefined;
@@ -128,12 +114,6 @@ export const sendGameResultToDiscord = async (shareText: string, isGuest: boolea
       embeds: [embed]
     };
 
-    console.log('📤 Enviando payload para Discord:', {
-      title: embed.title,
-      description: embed.description,
-      fieldValue: embed.fields?.[0]?.value?.substring(0, 50) + '...'
-    });
-
     const response = await fetch(DISCORD_WEBHOOK_URL, {
       method: 'POST',
       headers: {
@@ -144,17 +124,9 @@ export const sendGameResultToDiscord = async (shareText: string, isGuest: boolea
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Erro na resposta do Discord:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText
-      });
       throw new Error(`Discord webhook failed: ${response.status} ${response.statusText}`);
     }
-
-    console.log('✅ Webhook enviado com sucesso para Discord!');
   } catch (error) {
-    console.error('❌ Erro ao enviar webhook para Discord:', error);
     throw error; // Re-throw para que o erro seja capturado no hook
   }
 };
