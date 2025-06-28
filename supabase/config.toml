@@ -11,3 +11,6 @@ redirect_uri = "https://iwekablvutwgfxikmeib.supabase.co/auth/v1/callback"
 
 [functions.discord-webhook]
 verify_jwt = true
+
+[functions.security-logger]
+verify_jwt = true
