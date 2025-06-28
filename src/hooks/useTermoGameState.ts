@@ -2,7 +2,7 @@
 import { useState, useCallback } from "react";
 import { usePlayerSession } from "@/hooks/usePlayerSession";
 import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
-import { CursorPosition } from "./useTermoCursor";
+import { useTermoCursor } from "./useTermoCursor";
 import { useGameStateManager } from "./useGameStateManager";
 import { useGameKeyboardHandler } from "./useGameKeyboardHandler";
 import { evaluateGuess, updateKeyStatesForGuess } from "@/utils/gameEvaluation";
@@ -22,7 +22,6 @@ export const useTermoGameState = (targetWord: string) => {
   
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
-  const [cursorPosition, setCursorPosition] = useState<CursorPosition>({ row: 0, col: 0 });
 
   const {
     gameState,
@@ -34,6 +33,13 @@ export const useTermoGameState = (targetWord: string) => {
     showingFreshGameOver,
     targetWord
   });
+
+  // Use cursor hook with proper game state
+  const { cursorPosition, setCursorPosition, handleCellClick } = useTermoCursor(
+    gameState.currentRow, 
+    gameState.currentGuess, 
+    gameState.gameStatus
+  );
 
   const { handleKeyPress } = useGameKeyboardHandler({
     gameState,
@@ -49,9 +55,9 @@ export const useTermoGameState = (targetWord: string) => {
     setShowingFreshGameOver
   });
 
-  const handleCursorMove = useCallback((position: CursorPosition) => {
+  const handleCursorMove = useCallback((position: { row: number; col: number }) => {
     setCursorPosition(position);
-  }, []);
+  }, [setCursorPosition]);
 
   return {
     gameState,
@@ -66,6 +72,8 @@ export const useTermoGameState = (targetWord: string) => {
     handleKeyPress,
     evaluateGuess: (guess: string) => evaluateGuess(guess, targetWord),
     updateKeyStatesForGuess,
-    handleCursorMove
+    handleCursorMove,
+    cursorPosition,
+    handleCellClick
   };
 };

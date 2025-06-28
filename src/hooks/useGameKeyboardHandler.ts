@@ -108,19 +108,8 @@ export const useGameKeyboardHandler = ({
     if (key === 'ENTER') {
       submitGuess();
     } else if (key === 'BACKSPACE') {
-      // Criar array de 5 posições representando a palavra atual
-      const letters = new Array(5).fill('');
-      for (let i = 0; i < Math.min(gameState.currentGuess.length, 5); i++) {
-        letters[i] = gameState.currentGuess[i];
-      }
-      
-      // Deletar da posição do cursor
-      if (letters[cursorPosition.col]) {
-        letters[cursorPosition.col] = '';
-        
-        // Recriar a string sem espaços vazios
-        const newGuess = letters.filter(char => char !== '').join('');
-        
+      if (gameState.currentGuess.length > 0) {
+        const newGuess = gameState.currentGuess.slice(0, -1);
         const newGameState = {
           ...gameState,
           currentGuess: newGuess
@@ -129,28 +118,15 @@ export const useGameKeyboardHandler = ({
         setGameState(newGameState);
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
         
-        // Ajustar cursor se necessário
-        if (cursorPosition.col > newGuess.length) {
-          setCursorPosition({ row: cursorPosition.row, col: Math.max(0, newGuess.length) });
-        }
+        // Ajustar cursor para o final da palavra
+        setCursorPosition({ 
+          row: cursorPosition.row, 
+          col: Math.max(0, newGuess.length) 
+        });
       }
-    } else if (key.length === 1) {
-      // Só aceitar letras se ainda não completou 5 caracteres
-      if (gameState.currentGuess.length >= 5) return;
-      
-      // Criar array de 5 posições
-      const letters = new Array(5).fill('');
-      for (let i = 0; i < Math.min(gameState.currentGuess.length, 5); i++) {
-        letters[i] = gameState.currentGuess[i];
-      }
-      
-      // Inserir na posição do cursor se estiver vazia
-      if (!letters[cursorPosition.col]) {
-        letters[cursorPosition.col] = key.toLowerCase();
-        
-        // Recriar string sem espaços vazios
-        const newGuess = letters.filter(char => char !== '').join('');
-        
+    } else if (key.length === 1 && /^[a-zA-Z]$/.test(key)) {
+      if (gameState.currentGuess.length < 5) {
+        const newGuess = gameState.currentGuess + key.toLowerCase();
         const newGameState = {
           ...gameState,
           currentGuess: newGuess
@@ -159,14 +135,11 @@ export const useGameKeyboardHandler = ({
         setGameState(newGameState);
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
         
-        // Mover cursor para próxima posição disponível
-        let nextCol = cursorPosition.col + 1;
-        while (nextCol < 5 && letters[nextCol]) {
-          nextCol++;
-        }
-        if (nextCol < 5) {
-          setCursorPosition({ row: cursorPosition.row, col: nextCol });
-        }
+        // Mover cursor para próxima posição
+        setCursorPosition({ 
+          row: cursorPosition.row, 
+          col: Math.min(4, newGuess.length) 
+        });
       }
     }
   }, [gameState, cursorPosition, submitGuess, saveGameProgress, setCursorPosition]);

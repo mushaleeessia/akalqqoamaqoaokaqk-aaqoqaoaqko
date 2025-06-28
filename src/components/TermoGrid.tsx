@@ -2,7 +2,6 @@
 import { useEffect } from "react";
 import { TermoRow } from "./TermoRow";
 import { LetterState } from "@/hooks/useTermoGameState";
-import { useTermoCursor, CursorPosition } from "@/hooks/useTermoCursor";
 
 interface TermoGridProps {
   guesses: string[];
@@ -12,7 +11,9 @@ interface TermoGridProps {
   maxGuesses: number;
   isDarkMode: boolean;
   isWordCompleted?: boolean;
-  onCursorMove?: (position: CursorPosition) => void;
+  onCursorMove?: (position: { row: number; col: number }) => void;
+  cursorPosition?: { row: number; col: number };
+  onCellClick?: (row: number, col: number) => boolean;
 }
 
 export const TermoGrid = ({ 
@@ -23,20 +24,10 @@ export const TermoGrid = ({
   maxGuesses,
   isDarkMode,
   isWordCompleted = false,
-  onCursorMove
+  onCursorMove,
+  cursorPosition,
+  onCellClick
 }: TermoGridProps) => {
-  
-  const { cursorPosition, handleCellClick } = useTermoCursor(
-    currentRow, 
-    currentGuess, 
-    isWordCompleted ? 'completed' : 'playing'
-  );
-
-  useEffect(() => {
-    if (onCursorMove) {
-      onCursorMove(cursorPosition);
-    }
-  }, [cursorPosition, onCursorMove]);
   
   const evaluateGuess = (guess: string): LetterState[] => {
     const result: LetterState[] = [];
@@ -128,8 +119,8 @@ export const TermoGrid = ({
             states={states}
             isDarkMode={isDarkMode}
             rowIndex={rowIndex}
-            activeCell={isCurrentRow ? cursorPosition.col : undefined}
-            onCellClick={handleCellClick}
+            activeCell={isCurrentRow && cursorPosition ? cursorPosition.col : undefined}
+            onCellClick={onCellClick}
             isInteractive={isCurrentRow}
           />
         );

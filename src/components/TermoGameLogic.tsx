@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { TermoGrid } from "./TermoGrid";
 import { TermoKeyboard } from "./TermoKeyboard";
@@ -26,7 +27,9 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
     handleKeyPress,
     evaluateGuess,
     updateKeyStatesForGuess,
-    handleCursorMove
+    handleCursorMove,
+    cursorPosition,
+    handleCellClick
   } = useTermoGameState(targetWord);
 
   useTermoKeyboardHandler(handleKeyPress);
@@ -129,6 +132,8 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
         maxGuesses={maxGuesses}
         isDarkMode={isDarkMode}
         onCursorMove={handleCursorMove}
+        cursorPosition={cursorPosition}
+        onCellClick={handleCellClick}
       />
       
       <TermoKeyboard
