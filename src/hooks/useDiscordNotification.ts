@@ -6,7 +6,7 @@ import { useGuestMode } from '@/hooks/useGuestMode';
 import { supabase } from '@/integrations/supabase/client';
 import { GameMode } from '@/components/GameModeSelector';
 
-// Função para gerar um hash único para a sessão do jogo
+// Função para gerar um hash único para a sessão do jogo usando encodeURIComponent
 const generateGameSessionHash = (gameState: any, shareText: string, mode?: GameMode) => {
   const today = new Date().toISOString().split('T')[0];
   const gameData = {
@@ -17,7 +17,19 @@ const generateGameSessionHash = (gameState: any, shareText: string, mode?: GameM
     shareTextPreview: shareText.split('\n').slice(0, 3).join('|')
   };
   
-  return btoa(JSON.stringify(gameData)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 32);
+  // Usar encodeURIComponent para lidar com caracteres especiais
+  const jsonString = JSON.stringify(gameData);
+  const encodedString = encodeURIComponent(jsonString);
+  
+  // Criar hash simples sem btoa
+  let hash = 0;
+  for (let i = 0; i < encodedString.length; i++) {
+    const char = encodedString.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  return Math.abs(hash).toString(36).substring(0, 32);
 };
 
 export const useDiscordNotification = (gameState: { gameStatus: string; guesses?: string[] }, shareText: string, mode?: GameMode) => {
@@ -70,48 +82,52 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
       }
 
       const sendNotificationWithUserInfo = async () => {
-        // Para usuários logados, verificar no banco
-        if (!isGuestMode && user) {
-          const alreadySent = await checkIfAlreadySent(sessionHash);
-          if (alreadySent) {
-            return;
+        try {
+          // Para usuários logados, verificar no banco
+          if (!isGuestMode && user) {
+            const alreadySent = await checkIfAlreadySent(sessionHash);
+            if (alreadySent) {
+              return;
+            }
           }
-        }
 
-        const isGuest = !user || isGuestMode;
-        const discordGameState = gameState.gameStatus === 'won' ? 'win' : 'lose';
-        
-        let userInfo = undefined;
-        
-        if (!isGuest && user) {
-          try {
-            // Buscar informações do perfil do usuário
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('nickname')
-              .eq('id', user.id)
-              .single();
+          const isGuest = !user || isGuestMode;
+          const discordGameState = gameState.gameStatus === 'won' ? 'win' : 'lose';
+          
+          let userInfo = undefined;
+          
+          if (!isGuest && user) {
+            try {
+              // Buscar informações do perfil do usuário
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('nickname')
+                .eq('id', user.id)
+                .single();
 
-            // Extrair informações do Discord se disponíveis
-            const discordUsername = user.user_metadata?.full_name || user.user_metadata?.name;
-            const discordAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+              // Extrair informações do Discord se disponíveis
+              const discordUsername = user.user_metadata?.full_name || user.user_metadata?.name;
+              const discordAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture;
 
-            userInfo = {
-              nickname: profile?.nickname,
-              discordUsername: discordUsername,
-              discordAvatar: discordAvatar
-            };
-          } catch (error) {
-            // Se falhar, continuar sem as informações do usuário
+              userInfo = {
+                nickname: profile?.nickname,
+                discordUsername: discordUsername,
+                discordAvatar: discordAvatar
+              };
+            } catch (error) {
+              // Se falhar, continuar sem as informações do usuário
+            }
           }
-        }
 
-        await sendGameResultToDiscord(shareText, isGuest, discordGameState as GameState, userInfo);
-        
-        // Marcar como enviado
-        processedSessions.current.add(sessionHash);
-        if (!isGuest && user) {
-          await markAsSent(sessionHash);
+          await sendGameResultToDiscord(shareText, isGuest, discordGameState as GameState, userInfo);
+          
+          // Marcar como enviado
+          processedSessions.current.add(sessionHash);
+          if (!isGuest && user) {
+            await markAsSent(sessionHash);
+          }
+        } catch (error) {
+          console.error('Erro ao enviar notificação Discord:', error);
         }
       };
 
