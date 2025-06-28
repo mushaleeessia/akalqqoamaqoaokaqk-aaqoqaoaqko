@@ -1,5 +1,6 @@
 
 import { useEffect } from "react";
+import { TermoRow } from "./TermoRow";
 import { LetterState } from "@/hooks/useTermoGameState";
 import { useTermoCursor, CursorPosition } from "@/hooks/useTermoCursor";
 
@@ -25,7 +26,7 @@ export const TermoGrid = ({
   onCursorMove
 }: TermoGridProps) => {
   
-  const { cursorPosition } = useTermoCursor(
+  const { cursorPosition, handleCellClick } = useTermoCursor(
     currentRow, 
     currentGuess, 
     isWordCompleted ? 'completed' : 'playing'
@@ -66,34 +67,6 @@ export const TermoGrid = ({
     return result;
   };
 
-  const getLetterClass = (state: LetterState, isDark: boolean): string => {
-    const baseClass = "w-14 h-14 border-2 flex items-center justify-center text-xl font-bold rounded transition-all duration-200";
-    
-    if (isDark) {
-      switch (state) {
-        case 'correct':
-          return `${baseClass} bg-green-600 border-green-600 text-white`;
-        case 'present':
-          return `${baseClass} bg-yellow-600 border-yellow-600 text-white`;
-        case 'absent':
-          return `${baseClass} bg-gray-700 border-gray-700 text-white`;
-        default:
-          return `${baseClass} bg-gray-800 border-gray-600 text-white`;
-      }
-    } else {
-      switch (state) {
-        case 'correct':
-          return `${baseClass} bg-green-500 border-green-500 text-white`;
-        case 'present':
-          return `${baseClass} bg-yellow-500 border-yellow-500 text-white`;
-        case 'absent':
-          return `${baseClass} bg-gray-500 border-gray-500 text-white`;
-        default:
-          return `${baseClass} bg-white border-gray-300 text-gray-800`;
-      }
-    }
-  };
-
   // Encontrar em qual tentativa a palavra foi acertada
   const findCompletedRow = (): number => {
     for (let i = 0; i < guesses.length; i++) {
@@ -106,7 +79,7 @@ export const TermoGrid = ({
 
   const completedRow = findCompletedRow();
 
-  const renderRow = (rowIndex: number) => {
+  const getRowData = (rowIndex: number) => {
     let letters: string[] = [];
     let states: LetterState[] = [];
 
@@ -139,25 +112,28 @@ export const TermoGrid = ({
       states = new Array(5).fill('empty');
     }
 
-    return (
-      <div key={rowIndex} className="flex space-x-2">
-        {Array.from({ length: 5 }, (_, colIndex) => {
-          return (
-            <div
-              key={colIndex}
-              className={getLetterClass(states[colIndex], isDarkMode)}
-            >
-              {letters[colIndex]?.toUpperCase() || ''}
-            </div>
-          );
-        })}
-      </div>
-    );
+    return { letters, states };
   };
 
   return (
     <div className="flex flex-col space-y-2">
-      {Array.from({ length: maxGuesses }, (_, index) => renderRow(index))}
+      {Array.from({ length: maxGuesses }, (_, rowIndex) => {
+        const { letters, states } = getRowData(rowIndex);
+        const isCurrentRow = rowIndex === currentRow && !isWordCompleted;
+        
+        return (
+          <TermoRow
+            key={rowIndex}
+            letters={letters}
+            states={states}
+            isDarkMode={isDarkMode}
+            rowIndex={rowIndex}
+            activeCell={isCurrentRow ? cursorPosition.col : undefined}
+            onCellClick={handleCellClick}
+            isInteractive={isCurrentRow}
+          />
+        );
+      })}
     </div>
   );
 };
