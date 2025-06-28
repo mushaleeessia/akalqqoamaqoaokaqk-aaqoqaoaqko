@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { GameMode } from "./GameModeSelector";
 import { TermoKeyboard } from "./TermoKeyboard";
@@ -24,7 +25,10 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
     maxGuesses,
     handleKeyPress,
     canPlay,
-    sessionInfo
+    sessionInfo,
+    handleCursorMove,
+    cursorPosition,
+    handleCellClick
   } = useMultiModeGameState(targetWords, mode);
 
   // Gerar texto de compartilhamento quando o jogo termina
@@ -102,6 +106,9 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
         gameState={gameState}
         maxGuesses={maxGuesses}
         isDarkMode={isDarkMode}
+        onCursorMove={handleCursorMove}
+        cursorPosition={cursorPosition}
+        onCellClick={handleCellClick}
       />
       
       <TermoKeyboard
