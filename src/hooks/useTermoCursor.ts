@@ -9,15 +9,25 @@ export interface CursorPosition {
 export const useTermoCursor = (currentRow: number, currentGuess: string, gameStatus: string) => {
   const [cursorPosition, setCursorPosition] = useState<CursorPosition>({ row: currentRow, col: 0 });
 
-  // Sempre manter o cursor na linha atual
+  // Manter cursor na linha atual
   useEffect(() => {
     setCursorPosition(prev => ({ ...prev, row: currentRow }));
   }, [currentRow]);
 
-  // Função para lidar com cliques nas células
+  // Ajustar cursor quando o currentGuess muda
+  useEffect(() => {
+    setCursorPosition(prev => {
+      const maxCol = Math.min(currentGuess.length, 4);
+      if (prev.col > maxCol) {
+        return { ...prev, col: maxCol };
+      }
+      return prev;
+    });
+  }, [currentGuess]);
+
   const handleCellClick = useCallback((row: number, col: number) => {
+    // Só permitir cliques na linha atual durante o jogo
     if (gameStatus === 'playing' && row === currentRow) {
-      // Permitir clicar em qualquer posição de 0 a 4 (5 colunas)
       setCursorPosition({ row, col });
       return true;
     }

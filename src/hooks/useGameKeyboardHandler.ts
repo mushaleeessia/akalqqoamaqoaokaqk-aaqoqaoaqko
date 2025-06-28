@@ -108,55 +108,68 @@ export const useGameKeyboardHandler = ({
     if (key === 'ENTER') {
       submitGuess();
     } else if (key === 'BACKSPACE') {
-      // Create array representation of current guess
-      const currentGuessArray = new Array(5).fill('');
-      for (let i = 0; i < gameState.currentGuess.length; i++) {
-        currentGuessArray[i] = gameState.currentGuess[i];
+      // Criar array de 5 posições representando a palavra atual
+      const letters = new Array(5).fill('');
+      for (let i = 0; i < Math.min(gameState.currentGuess.length, 5); i++) {
+        letters[i] = gameState.currentGuess[i];
       }
       
-      // Delete from cursor position
-      if (currentGuessArray[cursorPosition.col]) {
-        currentGuessArray[cursorPosition.col] = '';
-        const newGuess = currentGuessArray.filter(char => char !== '').join('');
+      // Deletar da posição do cursor
+      if (letters[cursorPosition.col]) {
+        letters[cursorPosition.col] = '';
+        
+        // Recriar a string sem espaços vazios
+        const newGuess = letters.filter(char => char !== '').join('');
         
         const newGameState = {
           ...gameState,
           currentGuess: newGuess
         };
+        
         setGameState(newGameState);
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
+        
+        // Ajustar cursor se necessário
+        if (cursorPosition.col > newGuess.length) {
+          setCursorPosition({ row: cursorPosition.row, col: Math.max(0, newGuess.length) });
+        }
       }
     } else if (key.length === 1) {
-      // Create array representation of current guess
-      const currentGuessArray = new Array(5).fill('');
-      for (let i = 0; i < gameState.currentGuess.length; i++) {
-        currentGuessArray[i] = gameState.currentGuess[i];
+      // Só aceitar letras se ainda não completou 5 caracteres
+      if (gameState.currentGuess.length >= 5) return;
+      
+      // Criar array de 5 posições
+      const letters = new Array(5).fill('');
+      for (let i = 0; i < Math.min(gameState.currentGuess.length, 5); i++) {
+        letters[i] = gameState.currentGuess[i];
       }
       
-      // Insert at cursor position if empty and we haven't reached max length
-      if (!currentGuessArray[cursorPosition.col] && gameState.currentGuess.length < 5) {
-        currentGuessArray[cursorPosition.col] = key.toLowerCase();
+      // Inserir na posição do cursor se estiver vazia
+      if (!letters[cursorPosition.col]) {
+        letters[cursorPosition.col] = key.toLowerCase();
         
-        // Create new string without gaps
-        const newGuess = currentGuessArray.filter(char => char !== '').join('');
+        // Recriar string sem espaços vazios
+        const newGuess = letters.filter(char => char !== '').join('');
         
         const newGameState = {
           ...gameState,
           currentGuess: newGuess
         };
+        
         setGameState(newGameState);
-        
-        // Move cursor to next empty position
-        let nextPos = cursorPosition.col + 1;
-        while (nextPos < 5 && currentGuessArray[nextPos]) {
-          nextPos++;
-        }
-        setCursorPosition({ row: cursorPosition.row, col: Math.min(4, nextPos) });
-        
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
+        
+        // Mover cursor para próxima posição disponível
+        let nextCol = cursorPosition.col + 1;
+        while (nextCol < 5 && letters[nextCol]) {
+          nextCol++;
+        }
+        if (nextCol < 5) {
+          setCursorPosition({ row: cursorPosition.row, col: nextCol });
+        }
       }
     }
-  }, [gameState, submitGuess, saveGameProgress, cursorPosition]);
+  }, [gameState, cursorPosition, submitGuess, saveGameProgress, setCursorPosition]);
 
   return { handleKeyPress };
 };
