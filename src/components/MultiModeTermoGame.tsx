@@ -25,10 +25,7 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
     maxGuesses,
     handleKeyPress,
     canPlay,
-    sessionInfo,
-    handleCursorMove,
-    cursorPosition,
-    handleCellClick
+    sessionInfo
   } = useMultiModeGameState(targetWords, mode);
 
   // Gerar texto de compartilhamento quando o jogo termina
@@ -106,9 +103,6 @@ export const MultiModeTermoGame = ({ targetWords, mode, isDarkMode }: MultiModeT
         gameState={gameState}
         maxGuesses={maxGuesses}
         isDarkMode={isDarkMode}
-        onCursorMove={handleCursorMove}
-        cursorPosition={cursorPosition}
-        onCellClick={handleCellClick}
       />
       
       <TermoKeyboard

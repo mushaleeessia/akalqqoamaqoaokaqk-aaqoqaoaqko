@@ -26,10 +26,7 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
     sessionInfo,
     handleKeyPress,
     evaluateGuess,
-    updateKeyStatesForGuess,
-    handleCursorMove,
-    cursorPosition,
-    handleCellClick
+    updateKeyStatesForGuess
   } = useTermoGameState(targetWord);
 
   useTermoKeyboardHandler(handleKeyPress);
@@ -131,9 +128,6 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
         currentRow={gameState.currentRow}
         maxGuesses={maxGuesses}
         isDarkMode={isDarkMode}
-        onCursorMove={handleCursorMove}
-        cursorPosition={cursorPosition}
-        onCellClick={handleCellClick}
       />
       
       <TermoKeyboard

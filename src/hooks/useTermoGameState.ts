@@ -2,7 +2,6 @@
 import { useState, useCallback } from "react";
 import { usePlayerSession } from "@/hooks/usePlayerSession";
 import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
-import { useTermoCursor } from "./useTermoCursor";
 import { useGameStateManager } from "./useGameStateManager";
 import { useGameKeyboardHandler } from "./useGameKeyboardHandler";
 import { evaluateGuess, updateKeyStatesForGuess } from "@/utils/gameEvaluation";
@@ -34,30 +33,17 @@ export const useTermoGameState = (targetWord: string) => {
     targetWord
   });
 
-  // Use cursor hook with proper game state
-  const { cursorPosition, setCursorPosition, handleCellClick } = useTermoCursor(
-    gameState.currentRow, 
-    gameState.currentGuess, 
-    gameState.gameStatus
-  );
-
   const { handleKeyPress } = useGameKeyboardHandler({
     gameState,
     setGameState,
     keyStates,
     setKeyStates,
-    cursorPosition,
-    setCursorPosition,
     targetWord,
     saveGameProgress,
     saveGameSession,
     setIsValidating,
     setShowingFreshGameOver
   });
-
-  const handleCursorMove = useCallback((position: { row: number; col: number }) => {
-    setCursorPosition(position);
-  }, [setCursorPosition]);
 
   return {
     gameState,
@@ -71,9 +57,6 @@ export const useTermoGameState = (targetWord: string) => {
     sessionInfo,
     handleKeyPress,
     evaluateGuess: (guess: string) => evaluateGuess(guess, targetWord),
-    updateKeyStatesForGuess,
-    handleCursorMove,
-    cursorPosition,
-    handleCellClick
+    updateKeyStatesForGuess
   };
 };

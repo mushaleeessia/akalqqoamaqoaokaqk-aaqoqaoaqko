@@ -1,5 +1,4 @@
 
-import { useEffect } from "react";
 import { TermoRow } from "./TermoRow";
 import { LetterState } from "@/hooks/useTermoGameState";
 
@@ -11,9 +10,6 @@ interface TermoGridProps {
   maxGuesses: number;
   isDarkMode: boolean;
   isWordCompleted?: boolean;
-  onCursorMove?: (position: { row: number; col: number }) => void;
-  cursorPosition?: { row: number; col: number };
-  onCellClick?: (row: number, col: number) => boolean;
 }
 
 export const TermoGrid = ({ 
@@ -23,10 +19,7 @@ export const TermoGrid = ({
   currentRow, 
   maxGuesses,
   isDarkMode,
-  isWordCompleted = false,
-  onCursorMove,
-  cursorPosition,
-  onCellClick
+  isWordCompleted = false
 }: TermoGridProps) => {
   
   const evaluateGuess = (guess: string): LetterState[] => {
@@ -94,7 +87,7 @@ export const TermoGrid = ({
         letters = new Array(5).fill('');
         states = new Array(5).fill('empty');
       } else {
-        // EXIBIÇÃO SIMPLIFICADA: mostrar currentGuess sequencialmente
+        // Mostrar currentGuess sequencialmente
         letters = new Array(5).fill('');
         for (let i = 0; i < currentGuess.length && i < 5; i++) {
           letters[i] = currentGuess[i];
@@ -110,20 +103,10 @@ export const TermoGrid = ({
     return { letters, states };
   };
 
-  const handleCellClick = (row: number, col: number) => {
-    if (onCellClick) {
-      const success = onCellClick(row, col);
-      if (success && onCursorMove) {
-        onCursorMove({ row, col });
-      }
-    }
-  };
-
   return (
     <div className="flex flex-col space-y-2">
       {Array.from({ length: maxGuesses }, (_, rowIndex) => {
         const { letters, states } = getRowData(rowIndex);
-        const isCurrentRow = rowIndex === currentRow && !isWordCompleted;
         
         return (
           <TermoRow
@@ -132,9 +115,7 @@ export const TermoGrid = ({
             states={states}
             isDarkMode={isDarkMode}
             rowIndex={rowIndex}
-            activeCell={isCurrentRow && cursorPosition ? cursorPosition.col : undefined}
-            onCellClick={handleCellClick}
-            isCurrentRow={isCurrentRow}
+            isCurrentRow={rowIndex === currentRow && !isWordCompleted}
           />
         );
       })}

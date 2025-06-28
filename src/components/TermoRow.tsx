@@ -7,8 +7,6 @@ interface TermoRowProps {
   states: LetterState[];
   isDarkMode: boolean;
   rowIndex: number;
-  activeCell?: number;
-  onCellClick?: (row: number, col: number) => void;
   isCurrentRow?: boolean;
 }
 
@@ -17,8 +15,6 @@ export const TermoRow = ({
   states, 
   isDarkMode, 
   rowIndex,
-  activeCell,
-  onCellClick,
   isCurrentRow = false
 }: TermoRowProps) => {
   
@@ -30,9 +26,7 @@ export const TermoRow = ({
           letter={letters[colIndex] || ''}
           state={states[colIndex] || 'empty'}
           isDarkMode={isDarkMode}
-          isActive={isCurrentRow && activeCell === colIndex}
           isCurrentRow={isCurrentRow}
-          onClick={isCurrentRow && onCellClick ? () => onCellClick(rowIndex, colIndex) : undefined}
         />
       ))}
     </div>

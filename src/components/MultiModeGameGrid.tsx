@@ -1,26 +1,19 @@
 
 import { TermoGrid } from "./TermoGrid";
 import { MultiModeGameState } from "@/hooks/useMultiModeGameState";
-import { CursorPosition } from "@/hooks/useTermoCursor";
 
 interface MultiModeGameGridProps {
   targetWords: string[];
   gameState: MultiModeGameState;
   maxGuesses: number;
   isDarkMode: boolean;
-  onCursorMove?: (position: CursorPosition) => void;
-  cursorPosition?: CursorPosition;
-  onCellClick?: (row: number, col: number) => boolean;
 }
 
 export const MultiModeGameGrid = ({ 
   targetWords, 
   gameState, 
   maxGuesses, 
-  isDarkMode,
-  onCursorMove,
-  cursorPosition,
-  onCellClick
+  isDarkMode
 }: MultiModeGameGridProps) => {
   
   // Verificar quais palavras já foram acertadas
@@ -88,9 +81,6 @@ export const MultiModeGameGrid = ({
                 maxGuesses={maxGuesses}
                 isDarkMode={isDarkMode}
                 isWordCompleted={isWordCompleted(targetWord)}
-                onCursorMove={onCursorMove}
-                cursorPosition={cursorPosition}
-                onCellClick={onCellClick}
               />
             </div>
           </div>
