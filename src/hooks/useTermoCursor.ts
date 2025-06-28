@@ -18,8 +18,7 @@ export const useTermoCursor = (currentRow: number, currentGuess: string, gameSta
   const handleCellClick = useCallback((row: number, col: number) => {
     if (gameStatus === 'playing' && row === currentRow) {
       // Permitir clicar em qualquer posição de 0 a 4 (5 colunas)
-      const targetCol = Math.max(0, Math.min(col, 4));
-      setCursorPosition({ row, col: targetCol });
+      setCursorPosition({ row, col });
       return true;
     }
     return false;
