@@ -27,15 +27,16 @@ export const useTermoCursor = (currentRow: number, currentGuess: string, gameSta
     
     // Só permitir cliques na linha atual durante o jogo
     if (gameStatus === 'playing' && row === currentRow) {
-      // Permitir clique em qualquer posição (0-4)
-      const targetCol = Math.max(0, Math.min(col, 4));
+      // Permitir clique em qualquer posição válida (0 até length da palavra atual + 1)
+      const maxCol = Math.min(currentGuess.length, 4);
+      const targetCol = Math.max(0, Math.min(col, maxCol));
       
       console.log('Setting cursor to:', { row, col: targetCol });
       setCursorPosition({ row, col: targetCol });
       return true;
     }
     return false;
-  }, [currentRow, gameStatus]);
+  }, [currentRow, gameStatus, currentGuess.length]);
 
   return {
     cursorPosition,

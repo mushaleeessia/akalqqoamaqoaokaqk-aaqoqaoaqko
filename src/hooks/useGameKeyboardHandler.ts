@@ -20,6 +20,11 @@ interface UseGameKeyboardHandlerProps {
   setShowingFreshGameOver: (showing: boolean) => void;
 }
 
+// Adicionar interface para posições das letras
+interface LetterPositions {
+  [position: number]: string;
+}
+
 export const useGameKeyboardHandler = ({
   gameState,
   setGameState,
@@ -40,8 +45,32 @@ export const useGameKeyboardHandler = ({
     setKeyStates(newKeyStates);
   };
 
+  // Converter currentGuess para array de posições
+  const getCurrentGuessAsPositions = (): LetterPositions => {
+    const positions: LetterPositions = {};
+    // Assumindo que currentGuess é uma string sequencial por enquanto
+    for (let i = 0; i < gameState.currentGuess.length && i < 5; i++) {
+      positions[i] = gameState.currentGuess[i];
+    }
+    return positions;
+  };
+
+  // Converter posições para string para validação
+  const positionsToString = (positions: LetterPositions): string => {
+    let result = '';
+    for (let i = 0; i < 5; i++) {
+      if (positions[i]) {
+        result += positions[i];
+      }
+    }
+    return result;
+  };
+
   const submitGuess = useCallback(async () => {
-    if (gameState.currentGuess.length !== 5) {
+    const positions = getCurrentGuessAsPositions();
+    const wordString = positionsToString(positions);
+    
+    if (wordString.length !== 5) {
       toast({
         title: "Palavra incompleta",
         description: "Digite uma palavra de 5 letras",
@@ -53,7 +82,7 @@ export const useGameKeyboardHandler = ({
     setIsValidating(true);
     
     try {
-      const validationResult = await validatePortugueseWord(gameState.currentGuess);
+      const validationResult = await validatePortugueseWord(wordString);
       
       if (!validationResult.isValid) {
         toast({
@@ -65,11 +94,11 @@ export const useGameKeyboardHandler = ({
         return;
       }
 
-      const evaluation = evaluateGuess(gameState.currentGuess, targetWord);
-      updateKeyStates(gameState.currentGuess, evaluation);
+      const evaluation = evaluateGuess(wordString, targetWord);
+      updateKeyStates(wordString, evaluation);
       
-      const newGuesses = [...gameState.guesses, gameState.currentGuess];
-      const isWin = gameState.currentGuess.toLowerCase() === targetWord.toLowerCase();
+      const newGuesses = [...gameState.guesses, wordString];
+      const isWin = wordString.toLowerCase() === targetWord.toLowerCase();
       const isGameOver = isWin || newGuesses.length >= 6;
       
       const newGameStatus = isWin ? 'won' : (isGameOver ? 'lost' : 'playing');
@@ -111,67 +140,75 @@ export const useGameKeyboardHandler = ({
     if (key === 'ENTER') {
       submitGuess();
     } else if (key === 'BACKSPACE') {
-      // Deletar letra na posição à esquerda do cursor
       if (cursorPosition.col > 0) {
-        // Criar array de 5 posições representando o estado atual
-        const lettersArray = new Array(5).fill('');
-        for (let i = 0; i < gameState.currentGuess.length && i < 5; i++) {
-          lettersArray[i] = gameState.currentGuess[i];
-        }
-        
-        // Deletar letra na posição à esquerda do cursor
+        const positions = getCurrentGuessAsPositions();
         const deletePosition = cursorPosition.col - 1;
-        if (lettersArray[deletePosition]) {
-          lettersArray[deletePosition] = '';
-          
-          // Reconstruir string removendo espaços vazios
-          const newGuess = lettersArray.filter(letter => letter !== '').join('');
-          
-          const newGameState = {
-            ...gameState,
-            currentGuess: newGuess
-          };
-          
-          setGameState(newGameState);
-          saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
-          
-          // Mover cursor para a esquerda
-          setCursorPosition({ 
-            row: cursorPosition.row, 
-            col: Math.max(0, cursorPosition.col - 1)
-          });
-        }
+        
+        // Remover letra da posição específica
+        delete positions[deletePosition];
+        
+        // Reconstruir string sequencial (sem gaps)
+        const newGuess = positionsToString(positions);
+        
+        const newGameState = {
+          ...gameState,
+          currentGuess: newGuess
+        };
+        
+        setGameState(newGameState);
+        saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
+        
+        // Mover cursor para a esquerda
+        setCursorPosition({ 
+          row: cursorPosition.row, 
+          col: Math.max(0, cursorPosition.col - 1)
+        });
       }
     } else if (key.length === 1 && /^[a-zA-Z]$/.test(key)) {
-      // Inserir letra na posição do cursor
-      if (gameState.currentGuess.length < 5) {
-        // Criar array de 5 posições representando o estado atual
-        const lettersArray = new Array(5).fill('');
-        for (let i = 0; i < gameState.currentGuess.length && i < 5; i++) {
-          lettersArray[i] = gameState.currentGuess[i];
+      const positions = getCurrentGuessAsPositions();
+      const currentLength = positionsToString(positions).length;
+      
+      if (currentLength < 5) {
+        // Se estamos no final ou numa posição vazia, adicionar letra
+        if (cursorPosition.col >= currentLength) {
+          positions[currentLength] = key.toLowerCase();
+        } else {
+          // Inserir na posição do cursor, empurrando as outras para frente
+          const tempPositions: LetterPositions = {};
+          let insertIndex = 0;
+          
+          for (let i = 0; i < 5; i++) {
+            if (i === cursorPosition.col) {
+              tempPositions[insertIndex] = key.toLowerCase();
+              insertIndex++;
+            }
+            if (positions[i]) {
+              tempPositions[insertIndex] = positions[i];
+              insertIndex++;
+            }
+          }
+          
+          // Usar as novas posições
+          Object.keys(positions).forEach(k => delete positions[parseInt(k)]);
+          Object.assign(positions, tempPositions);
         }
         
-        // Inserir letra na posição do cursor
-        if (cursorPosition.col < 5 && !lettersArray[cursorPosition.col]) {
-          lettersArray[cursorPosition.col] = key.toLowerCase();
-          
-          // Reconstruir string removendo espaços vazios
-          const newGuess = lettersArray.filter(letter => letter !== '').join('');
-          
-          const newGameState = {
-            ...gameState,
-            currentGuess: newGuess
-          };
-          
-          setGameState(newGameState);
-          saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
-          
-          // Mover cursor para a direita
-          setCursorPosition({ 
-            row: cursorPosition.row, 
-            col: Math.min(4, cursorPosition.col + 1)
-          });
-        }
+        const newGuess = positionsToString(positions);
+        
+        const newGameState = {
+          ...gameState,
+          currentGuess: newGuess
+        };
+        
+        setGameState(newGameState);
+        saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
+        
+        // Mover cursor para a direita, mas não além do comprimento atual + 1
+        const newLength = newGuess.length;
+        setCursorPosition({ 
+          row: cursorPosition.row, 
+          col: Math.min(newLength, cursorPosition.col + 1)
+        });
       }
     }
   }, [gameState, cursorPosition, submitGuess, saveGameProgress, setCursorPosition]);
