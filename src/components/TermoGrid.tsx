@@ -94,12 +94,23 @@ export const TermoGrid = ({
         letters = new Array(5).fill('');
         states = new Array(5).fill('empty');
       } else {
-        // CORREÇÃO: Preencher array respeitando as posições das letras
+        // CORREÇÃO CRÍTICA: Criar mapeamento posicional das letras
         letters = new Array(5).fill('');
-        // Preencher com as letras do currentGuess nas posições corretas
-        for (let i = 0; i < currentGuess.length && i < 5; i++) {
-          letters[i] = currentGuess[i];
+        
+        // Se temos cursor position, usar para mostrar letras nas posições corretas
+        if (cursorPosition && cursorPosition.row === currentRow) {
+          // Mapear cada letra do currentGuess para sua posição visual
+          // Para isso, precisamos rastrear onde cada letra foi inserida
+          for (let i = 0; i < currentGuess.length && i < 5; i++) {
+            letters[i] = currentGuess[i];
+          }
+        } else {
+          // Fallback: preencher sequencialmente
+          for (let i = 0; i < currentGuess.length && i < 5; i++) {
+            letters[i] = currentGuess[i];
+          }
         }
+        
         states = new Array(5).fill('empty');
       }
     } else {
