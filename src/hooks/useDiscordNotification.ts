@@ -39,6 +39,7 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
   const previousModeRef = useRef<GameMode | undefined>(mode);
   const lastGameStateRef = useRef<typeof gameState | null>(null);
   const lastShareTextRef = useRef<string>('');
+  const sentWebhooksRef = useRef<Set<string>>(new Set()); // Cache global para webhooks enviados
 
   // Função para verificar se já foi enviado (para usuários logados)
   const checkIfAlreadySent = async (sessionHash: string): Promise<boolean> => {
@@ -76,7 +77,6 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
 
   // Função para verificar se é uma mudança real de estado do jogo
   const isRealGameStateChange = (currentGameState: typeof gameState, previousGameState: typeof gameState | null, currentShareText: string, previousShareText: string): boolean => {
-    // Log para debug
     console.log('🔍 Verificando mudança de estado:', {
       currentStatus: currentGameState.gameStatus,
       previousStatus: previousGameState?.gameStatus,
@@ -84,7 +84,8 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
       previousGuesses: previousGameState?.guesses?.length || 0,
       currentShareText: currentShareText.length,
       previousShareText: previousShareText.length,
-      mode
+      currentMode: mode,
+      previousMode: previousModeRef.current
     });
 
     if (!previousGameState) {
@@ -100,7 +101,7 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
     
     // Se o shareText mudou significativamente (novo resultado), é uma mudança real
     if (currentShareText && previousShareText !== currentShareText && currentShareText.length > 50) {
-      console.log('✅ ShareText mudou - é uma mudança real');
+      console.log('✅ ShareText mudou significativamente - é uma mudança real');
       return true;
     }
     
@@ -117,6 +118,37 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
     return false;
   };
 
+  // Função para validar se é um resultado válido para envio
+  const isValidGameResult = (gameState: any, shareText: string): boolean => {
+    // Verificar se o jogo realmente terminou
+    if (gameState.gameStatus !== 'won' && gameState.gameStatus !== 'lost') {
+      console.log('❌ Jogo não terminou ainda:', gameState.gameStatus);
+      return false;
+    }
+
+    // Verificar se há texto suficiente para compartilhar
+    if (!shareText || shareText.length < 50) {
+      console.log('❌ ShareText inválido ou muito curto:', shareText?.length || 0);
+      return false;
+    }
+
+    // Verificar se há tentativas válidas
+    if (!gameState.guesses || gameState.guesses.length === 0) {
+      console.log('❌ Não há tentativas válidas');
+      return false;
+    }
+
+    // Verificar se o shareText contém informações do resultado
+    const hasResultLine = shareText.includes('✅') || shareText.includes('❌');
+    if (!hasResultLine) {
+      console.log('❌ ShareText não contém linha de resultado');
+      return false;
+    }
+
+    console.log('✅ Resultado válido para envio');
+    return true;
+  };
+
   // Enviar automaticamente quando o jogo termina
   useEffect(() => {
     console.log('🎮 Hook executado:', {
@@ -125,15 +157,16 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
       shareTextLength: shareText.length,
       guessesCount: gameState.guesses?.length || 0,
       userId: user?.id,
-      isGuestMode
+      isGuestMode,
+      previousMode: previousModeRef.current
     });
 
     // Detectar mudança de modo
     const modeChanged = previousModeRef.current && previousModeRef.current !== mode;
     
-    // Se houve mudança de modo, limpar cache e não enviar webhook
+    // Se houve mudança de modo, limpar apenas o cache de sessões processadas, mas manter o cache de webhooks enviados
     if (modeChanged) {
-      console.log('🔄 Modo mudou de', previousModeRef.current, 'para', mode, '- limpando cache');
+      console.log('🔄 Modo mudou de', previousModeRef.current, 'para', mode, '- limpando cache de sessões');
       previousModeRef.current = mode;
       processedSessions.current.clear();
       lastGameStateRef.current = null;
@@ -143,6 +176,13 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
     
     previousModeRef.current = mode;
 
+    // Verificar se é um resultado válido
+    if (!isValidGameResult(gameState, shareText)) {
+      lastGameStateRef.current = gameState;
+      lastShareTextRef.current = shareText;
+      return;
+    }
+
     // Verificar se é uma mudança real no estado do jogo
     if (!isRealGameStateChange(gameState, lastGameStateRef.current, shareText, lastShareTextRef.current)) {
       lastGameStateRef.current = gameState;
@@ -150,98 +190,86 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
       return;
     }
 
-    // Só enviar se o jogo realmente terminou (won/lost) e há texto para compartilhar
-    if (gameState && shareText && (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost')) {
-      console.log('🎯 Tentando enviar webhook:', {
-        status: gameState.gameStatus,
-        mode,
-        shareTextPreview: shareText.substring(0, 100)
-      });
+    const sessionHash = generateGameSessionHash(gameState, shareText, mode);
+    console.log('🎯 SessionHash gerado:', sessionHash);
 
-      const sessionHash = generateGameSessionHash(gameState, shareText, mode);
-      
-      // Verificar se já foi processado nesta sessão (para convidados e usuários)
-      if (processedSessions.current.has(sessionHash)) {
-        console.log('⚠️ Sessão já processada:', sessionHash);
-        lastGameStateRef.current = gameState;
-        lastShareTextRef.current = shareText;
-        return;
-      }
-
-      // Verificar se é um jogo verdadeiramente terminado (não uma transição)
-      const hasValidGuesses = gameState.guesses && gameState.guesses.length > 0;
-      if (!hasValidGuesses) {
-        console.log('⚠️ Não há tentativas válidas');
-        lastGameStateRef.current = gameState;
-        lastShareTextRef.current = shareText;
-        return;
-      }
-
-      const sendNotificationWithUserInfo = async () => {
-        try {
-          console.log('📤 Iniciando envio do webhook...');
-
-          // Para usuários logados, verificar no banco
-          if (!isGuestMode && user) {
-            const alreadySent = await checkIfAlreadySent(sessionHash);
-            if (alreadySent) {
-              console.log('⚠️ Webhook já foi enviado para este usuário:', sessionHash);
-              return;
-            }
-          }
-
-          const isGuest = !user || isGuestMode;
-          const discordGameState = gameState.gameStatus === 'won' ? 'win' : 'lose';
-          
-          let userInfo = undefined;
-          
-          if (!isGuest && user) {
-            try {
-              // Buscar informações do perfil do usuário
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('nickname')
-                .eq('id', user.id)
-                .single();
-
-              // Extrair informações do Discord se disponíveis
-              const discordUsername = user.user_metadata?.full_name || user.user_metadata?.name;
-              const discordAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture;
-
-              userInfo = {
-                nickname: profile?.nickname,
-                discordUsername: discordUsername,
-                discordAvatar: discordAvatar
-              };
-
-              console.log('👤 Informações do usuário:', { nickname: profile?.nickname, discordUsername });
-            } catch (error) {
-              console.log('⚠️ Erro ao buscar informações do usuário:', error);
-            }
-          }
-
-          await sendGameResultToDiscord(shareText, isGuest, discordGameState as GameState, userInfo);
-          
-          console.log('✅ Webhook enviado com sucesso!');
-          
-          // Marcar como enviado
-          processedSessions.current.add(sessionHash);
-          if (!isGuest && user) {
-            await markAsSent(sessionHash);
-          }
-        } catch (error) {
-          console.error('❌ Erro ao enviar webhook:', error);
-        }
-      };
-
-      sendNotificationWithUserInfo();
-    } else {
-      console.log('⚠️ Condições não atendidas para envio:', {
-        hasGameState: !!gameState,
-        hasShareText: !!shareText,
-        gameStatus: gameState?.gameStatus
-      });
+    // Verificar se já foi enviado globalmente (cache em memória)
+    if (sentWebhooksRef.current.has(sessionHash)) {
+      console.log('⚠️ Webhook já foi enviado globalmente:', sessionHash);
+      lastGameStateRef.current = gameState;
+      lastShareTextRef.current = shareText;
+      return;
     }
+    
+    // Verificar se já foi processado nesta sessão
+    if (processedSessions.current.has(sessionHash)) {
+      console.log('⚠️ Sessão já processada:', sessionHash);
+      lastGameStateRef.current = gameState;
+      lastShareTextRef.current = shareText;
+      return;
+    }
+
+    const sendNotificationWithUserInfo = async () => {
+      try {
+        console.log('📤 Iniciando envio do webhook...');
+
+        // Para usuários logados, verificar no banco
+        if (!isGuestMode && user) {
+          const alreadySent = await checkIfAlreadySent(sessionHash);
+          if (alreadySent) {
+            console.log('⚠️ Webhook já foi enviado para este usuário (banco):', sessionHash);
+            sentWebhooksRef.current.add(sessionHash);
+            return;
+          }
+        }
+
+        const isGuest = !user || isGuestMode;
+        const discordGameState = gameState.gameStatus === 'won' ? 'win' : 'lose';
+        
+        let userInfo = undefined;
+        
+        if (!isGuest && user) {
+          try {
+            // Buscar informações do perfil do usuário
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('nickname')
+              .eq('id', user.id)
+              .single();
+
+            // Extrair informações do Discord se disponíveis
+            const discordUsername = user.user_metadata?.full_name || user.user_metadata?.name;
+            const discordAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+
+            userInfo = {
+              nickname: profile?.nickname,
+              discordUsername: discordUsername,
+              discordAvatar: discordAvatar
+            };
+
+            console.log('👤 Informações do usuário:', { nickname: profile?.nickname, discordUsername });
+          } catch (error) {
+            console.log('⚠️ Erro ao buscar informações do usuário:', error);
+          }
+        }
+
+        await sendGameResultToDiscord(shareText, isGuest, discordGameState as GameState, userInfo);
+        
+        console.log('✅ Webhook enviado com sucesso!');
+        
+        // Marcar como enviado em todos os caches
+        processedSessions.current.add(sessionHash);
+        sentWebhooksRef.current.add(sessionHash);
+        
+        if (!isGuest && user) {
+          await markAsSent(sessionHash);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao enviar webhook:', error);
+      }
+    };
+
+    sendNotificationWithUserInfo();
     
     lastGameStateRef.current = gameState;
     lastShareTextRef.current = shareText;
@@ -253,6 +281,7 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
       processedSessions.current.clear();
       lastGameStateRef.current = null;
       lastShareTextRef.current = '';
+      // NÃO limpar sentWebhooksRef para evitar duplicação
     }
   }, [mode]);
 
@@ -262,6 +291,7 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
       processedSessions.current.clear();
       lastGameStateRef.current = null;
       lastShareTextRef.current = '';
+      // Manter sentWebhooksRef para persistir entre componentes
     };
   }, []);
 
