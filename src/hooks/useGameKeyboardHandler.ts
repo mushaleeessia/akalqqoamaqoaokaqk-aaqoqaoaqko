@@ -100,7 +100,7 @@ export const useGameKeyboardHandler = ({
     } finally {
       setIsValidating(false);
     }
-  }, [gameState.currentGuess, gameState.guesses, targetWord, keyStates, saveGameProgress, saveGameSession]);
+  }, [gameState.currentGuess, gameState.guesses, targetWord, keyStates, saveGameProgress, saveGameSession, setCursorPosition]);
 
   const handleKeyPress = useCallback((key: string) => {
     if (gameState.gameStatus !== 'playing') return;
@@ -118,10 +118,10 @@ export const useGameKeyboardHandler = ({
         setGameState(newGameState);
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
         
-        // Ajustar cursor para o final da palavra
+        // Posicionar cursor no final da palavra
         setCursorPosition({ 
           row: cursorPosition.row, 
-          col: Math.max(0, newGuess.length) 
+          col: newGuess.length
         });
       }
     } else if (key.length === 1 && /^[a-zA-Z]$/.test(key)) {
@@ -135,10 +135,10 @@ export const useGameKeyboardHandler = ({
         setGameState(newGameState);
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
         
-        // Mover cursor para próxima posição
+        // Posicionar cursor após a letra inserida
         setCursorPosition({ 
           row: cursorPosition.row, 
-          col: Math.min(4, newGuess.length) 
+          col: newGuess.length
         });
       }
     }

@@ -106,6 +106,15 @@ export const TermoGrid = ({
     return { letters, states };
   };
 
+  const handleCellClick = (row: number, col: number) => {
+    if (onCellClick) {
+      const success = onCellClick(row, col);
+      if (success && onCursorMove) {
+        onCursorMove({ row, col });
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col space-y-2">
       {Array.from({ length: maxGuesses }, (_, rowIndex) => {
@@ -120,8 +129,8 @@ export const TermoGrid = ({
             isDarkMode={isDarkMode}
             rowIndex={rowIndex}
             activeCell={isCurrentRow && cursorPosition ? cursorPosition.col : undefined}
-            onCellClick={onCellClick}
-            isInteractive={isCurrentRow}
+            onCellClick={handleCellClick}
+            isCurrentRow={isCurrentRow}
           />
         );
       })}

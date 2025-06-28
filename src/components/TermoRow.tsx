@@ -9,7 +9,7 @@ interface TermoRowProps {
   rowIndex: number;
   activeCell?: number;
   onCellClick?: (row: number, col: number) => void;
-  isInteractive?: boolean;
+  isCurrentRow?: boolean;
 }
 
 export const TermoRow = ({ 
@@ -19,19 +19,20 @@ export const TermoRow = ({
   rowIndex,
   activeCell,
   onCellClick,
-  isInteractive = false
+  isCurrentRow = false
 }: TermoRowProps) => {
   
   return (
     <div className="flex space-x-2">
       {Array.from({ length: 5 }, (_, colIndex) => (
         <TermoCell
-          key={colIndex}
+          key={`${rowIndex}-${colIndex}`}
           letter={letters[colIndex] || ''}
           state={states[colIndex] || 'empty'}
           isDarkMode={isDarkMode}
-          isActive={isInteractive && activeCell === colIndex}
-          onClick={isInteractive && onCellClick ? () => onCellClick(rowIndex, colIndex) : undefined}
+          isActive={isCurrentRow && activeCell === colIndex}
+          isCurrentRow={isCurrentRow}
+          onClick={isCurrentRow && onCellClick ? () => onCellClick(rowIndex, colIndex) : undefined}
         />
       ))}
     </div>
