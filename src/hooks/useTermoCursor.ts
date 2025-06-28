@@ -9,29 +9,44 @@ export interface CursorPosition {
 export const useTermoCursor = (currentRow: number, currentGuess: string, gameStatus: string) => {
   const [cursorPosition, setCursorPosition] = useState<CursorPosition>({ 
     row: currentRow, 
-    col: currentGuess.length 
+    col: 0 
   });
 
-  // Sempre manter cursor na linha atual
+  // Manter cursor na linha atual quando muda de linha
   useEffect(() => {
-    setCursorPosition(prev => ({ 
-      row: currentRow, 
-      col: Math.min(prev.col, currentGuess.length) 
-    }));
-  }, [currentRow, currentGuess.length]);
+    if (currentRow !== cursorPosition.row) {
+      setCursorPosition({ 
+        row: currentRow, 
+        col: 0 
+      });
+    }
+  }, [currentRow]);
+
+  // Ajustar posição do cursor se necessário quando a palavra muda
+  useEffect(() => {
+    setCursorPosition(prev => {
+      const newCol = Math.min(prev.col, Math.max(currentGuess.length, 0));
+      return {
+        row: prev.row,
+        col: newCol
+      };
+    });
+  }, [currentGuess.length]);
 
   const handleCellClick = useCallback((row: number, col: number) => {
+    console.log('Cell clicked:', row, col, 'Game status:', gameStatus, 'Current row:', currentRow);
+    
     // Só permitir cliques na linha atual durante o jogo
     if (gameStatus === 'playing' && row === currentRow) {
-      // Permitir clique em qualquer posição até o final da palavra atual + 1
-      const maxClickableCol = Math.min(currentGuess.length, 4);
-      const targetCol = Math.min(col, maxClickableCol);
+      // Permitir clique em qualquer posição válida (0-4) ou no final da palavra atual
+      const targetCol = Math.min(col, 4);
       
+      console.log('Setting cursor to:', { row, col: targetCol });
       setCursorPosition({ row, col: targetCol });
       return true;
     }
     return false;
-  }, [currentRow, gameStatus, currentGuess.length]);
+  }, [currentRow, gameStatus]);
 
   return {
     cursorPosition,
