@@ -57,7 +57,7 @@ export const useGameKeyboardHandler = ({
       
       if (!validationResult.isValid) {
         toast({
-          title: "Palavra inválida",
+          title: "Palavra inválida",  
           description: "Palavra inválida",
           variant: "destructive"
         });
@@ -108,14 +108,13 @@ export const useGameKeyboardHandler = ({
     if (key === 'ENTER') {
       submitGuess();
     } else if (key === 'BACKSPACE') {
+      // Create array representation of current guess
       const currentGuessArray = new Array(5).fill('');
-      
-      // Preencher com as letras existentes
       for (let i = 0; i < gameState.currentGuess.length; i++) {
         currentGuessArray[i] = gameState.currentGuess[i];
       }
       
-      // Deletar da posição do cursor
+      // Delete from cursor position
       if (currentGuessArray[cursorPosition.col]) {
         currentGuessArray[cursorPosition.col] = '';
         const newGuess = currentGuessArray.filter(char => char !== '').join('');
@@ -127,19 +126,18 @@ export const useGameKeyboardHandler = ({
         setGameState(newGameState);
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
       }
-    } else if (key.length === 1 && gameState.currentGuess.length < 5) {
+    } else if (key.length === 1) {
+      // Create array representation of current guess
       const currentGuessArray = new Array(5).fill('');
-      
-      // Preencher com as letras existentes
       for (let i = 0; i < gameState.currentGuess.length; i++) {
         currentGuessArray[i] = gameState.currentGuess[i];
       }
       
-      // Inserir na posição do cursor se estiver vazia
-      if (!currentGuessArray[cursorPosition.col]) {
+      // Insert at cursor position if empty and we haven't reached max length
+      if (!currentGuessArray[cursorPosition.col] && gameState.currentGuess.length < 5) {
         currentGuessArray[cursorPosition.col] = key.toLowerCase();
         
-        // Criar nova string sem buracos
+        // Create new string without gaps
         const newGuess = currentGuessArray.filter(char => char !== '').join('');
         
         const newGameState = {
@@ -148,12 +146,12 @@ export const useGameKeyboardHandler = ({
         };
         setGameState(newGameState);
         
-        // Mover cursor para próxima posição vazia
+        // Move cursor to next empty position
         let nextPos = cursorPosition.col + 1;
         while (nextPos < 5 && currentGuessArray[nextPos]) {
           nextPos++;
         }
-        setCursorPosition(prev => ({ ...prev, col: Math.min(4, nextPos) }));
+        setCursorPosition({ row: cursorPosition.row, col: Math.min(4, nextPos) });
         
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
       }
