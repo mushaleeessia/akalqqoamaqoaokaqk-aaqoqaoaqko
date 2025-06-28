@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { GameState } from '@/hooks/useTermoGameState';
 import { MultiModeGameState } from '@/hooks/useMultiModeGameState';
 import { GameMode } from '@/components/GameModeSelector';
-import { sendToDiscord } from '@/utils/discordWebhook';
+import { sendGameResultToDiscord } from '@/utils/discordWebhook';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGuestMode } from '@/hooks/useGuestMode';
 
@@ -18,9 +18,16 @@ export const useDiscordNotification = (
   useEffect(() => {
     if (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') {
       if (shareText && shareText.trim() !== '') {
-        const nickname = isGuestMode ? 'Convidado' : (user?.user_metadata?.nickname || 'Usuário');
+        const isGuest = isGuestMode;
+        const gameStatus = gameState.gameStatus === 'won' ? 'win' : 'lose';
         
-        sendToDiscord(shareText, nickname, mode).catch(error => {
+        const userInfo = !isGuest && user ? {
+          nickname: user.user_metadata?.nickname,
+          discordUsername: user.user_metadata?.discord_username,
+          discordAvatar: user.user_metadata?.discord_avatar
+        } : undefined;
+        
+        sendGameResultToDiscord(shareText, isGuest, gameStatus, userInfo).catch(error => {
           // Silently handle errors - no need to log
         });
       }
