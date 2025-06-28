@@ -14,23 +14,16 @@ export const useTermoCursor = (currentRow: number, currentGuess: string, gameSta
     setCursorPosition(prev => ({ ...prev, row: currentRow }));
   }, [currentRow]);
 
-  // Atualizar cursor quando a palavra muda (digitação normal)
-  useEffect(() => {
-    if (gameStatus === 'playing') {
-      setCursorPosition(prev => ({ ...prev, col: currentGuess.length }));
-    }
-  }, [currentGuess.length, gameStatus]);
-
   // Função para lidar com cliques nas células
   const handleCellClick = useCallback((row: number, col: number) => {
     if (gameStatus === 'playing' && row === currentRow) {
-      // Permitir clicar em qualquer posição até o limite de 5 caracteres
-      const targetCol = Math.min(col, 4);
+      // Permitir clicar em qualquer posição até o final da palavra + 1
+      const targetCol = Math.min(col, currentGuess.length);
       setCursorPosition({ row, col: targetCol });
       return true;
     }
     return false;
-  }, [currentRow, gameStatus]);
+  }, [currentRow, gameStatus, currentGuess.length]);
 
   return {
     cursorPosition,
