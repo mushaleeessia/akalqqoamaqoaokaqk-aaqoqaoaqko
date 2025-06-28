@@ -1,10 +1,8 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { GameMode } from "@/components/GameModeSelector";
 import { validatePortugueseWord } from "@/utils/portugueseWords";
 import { useMultiModePlayerSession } from "@/hooks/useMultiModePlayerSession";
 import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
-import { useTermoCursor } from "./useTermoCursor";
 import { toast } from "@/hooks/use-toast";
 
 export type LetterState = 'correct' | 'present' | 'absent' | 'empty';
@@ -33,13 +31,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   const [isSessionLoaded, setIsSessionLoaded] = useState(false);
   
   const maxGuesses = mode === 'solo' ? 6 : mode === 'duo' ? 8 : mode === 'trio' ? 9 : 10;
-
-  // Add cursor functionality
-  const { cursorPosition, setCursorPosition, handleCellClick } = useTermoCursor(
-    gameState.currentRow, 
-    gameState.currentGuess, 
-    gameState.gameStatus
-  );
 
   const evaluateGuessForWord = (guess: string, targetWord: string): LetterState[] => {
     const result: LetterState[] = [];
@@ -162,7 +153,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
       };
       
       setGameState(newGameState);
-      setCursorPosition({ row: newGuesses.length, col: 0 });
 
       if (isGameOver) {
         setShowingFreshGameOver(true);
@@ -180,7 +170,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     } finally {
       setIsValidating(false);
     }
-  }, [gameState.currentGuess, gameState.guesses, targetWords, saveGameProgress, maxGuesses, saveGameSession, setCursorPosition]);
+  }, [gameState.currentGuess, gameState.guesses, targetWords, saveGameProgress, maxGuesses, saveGameSession]);
 
   const handleKeyPress = useCallback((key: string) => {
     if (gameState.gameStatus !== 'playing' || isValidating) return;
@@ -197,11 +187,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
         
         setGameState(newGameState);
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
-        
-        setCursorPosition({ 
-          row: cursorPosition.row, 
-          col: Math.max(0, newGuess.length) 
-        });
       }
     } else if (key.length === 1 && /^[a-zA-Z]$/.test(key)) {
       if (gameState.currentGuess.length < 5) {
@@ -213,18 +198,9 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
         
         setGameState(newGameState);
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
-        
-        setCursorPosition({ 
-          row: cursorPosition.row, 
-          col: Math.min(4, newGuess.length) 
-        });
       }
     }
-  }, [gameState, isValidating, submitGuess, saveGameProgress, cursorPosition, setCursorPosition]);
-
-  const handleCursorMove = useCallback((position: { row: number; col: number }) => {
-    setCursorPosition(position);
-  }, [setCursorPosition]);
+  }, [gameState, isValidating, submitGuess, saveGameProgress]);
 
   useEffect(() => {
     if (sessionInfo && sessionInfo.mode === mode && !isSessionLoaded) {
@@ -288,9 +264,6 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
     handleKeyPress,
     canPlay: canPlay && !sessionExists,
     sessionInfo,
-    saveGameProgress,
-    handleCursorMove,
-    cursorPosition,
-    handleCellClick
+    saveGameProgress
   };
 };
