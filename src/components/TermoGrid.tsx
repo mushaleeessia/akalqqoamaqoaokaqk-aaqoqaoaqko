@@ -80,9 +80,13 @@ export const TermoGrid = ({
         letters = new Array(5).fill('');
         states = new Array(5).fill('empty');
       } else {
-        // Linha com guess já feito
-        letters = guesses[rowIndex].split('');
-        states = evaluateGuess(guesses[rowIndex]);
+        // Linha com guess já feito - preencher corretamente
+        const guess = guesses[rowIndex];
+        letters = new Array(5).fill('');
+        for (let i = 0; i < guess.length && i < 5; i++) {
+          letters[i] = guess[i];
+        }
+        states = evaluateGuess(guess);
       }
     } else if (rowIndex === currentRow) {
       // Linha atual - se a palavra já foi acertada, não mostrar currentGuess
@@ -90,8 +94,9 @@ export const TermoGrid = ({
         letters = new Array(5).fill('');
         states = new Array(5).fill('empty');
       } else {
-        // Preencher array com 5 posições
+        // CORREÇÃO: Preencher array respeitando as posições das letras
         letters = new Array(5).fill('');
+        // Preencher com as letras do currentGuess nas posições corretas
         for (let i = 0; i < currentGuess.length && i < 5; i++) {
           letters[i] = currentGuess[i];
         }

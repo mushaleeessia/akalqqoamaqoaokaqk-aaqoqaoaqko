@@ -22,7 +22,6 @@ export const useTermoCursor = (currentRow: number, currentGuess: string, gameSta
     }
   }, [currentRow]);
 
-  // Não forçar cursor para o final - deixar o usuário controlar
   const handleCellClick = useCallback((row: number, col: number) => {
     console.log('Cell clicked:', row, col, 'Game status:', gameStatus, 'Current row:', currentRow);
     
