@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Music } from "lucide-react";
 
@@ -11,8 +10,7 @@ export const MusicPlayer = ({ hidden = false }: MusicPlayerProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const audioUrl =
-    "https://cdn.discordapp.com/attachments/1225909016526458971/1383758695594332211/Mac_Miller_-_Congratulations_Instrumental_VIOLIN__PIANO_.mp3?ex=684ff536&is=684ea3b6&hm=c2e6c0184dab419c7f7ce6387bbfe927a8a05eb185b07906436f97c1b8c4fc55&";
+  const audioUrl = "https://audio.jukehost.co.uk/EXzFHioULCtIF5HR7d0RfubcQmAV1nl9";
 
   const handlePlayPause = () => {
     if (!audioRef.current) return;
