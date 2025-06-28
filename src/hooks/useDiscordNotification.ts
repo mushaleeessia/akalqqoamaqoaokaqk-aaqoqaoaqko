@@ -37,6 +37,7 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
   const { isGuestMode } = useGuestMode();
   const processedSessions = useRef<Set<string>>(new Set());
   const previousModeRef = useRef<GameMode | undefined>(mode);
+  const lastGameStateRef = useRef<typeof gameState | null>(null);
 
   // Função para verificar se já foi enviado (para usuários logados)
   const checkIfAlreadySent = async (sessionHash: string): Promise<boolean> => {
@@ -72,14 +73,44 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
     }
   };
 
+  // Função para verificar se é uma mudança real de estado do jogo
+  const isRealGameStateChange = (currentGameState: typeof gameState, previousGameState: typeof gameState | null): boolean => {
+    if (!previousGameState) return true;
+    
+    // Se o status mudou de playing para won/lost, é uma mudança real
+    if (previousGameState.gameStatus === 'playing' && (currentGameState.gameStatus === 'won' || currentGameState.gameStatus === 'lost')) {
+      return true;
+    }
+    
+    // Se o número de tentativas aumentou, é uma mudança real
+    const currentGuessCount = currentGameState.guesses?.length || 0;
+    const previousGuessCount = previousGameState.guesses?.length || 0;
+    
+    if (currentGuessCount > previousGuessCount) {
+      return true;
+    }
+    
+    return false;
+  };
+
   // Enviar automaticamente quando o jogo termina
   useEffect(() => {
     // Detectar mudança de modo
     const modeChanged = previousModeRef.current && previousModeRef.current !== mode;
+    
+    // Se houve mudança de modo, limpar cache e não enviar webhook
+    if (modeChanged) {
+      previousModeRef.current = mode;
+      processedSessions.current.clear();
+      lastGameStateRef.current = null;
+      return;
+    }
+    
     previousModeRef.current = mode;
 
-    // Se houve mudança de modo, não enviar webhook (é apenas transição)
-    if (modeChanged) {
+    // Verificar se é uma mudança real no estado do jogo
+    if (!isRealGameStateChange(gameState, lastGameStateRef.current)) {
+      lastGameStateRef.current = gameState;
       return;
     }
 
@@ -89,12 +120,14 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
       
       // Verificar se já foi processado nesta sessão (para convidados e usuários)
       if (processedSessions.current.has(sessionHash)) {
+        lastGameStateRef.current = gameState;
         return;
       }
 
       // Verificar se é um jogo verdadeiramente terminado (não uma transição)
       const hasValidGuesses = gameState.guesses && gameState.guesses.length > 0;
       if (!hasValidGuesses) {
+        lastGameStateRef.current = gameState;
         return;
       }
 
@@ -150,12 +183,15 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
 
       sendNotificationWithUserInfo();
     }
-  }, [gameState?.gameStatus, shareText, user, isGuestMode, mode]);
+    
+    lastGameStateRef.current = gameState;
+  }, [gameState?.gameStatus, shareText, user, isGuestMode, mode, gameState?.guesses?.length]);
 
   // Limpar cache quando o modo muda
   useEffect(() => {
     if (previousModeRef.current !== mode) {
       processedSessions.current.clear();
+      lastGameStateRef.current = null;
     }
   }, [mode]);
 
@@ -163,6 +199,7 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
   useEffect(() => {
     return () => {
       processedSessions.current.clear();
+      lastGameStateRef.current = null;
     };
   }, []);
 
