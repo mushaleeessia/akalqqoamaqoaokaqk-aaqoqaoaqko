@@ -36,6 +36,7 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
   const { user } = useAuth();
   const { isGuestMode } = useGuestMode();
   const processedSessions = useRef<Set<string>>(new Set());
+  const previousModeRef = useRef<GameMode | undefined>(mode);
 
   // Função para verificar se já foi enviado (para usuários logados)
   const checkIfAlreadySent = async (sessionHash: string): Promise<boolean> => {
@@ -73,11 +74,29 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
 
   // Enviar automaticamente quando o jogo termina
   useEffect(() => {
+    // Detectar mudança de modo
+    const modeChanged = previousModeRef.current && previousModeRef.current !== mode;
+    previousModeRef.current = mode;
+
+    // Se houve mudança de modo, não enviar webhook (é apenas transição)
+    if (modeChanged) {
+      console.log('Modo alterado, não enviando webhook:', previousModeRef.current, '->', mode);
+      return;
+    }
+
+    // Só enviar se o jogo realmente terminou (won/lost) e há texto para compartilhar
     if (gameState && shareText && (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost')) {
       const sessionHash = generateGameSessionHash(gameState, shareText, mode);
       
       // Verificar se já foi processado nesta sessão (para convidados e usuários)
       if (processedSessions.current.has(sessionHash)) {
+        return;
+      }
+
+      // Verificar se é um jogo verdadeiramente terminado (não uma transição)
+      const hasValidGuesses = gameState.guesses && gameState.guesses.length > 0;
+      if (!hasValidGuesses) {
+        console.log('Jogo sem tentativas válidas, não enviando webhook');
         return;
       }
 
@@ -87,6 +106,7 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
           if (!isGuestMode && user) {
             const alreadySent = await checkIfAlreadySent(sessionHash);
             if (alreadySent) {
+              console.log('Webhook já enviado para esta sessão');
               return;
             }
           }
@@ -119,6 +139,7 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
             }
           }
 
+          console.log('Enviando webhook para Discord:', { mode, gameState: discordGameState, isGuest });
           await sendGameResultToDiscord(shareText, isGuest, discordGameState as GameState, userInfo);
           
           // Marcar como enviado
@@ -134,6 +155,13 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
       sendNotificationWithUserInfo();
     }
   }, [gameState?.gameStatus, shareText, user, isGuestMode, mode]);
+
+  // Limpar cache quando o modo muda
+  useEffect(() => {
+    if (previousModeRef.current !== mode) {
+      processedSessions.current.clear();
+    }
+  }, [mode]);
 
   // Limpar cache quando o componente é desmontado
   useEffect(() => {
