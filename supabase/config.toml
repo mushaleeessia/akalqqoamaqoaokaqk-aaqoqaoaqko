@@ -1,1 +1,13 @@
+
 project_id = "iwekablvutwgfxikmeib"
+
+[auth]
+enabled = true
+[auth.external.discord]
+enabled = true
+client_id = "env(DISCORD_CLIENT_ID)"
+secret = "env(DISCORD_CLIENT_SECRET)"
+redirect_uri = "https://iwekablvutwgfxikmeib.supabase.co/auth/v1/callback"
+
+[functions.discord-webhook]
+verify_jwt = true
