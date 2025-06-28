@@ -31,16 +31,13 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
     
     try {
       const { data, error } = await supabase
-        .rpc('sql', {
-          query: `
-            SELECT id FROM discord_webhooks_sent 
-            WHERE user_id = $1 AND session_hash = $2 
-            LIMIT 1
-          `,
-          params: [user.id, sessionHash]
-        });
+        .from('discord_webhooks_sent')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('session_hash', sessionHash)
+        .maybeSingle();
       
-      return !error && data && data.length > 0;
+      return !!data && !error;
     } catch {
       return false;
     }
@@ -51,13 +48,12 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
     if (isGuestMode || !user) return;
     
     try {
-      await supabase.rpc('sql', {
-        query: `
-          INSERT INTO discord_webhooks_sent (user_id, session_hash, sent_at)
-          VALUES ($1, $2, NOW())
-        `,
-        params: [user.id, sessionHash]
-      });
+      await supabase
+        .from('discord_webhooks_sent')
+        .insert({
+          user_id: user.id,
+          session_hash: sessionHash
+        });
     } catch {
       // Silently fail
     }
