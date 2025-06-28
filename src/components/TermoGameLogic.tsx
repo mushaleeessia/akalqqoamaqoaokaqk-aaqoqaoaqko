@@ -25,7 +25,8 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
     sessionInfo,
     handleKeyPress,
     evaluateGuess,
-    updateKeyStatesForGuess
+    updateKeyStatesForGuess,
+    handleCursorMove
   } = useTermoGameState(targetWord);
 
   useTermoKeyboardHandler(handleKeyPress);
@@ -111,10 +112,6 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
       </div>
     );
   }
-
-  const handleCursorMove = (position: any) => {
-    // Cursor position is handled internally by the grid
-  };
 
   return (
     <div className="flex flex-col items-center space-y-6">
