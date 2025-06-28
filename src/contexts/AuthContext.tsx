@@ -9,6 +9,7 @@ interface AuthContextType {
   loading: boolean;
   signInWithDiscord: () => Promise<void>;
   signOut: () => Promise<void>;
+  updateProfile: (updates: { nickname?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -63,12 +64,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signOut();
   };
 
+  const updateProfile = async (updates: { nickname?: string }) => {
+    if (!user) throw new Error('No user logged in');
+    
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        ...updates,
+        updated_at: new Date().toISOString()
+      });
+    
+    if (error) throw error;
+  };
+
   const value = {
     user,
     session,
     loading,
     signInWithDiscord,
     signOut,
+    updateProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
