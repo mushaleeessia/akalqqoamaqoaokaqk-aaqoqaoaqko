@@ -111,9 +111,12 @@ export const useGameKeyboardHandler = ({
     if (key === 'ENTER') {
       submitGuess();
     } else if (key === 'BACKSPACE') {
-      if (gameState.currentGuess.length > 0) {
-        // Sempre remover do final da palavra atual
-        const newGuess = gameState.currentGuess.slice(0, -1);
+      // Deletar letra na posição do cursor
+      if (cursorPosition.col > 0 && gameState.currentGuess.length > 0) {
+        const currentGuessArray = gameState.currentGuess.split('');
+        const deletePosition = Math.min(cursorPosition.col - 1, currentGuessArray.length - 1);
+        currentGuessArray.splice(deletePosition, 1);
+        const newGuess = currentGuessArray.join('');
         
         const newGameState = {
           ...gameState,
@@ -123,15 +126,22 @@ export const useGameKeyboardHandler = ({
         setGameState(newGameState);
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
         
-        // Ajustar cursor para o final da palavra
+        // Mover cursor para a esquerda após deletar
         setCursorPosition({ 
           row: cursorPosition.row, 
-          col: newGuess.length
+          col: Math.max(0, cursorPosition.col - 1)
         });
       }
     } else if (key.length === 1 && /^[a-zA-Z]$/.test(key)) {
+      // Inserir letra na posição do cursor
       if (gameState.currentGuess.length < 5) {
-        const newGuess = gameState.currentGuess + key.toLowerCase();
+        const currentGuessArray = gameState.currentGuess.split('');
+        
+        // Inserir na posição do cursor, mas não ultrapassar o tamanho atual + 1
+        const insertPosition = Math.min(cursorPosition.col, currentGuessArray.length);
+        currentGuessArray.splice(insertPosition, 0, key.toLowerCase());
+        
+        const newGuess = currentGuessArray.join('');
         
         const newGameState = {
           ...gameState,
@@ -141,10 +151,10 @@ export const useGameKeyboardHandler = ({
         setGameState(newGameState);
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
         
-        // Mover cursor para o final da palavra
+        // Mover cursor para a direita após inserir
         setCursorPosition({ 
           row: cursorPosition.row, 
-          col: newGuess.length
+          col: Math.min(5, cursorPosition.col + 1)
         });
       }
     }

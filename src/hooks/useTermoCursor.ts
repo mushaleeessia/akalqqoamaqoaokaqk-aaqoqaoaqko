@@ -12,44 +12,31 @@ export const useTermoCursor = (currentRow: number, currentGuess: string, gameSta
     col: 0 
   });
 
-  // Sincronizar cursor com a linha atual
+  // Sincronizar cursor com a linha atual apenas quando muda de linha
   useEffect(() => {
     if (currentRow !== cursorPosition.row) {
       setCursorPosition({ 
         row: currentRow, 
-        col: currentGuess.length // Posicionar no final da palavra atual
+        col: 0
       });
     }
-  }, [currentRow, currentGuess.length]);
+  }, [currentRow]);
 
-  // Manter cursor sincronizado com o tamanho da palavra
-  useEffect(() => {
-    setCursorPosition(prev => {
-      if (prev.row === currentRow) {
-        return {
-          row: prev.row,
-          col: currentGuess.length // Sempre no final da palavra atual
-        };
-      }
-      return prev;
-    });
-  }, [currentGuess.length, currentRow]);
-
+  // Não forçar cursor para o final - deixar o usuário controlar
   const handleCellClick = useCallback((row: number, col: number) => {
     console.log('Cell clicked:', row, col, 'Game status:', gameStatus, 'Current row:', currentRow);
     
     // Só permitir cliques na linha atual durante o jogo
     if (gameStatus === 'playing' && row === currentRow) {
-      // Permitir clique apenas até o final da palavra atual + 1
-      const maxCol = Math.min(currentGuess.length, 4);
-      const targetCol = Math.min(col, maxCol);
+      // Permitir clique em qualquer posição (0-4)
+      const targetCol = Math.max(0, Math.min(col, 4));
       
       console.log('Setting cursor to:', { row, col: targetCol });
       setCursorPosition({ row, col: targetCol });
       return true;
     }
     return false;
-  }, [currentRow, gameStatus, currentGuess.length]);
+  }, [currentRow, gameStatus]);
 
   return {
     cursorPosition,
