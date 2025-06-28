@@ -42,22 +42,7 @@ const validateWithDicionarioAberto = async (word: string): Promise<boolean> => {
   return false;
 };
 
-// API 2: Significado.herokuapp
-const validateWithSignificado = async (word: string): Promise<boolean> => {
-  try {
-    const response = await fetchWithTimeout(`https://significado.herokuapp.com/v2/significado/${word}`);
-    
-    if (response.ok) {
-      const data = await response.json();
-      return data && !data.error;
-    }
-  } catch (error) {
-    // Silently fail
-  }
-  return false;
-};
-
-// API 3: Priberam (simulação com base de palavras conhecidas)
+// API 2: Priberam (simulação com base de palavras conhecidas)
 const validateWithPriberam = async (word: string): Promise<boolean> => {
   // Base expandida de palavras portuguesas conhecidas (mais de 1000 palavras)
   const conhecidas = [
@@ -130,7 +115,7 @@ const validateWithPriberam = async (word: string): Promise<boolean> => {
   return conhecidas.some(p => normalizeWord(p) === normalized);
 };
 
-// API 4: Michaelis (simulação com padrões)
+// API 3: Michaelis (simulação com padrões)
 const validateWithMichaelis = async (word: string): Promise<boolean> => {
   // Validação baseada em padrões comuns do português
   const patterns = [
@@ -142,7 +127,7 @@ const validateWithMichaelis = async (word: string): Promise<boolean> => {
   return patterns.every(pattern => pattern.test(word));
 };
 
-// Função principal que usa todas as APIs
+// Função principal que usa todas as APIs (sem Heroku)
 export const validateWithMultipleAPIs = async (word: string): Promise<{ isValid: boolean; source: string }> => {
   const normalized = normalizeWord(word);
   
@@ -151,10 +136,9 @@ export const validateWithMultipleAPIs = async (word: string): Promise<{ isValid:
     return wordCache.get(normalized)!;
   }
 
-  // Testar APIs em paralelo para rapidez
+  // Testar APIs em paralelo para rapidez (removido Heroku API)
   const validationPromises = [
     validateWithDicionarioAberto(word).then(valid => ({ valid, source: 'Dicionário Aberto' })),
-    validateWithSignificado(word).then(valid => ({ valid, source: 'Significado API' })),
     validateWithPriberam(word).then(valid => ({ valid, source: 'Base Conhecida' })),
     validateWithMichaelis(word).then(valid => ({ valid, source: 'Padrões PT' }))
   ];
