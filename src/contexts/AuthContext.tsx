@@ -67,11 +67,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const updateProfile = async (updates: { nickname?: string }) => {
     if (!user) throw new Error('No user logged in');
     
+    // Only proceed if nickname is provided since it's required
+    if (!updates.nickname) throw new Error('Nickname is required');
+    
     const { error } = await supabase
       .from('profiles')
       .upsert({
         id: user.id,
-        ...updates,
+        nickname: updates.nickname,
         updated_at: new Date().toISOString()
       });
     
