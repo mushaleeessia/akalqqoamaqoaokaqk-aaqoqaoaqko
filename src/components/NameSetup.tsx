@@ -75,11 +75,11 @@ export const NameSetup = ({ onComplete }: NameSetupProps) => {
                 onChange={(e) => setNickname(e.target.value)}
                 className="w-full bg-white/10 border-white/20 text-white placeholder-white/60"
                 disabled={isLoading}
-                maxLength={20}
-                minLength={2}
+                maxLength={9}
+                minLength={3}
               />
               <p className="text-white/60 text-sm mt-2">
-                Entre 2 e 20 caracteres. Apenas letras, números e símbolos básicos.
+                Entre 3 e 9 caracteres. Apenas letras, números e símbolos básicos.
               </p>
             </div>
 

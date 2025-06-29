@@ -36,10 +36,10 @@ export const validateNickname = (nickname: string): ValidationResult => {
     };
   }
 
-  if (nickname.length < 2 || nickname.length > 20) {
+  if (nickname.length < 3 || nickname.length > 9) {
     return {
       isValid: false,
-      reason: 'Nickname deve ter entre 2 e 20 caracteres',
+      reason: 'Nickname deve ter entre 3 e 9 caracteres',
       severity: 'low',
       originalValue: original
     };
@@ -75,7 +75,7 @@ export const validateNickname = (nickname: string): ValidationResult => {
     .trim()
     .replace(/[^\w\s\-\_\.\!]/g, '') // Remove caracteres especiais
     .replace(/\s+/g, ' ') // Remove espaços extras
-    .substring(0, 20); // Limita tamanho
+    .substring(0, 9); // Limita tamanho
 
   return {
     isValid: true,

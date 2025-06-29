@@ -1,12 +1,70 @@
 
+import { useState, useEffect } from "react";
 import { CrosswordGame } from "@/components/CrosswordGame";
 import { CrosswordLogin } from "@/components/CrosswordLogin";
+import { NameSetup } from "@/components/NameSetup";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const Cruzadas = () => {
   const { user, loading } = useAuth();
+  const [userProfile, setUserProfile] = useState<{ nickname: string } | null>(null);
+  const [needsNickname, setNeedsNickname] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        try {
+          setProfileLoading(true);
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('nickname')
+            .eq('id', user.id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching user profile:', error);
+            // Se não encontrar perfil, precisa criar nickname
+            setNeedsNickname(true);
+            setUserProfile(null);
+          } else {
+            setUserProfile(data);
+            setNeedsNickname(false);
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          setNeedsNickname(true);
+          setUserProfile(null);
+        } finally {
+          setProfileLoading(false);
+        }
+      } else {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
+
+  const handleNicknameComplete = () => {
+    setNeedsNickname(false);
+    // Recarregar o perfil após definir o nickname
+    if (user) {
+      supabase
+        .from('profiles')
+        .select('nickname')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setUserProfile(data);
+          }
+        });
+    }
+  };
+
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center text-white">
         <div className="text-xl">Carregando...</div>
@@ -16,6 +74,10 @@ const Cruzadas = () => {
 
   if (!user) {
     return <CrosswordLogin />;
+  }
+
+  if (needsNickname) {
+    return <NameSetup onComplete={handleNicknameComplete} />;
   }
 
   return <CrosswordGame />;
