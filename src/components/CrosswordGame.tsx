@@ -38,11 +38,43 @@ export const CrosswordGame = () => {
 
   useEffect(() => {
     if (puzzle && user && !isGuestMode) {
-      // Para palavras cruzadas, vamos salvar o estado do puzzle
-      const guesses = puzzle.grid.flat().map(cell => cell.userInput).filter(input => input !== '');
-      saveGameSession(guesses, isCompleted);
+      // Para palavras cruzadas, vamos contar quantas palavras foram completadas corretamente
+      const completedWords = countCompletedWords(puzzle);
+      saveGameSession([completedWords.toString()], isCompleted);
     }
   }, [puzzle, user, isGuestMode, saveGameSession, isCompleted]);
+
+  const countCompletedWords = (currentPuzzle: CrosswordPuzzle): number => {
+    let completedCount = 0;
+    
+    // Verificar palavras horizontais
+    currentPuzzle.clues.across.forEach(clue => {
+      let isWordComplete = true;
+      for (let i = 0; i < clue.length; i++) {
+        const cell = currentPuzzle.grid[clue.startRow][clue.startCol + i];
+        if (cell.userInput !== cell.letter) {
+          isWordComplete = false;
+          break;
+        }
+      }
+      if (isWordComplete) completedCount++;
+    });
+    
+    // Verificar palavras verticais
+    currentPuzzle.clues.down.forEach(clue => {
+      let isWordComplete = true;
+      for (let i = 0; i < clue.length; i++) {
+        const cell = currentPuzzle.grid[clue.startRow + i][clue.startCol];
+        if (cell.userInput !== cell.letter) {
+          isWordComplete = false;
+          break;
+        }
+      }
+      if (isWordComplete) completedCount++;
+    });
+    
+    return completedCount;
+  };
 
   const generateNewPuzzle = () => {
     const newPuzzle = generateCrosswordPuzzle();
@@ -102,11 +134,11 @@ export const CrosswordGame = () => {
   }, []);
 
   if (!puzzle) {
-    return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
+    return <div className="flex items-center justify-center min-h-screen dark:bg-gray-900 bg-gray-100 dark:text-white text-gray-900">Carregando...</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-white">
       {/* Header with theme switch and user dropdown */}
       <div className="flex justify-between items-center p-4 bg-black/20 backdrop-blur-sm">
         <div className="flex items-center gap-4">
@@ -118,7 +150,7 @@ export const CrosswordGame = () => {
           {user && !isGuestMode ? (
             <UserDropdown 
               nickname={user.user_metadata?.nickname || user.email?.split('@')[0] || 'Usuário'} 
-              currentMode="solo"
+              currentMode="cruzadas" as any
             />
           ) : isGuestMode ? (
             <GuestModeDropdown />
@@ -130,7 +162,7 @@ export const CrosswordGame = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Grid */}
           <div className="flex-1 flex justify-center">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+            <div className="bg-white/10 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-6 border border-white/20 dark:border-gray-700">
               <div 
                 className="grid gap-1 mx-auto"
                 style={{ 
@@ -143,12 +175,12 @@ export const CrosswordGame = () => {
                     <div
                       key={`${rowIndex}-${colIndex}`}
                       className={`
-                        w-8 h-8 border border-gray-400 relative cursor-pointer
+                        w-8 h-8 border border-gray-400 dark:border-gray-600 relative cursor-pointer
                         ${cell.isBlocked 
-                          ? 'bg-black' 
+                          ? 'bg-black dark:bg-gray-900' 
                           : selectedCell?.row === rowIndex && selectedCell?.col === colIndex
                           ? 'bg-yellow-300 text-black'
-                          : 'bg-white text-black'
+                          : 'bg-white dark:bg-gray-700 text-black dark:text-white'
                         }
                       `}
                       onClick={() => handleCellClick(rowIndex, colIndex)}
@@ -156,14 +188,14 @@ export const CrosswordGame = () => {
                       {!cell.isBlocked && (
                         <>
                           {cell.number && (
-                            <span className="absolute top-0 left-0 text-xs font-bold leading-none p-0.5">
+                            <span className="absolute top-0 left-0 text-xs font-bold leading-none p-0.5 text-black dark:text-white">
                               {cell.number}
                             </span>
                           )}
                           <Input
                             value={cell.userInput}
                             onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
-                            className="w-full h-full border-none bg-transparent text-center text-sm font-bold p-0 focus:outline-none focus:ring-0"
+                            className="w-full h-full border-none bg-transparent text-center text-sm font-bold p-0 focus:outline-none focus:ring-0 text-black dark:text-white"
                             maxLength={1}
                           />
                         </>
@@ -192,12 +224,12 @@ export const CrosswordGame = () => {
 
           {/* Clues */}
           <div className="lg:w-80">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-              <h2 className="text-xl font-bold mb-4">Dicas</h2>
+            <div className="bg-white/10 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-6 border border-white/20 dark:border-gray-700">
+              <h2 className="text-xl font-bold mb-4">Definições</h2>
               
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-2 text-blue-300">Horizontais</h3>
+                  <h3 className="text-lg font-semibold mb-2 text-blue-300 dark:text-blue-400">Horizontais</h3>
                   <div className="space-y-2">
                     {puzzle.clues.across.map((clue) => (
                       <div key={`across-${clue.number}`} className="text-sm">
@@ -208,7 +240,7 @@ export const CrosswordGame = () => {
                 </div>
                 
                 <div>
-                  <h3 className="text-lg font-semibold mb-2 text-green-300">Verticais</h3>
+                  <h3 className="text-lg font-semibold mb-2 text-green-300 dark:text-green-400">Verticais</h3>
                   <div className="space-y-2">
                     {puzzle.clues.down.map((clue) => (
                       <div key={`down-${clue.number}`} className="text-sm">
