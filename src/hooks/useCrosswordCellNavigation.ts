@@ -4,11 +4,13 @@ import { CrosswordPuzzle } from '@/types/crossword';
 interface UseCrosswordCellNavigationProps {
   puzzle: CrosswordPuzzle | null;
   setSelectedCell: (cell: { row: number; col: number } | null) => void;
+  selectedCell: { row: number; col: number } | null;
 }
 
 export const useCrosswordCellNavigation = ({
   puzzle,
-  setSelectedCell
+  setSelectedCell,
+  selectedCell
 }: UseCrosswordCellNavigationProps) => {
 
   const moveToNextCell = (currentRow: number, currentCol: number, direction: 'across' | 'down') => {
@@ -95,8 +97,54 @@ export const useCrosswordCellNavigation = ({
     return { row: prevRow, col: prevCol };
   };
 
+  // Navegação livre com as setas do teclado
+  const moveWithArrows = (direction: 'up' | 'down' | 'left' | 'right') => {
+    if (!puzzle || !selectedCell) {
+      return;
+    }
+
+    let newRow = selectedCell.row;
+    let newCol = selectedCell.col;
+
+    switch (direction) {
+      case 'up':
+        newRow = selectedCell.row - 1;
+        break;
+      case 'down':
+        newRow = selectedCell.row + 1;
+        break;
+      case 'left':
+        newCol = selectedCell.col - 1;
+        break;
+      case 'right':
+        newCol = selectedCell.col + 1;
+        break;
+    }
+
+    // Check bounds
+    if (newRow < 0 || newRow >= puzzle.size || newCol < 0 || newCol >= puzzle.size) {
+      return;
+    }
+
+    // Check if cell is not blocked
+    if (puzzle.grid[newRow][newCol].isBlocked) {
+      return;
+    }
+
+    setSelectedCell({ row: newRow, col: newCol });
+
+    // Focus on the new input
+    setTimeout(() => {
+      const newInput = document.querySelector(`input[data-cell="${newRow}-${newCol}"]`) as HTMLInputElement;
+      if (newInput) {
+        newInput.focus();
+      }
+    }, 50);
+  };
+
   return {
     moveToNextCell,
-    moveToPreviousCell
+    moveToPreviousCell,
+    moveWithArrows
   };
 };

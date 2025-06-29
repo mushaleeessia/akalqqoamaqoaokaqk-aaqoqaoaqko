@@ -1,102 +1,99 @@
 
 import { CrosswordPuzzle, CrosswordCell, CrosswordClue } from '@/types/crossword';
-import { getBalancedWords, WordDefinition } from '@/data/crosswordWords';
+import { crosswordWords } from '@/data/crosswordWords';
 import { PlacedWord } from '@/types/crosswordGenerator';
-import { canPlaceWord } from './crosswordValidation';
-import { findIntersections } from './crosswordIntersection';
-import { placeWordOnGrid } from './crosswordPlacement';
+import { placeWordOnGrid } from '@/utils/crosswordPlacement';
+import { findIntersectionPositions } from '@/utils/crosswordIntersection';
+import { canPlaceWord, validatePlacement } from '@/utils/crosswordValidation';
+
+const GRID_SIZE = 15;
+const MAX_PLACEMENT_ATTEMPTS = 50;
 
 export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
-  const size = 15;
-  const words = getBalancedWords();
-  
-  // Inicializar grade vazia
-  const grid: CrosswordCell[][] = Array(size).fill(null).map(() =>
-    Array(size).fill(null).map(() => ({
-      letter: '',
-      isBlocked: true,
-      userInput: '',
-      belongsToWords: {}
-    }))
-  );
-
+  const grid: CrosswordCell[][] = [];
   const placedWords: PlacedWord[] = [];
-  const clues: { across: CrosswordClue[]; down: CrosswordClue[] } = {
-    across: [],
-    down: []
-  };
+  const clues = { across: [] as CrosswordClue[], down: [] as CrosswordClue[] };
+  
+  // Initialize grid with blocked cells
+  for (let i = 0; i < GRID_SIZE; i++) {
+    grid[i] = [];
+    for (let j = 0; j < GRID_SIZE; j++) {
+      grid[i][j] = {
+        letter: '',
+        isBlocked: true,
+        userInput: '',
+        belongsToWords: {}
+      };
+    }
+  }
 
+  // Get shuffled word list
+  const availableWords = [...crosswordWords].sort(() => Math.random() - 0.5);
   let clueNumber = 1;
 
-  // Função para colocar uma palavra
-  const placeWord = (wordDef: WordDefinition, row: number, col: number, direction: 'across' | 'down'): boolean => {
-    const word = wordDef.word.toUpperCase();
-    if (!canPlaceWord(word, row, col, direction, grid, placedWords, size)) return false;
-    
-    clueNumber = placeWordOnGrid(wordDef, row, col, direction, grid, placedWords, clues, clueNumber);
-    return true;
-  };
+  // Place first word horizontally in the center
+  const firstWord = availableWords[0];
+  const centerRow = Math.floor(GRID_SIZE / 2);
+  const startCol = Math.floor((GRID_SIZE - firstWord.word.length) / 2);
+  
+  clueNumber = placeWordOnGrid(
+    firstWord,
+    centerRow,
+    startCol,
+    'across',
+    grid,
+    placedWords,
+    clues,
+    clueNumber
+  );
 
-  // Colocar a primeira palavra no centro
-  if (words.length > 0) {
-    const firstWord = words[0];
-    const startRow = Math.floor(size / 2);
-    const startCol = Math.floor((size - firstWord.word.length) / 2);
-    placeWord(firstWord, startRow, startCol, 'across');
-  }
-
-  // Tentar colocar as outras palavras com melhor estratégia
-  for (let i = 1; i < words.length && i < 25; i++) {
-    const currentWord = words[i];
+  // Try to place remaining words
+  for (let i = 1; i < availableWords.length && placedWords.length < 12; i++) {
+    const wordDef = availableWords[i];
     let placed = false;
-    
-    // Tentar intersecções com palavras já colocadas
-    const shuffledPlacedWords = [...placedWords].sort(() => 0.5 - Math.random());
-    
-    for (const placedWord of shuffledPlacedWords) {
-      if (placed) break;
+    let attempts = 0;
+
+    while (!placed && attempts < MAX_PLACEMENT_ATTEMPTS) {
+      attempts++;
       
-      const intersections = findIntersections(currentWord.word, placedWord, size);
-      const shuffledIntersections = intersections.sort(() => 0.5 - Math.random());
+      const intersections = findIntersectionPositions(wordDef.word, placedWords, grid);
       
-      for (const intersection of shuffledIntersections) {
-        if (canPlaceWord(currentWord.word.toUpperCase(), intersection.row, intersection.col, intersection.direction, grid, placedWords, size)) {
-          placeWord(currentWord, intersection.row, intersection.col, intersection.direction);
-          placed = true;
-          break;
-        }
-      }
-    }
-    
-    // Se não conseguiu intersecção, tentar colocar isolado (com mais cuidado)
-    if (!placed) {
-      for (let attempts = 0; attempts < 150 && !placed; attempts++) {
-        const direction = Math.random() < 0.5 ? 'across' : 'down';
-        const wordLength = currentWord.word.length;
+      if (intersections.length > 0) {
+        const randomIntersection = intersections[Math.floor(Math.random() * intersections.length)];
         
-        const maxRow = direction === 'down' ? size - wordLength : size - 1;
-        const maxCol = direction === 'across' ? size - wordLength : size - 1;
-        
-        if (maxRow <= 0 || maxCol <= 0) continue;
-        
-        const row = Math.floor(Math.random() * maxRow);
-        const col = Math.floor(Math.random() * maxCol);
-        
-        if (canPlaceWord(currentWord.word.toUpperCase(), row, col, direction, grid, placedWords, size)) {
-          placeWord(currentWord, row, col, direction);
+        if (canPlaceWord(wordDef.word, randomIntersection.row, randomIntersection.col, randomIntersection.direction, grid)) {
+          clueNumber = placeWordOnGrid(
+            wordDef,
+            randomIntersection.row,
+            randomIntersection.col,
+            randomIntersection.direction,
+            grid,
+            placedWords,
+            clues,
+            clueNumber
+          );
           placed = true;
         }
       }
     }
   }
 
-  // Ordenar pistas por número
+  // Block all remaining cells that don't belong to any word
+  for (let i = 0; i < GRID_SIZE; i++) {
+    for (let j = 0; j < GRID_SIZE; j++) {
+      if (grid[i][j].isBlocked && !grid[i][j].letter) {
+        grid[i][j].isBlocked = true;
+      }
+    }
+  }
+
+  // Sort clues by number
   clues.across.sort((a, b) => a.number - b.number);
   clues.down.sort((a, b) => a.number - b.number);
 
   return {
     grid,
     clues,
-    size
+    size: GRID_SIZE
   };
 };

@@ -2,6 +2,8 @@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CrosswordPuzzle } from '@/types/crossword';
+import { CrosswordVirtualKeyboard } from './CrosswordVirtualKeyboard';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface CrosswordGridProps {
   puzzle: CrosswordPuzzle;
@@ -11,6 +13,8 @@ interface CrosswordGridProps {
   onInputChange: (row: number, col: number, value: string) => void;
   onKeyDown: (row: number, col: number, event: React.KeyboardEvent) => void;
   onNewGame: () => void;
+  onVirtualKeyPress?: (key: string) => void;
+  onVirtualDelete?: () => void;
 }
 
 export const CrosswordGrid = ({ 
@@ -20,10 +24,14 @@ export const CrosswordGrid = ({
   onCellClick, 
   onInputChange,
   onKeyDown,
-  onNewGame 
+  onNewGame,
+  onVirtualKeyPress,
+  onVirtualDelete
 }: CrosswordGridProps) => {
+  const isMobile = useIsMobile();
+
   return (
-    <div className="flex-1 flex justify-center">
+    <div className="flex-1 flex flex-col items-center space-y-6">
       <div className="bg-white/10 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-8 border border-white/20 dark:border-gray-700">
         <div 
           className="grid gap-1 mx-auto"
@@ -64,12 +72,19 @@ export const CrosswordGrid = ({
                       className="w-full h-full border-none bg-transparent text-center text-lg font-bold p-0 focus:outline-none focus:ring-0 text-black dark:text-white"
                       maxLength={1}
                       data-cell={`${rowIndex}-${colIndex}`}
+                      readOnly={isMobile}
                     />
                   </>
                 )}
               </div>
             ))
           )}
+        </div>
+        
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-300 dark:text-gray-400">
+            Use as setas do teclado para se mover entre os espaços
+          </p>
         </div>
         
         <div className="mt-6 text-center">
@@ -87,6 +102,15 @@ export const CrosswordGrid = ({
           </div>
         )}
       </div>
+
+      {/* Teclado virtual para dispositivos móveis */}
+      {isMobile && onVirtualKeyPress && onVirtualDelete && (
+        <CrosswordVirtualKeyboard 
+          onKeyPress={onVirtualKeyPress}
+          onDelete={onVirtualDelete}
+          isDarkMode
+        />
+      )}
     </div>
   );
 };

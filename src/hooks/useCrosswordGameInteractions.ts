@@ -1,4 +1,5 @@
 
+import { useEffect } from 'react';
 import { CrosswordPuzzle } from '@/types/crossword';
 import { useCrosswordCellNavigation } from './useCrosswordCellNavigation';
 import { useCrosswordInputHandling } from './useCrosswordInputHandling';
@@ -33,9 +34,10 @@ export const useCrosswordGameInteractions = ({
   checkWordCompletion
 }: UseCrosswordGameInteractionsProps) => {
 
-  const { moveToNextCell, moveToPreviousCell } = useCrosswordCellNavigation({
+  const { moveToNextCell, moveToPreviousCell, moveWithArrows } = useCrosswordCellNavigation({
     puzzle,
-    setSelectedCell
+    setSelectedCell,
+    selectedCell
   });
 
   const { handleKeyDown, handleInputChange } = useCrosswordInputHandling({
@@ -53,6 +55,33 @@ export const useCrosswordGameInteractions = ({
     moveToPreviousCell,
     setSelectedCell
   });
+
+  // Navegação com setas do teclado
+  useEffect(() => {
+    const handleArrowKeys = (event: KeyboardEvent) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+        event.preventDefault();
+        
+        switch (event.key) {
+          case 'ArrowUp':
+            moveWithArrows('up');
+            break;
+          case 'ArrowDown':
+            moveWithArrows('down');
+            break;
+          case 'ArrowLeft':
+            moveWithArrows('left');
+            break;
+          case 'ArrowRight':
+            moveWithArrows('right');
+            break;
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleArrowKeys);
+    return () => document.removeEventListener('keydown', handleArrowKeys);
+  }, [moveWithArrows]);
 
   const handleCellClick = (row: number, col: number) => {
     if (!puzzle || puzzle.grid[row][col].isBlocked) return;

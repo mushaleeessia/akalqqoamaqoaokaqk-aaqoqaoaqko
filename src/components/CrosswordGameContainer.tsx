@@ -1,3 +1,4 @@
+
 import { useCrosswordGameState } from '@/hooks/useCrosswordGameState';
 import { useCrosswordGameInteractions } from '@/hooks/useCrosswordGameInteractions';
 import { CrosswordHeader } from './CrosswordHeader';
@@ -39,6 +40,20 @@ export const CrosswordGameContainer = () => {
     checkWordCompletion
   });
 
+  const handleVirtualKeyPress = (key: string) => {
+    if (!selectedCell || !puzzle) return;
+    
+    const { row, col } = selectedCell;
+    handleInputChange(row, col, key);
+  };
+
+  const handleVirtualDelete = () => {
+    if (!selectedCell || !puzzle) return;
+    
+    const { row, col } = selectedCell;
+    handleInputChange(row, col, '');
+  };
+
   if (!puzzle) {
     return <div className="flex items-center justify-center min-h-screen dark:bg-gray-900 bg-gray-100 dark:text-white text-gray-900">Carregando...</div>;
   }
@@ -60,6 +75,8 @@ export const CrosswordGameContainer = () => {
             onInputChange={handleInputChange}
             onKeyDown={handleKeyDown}
             onNewGame={generateNewPuzzle}
+            onVirtualKeyPress={handleVirtualKeyPress}
+            onVirtualDelete={handleVirtualDelete}
           />
 
           <CrosswordClues puzzle={puzzle} />
