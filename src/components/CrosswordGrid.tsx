@@ -22,7 +22,7 @@ export const CrosswordGrid = ({
 }: CrosswordGridProps) => {
   return (
     <div className="flex-1 flex justify-center">
-      <div className="bg-white/10 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-6 border border-white/20 dark:border-gray-700">
+      <div className="bg-white/10 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-8 border border-white/20 dark:border-gray-700">
         <div 
           className="grid gap-1 mx-auto"
           style={{ 
@@ -35,7 +35,7 @@ export const CrosswordGrid = ({
               <div
                 key={`${rowIndex}-${colIndex}`}
                 className={`
-                  w-8 h-8 border border-gray-400 dark:border-gray-600 relative cursor-pointer
+                  w-12 h-12 border-2 border-gray-400 dark:border-gray-600 relative cursor-pointer rounded-sm
                   ${cell.isBlocked 
                     ? 'bg-black dark:bg-gray-900' 
                     : cell.isCorrect
@@ -44,20 +44,21 @@ export const CrosswordGrid = ({
                     ? 'bg-blue-400 dark:bg-blue-600 text-white'
                     : 'bg-white dark:bg-gray-700 text-black dark:text-white'
                   }
+                  transition-colors duration-200
                 `}
                 onClick={() => onCellClick(rowIndex, colIndex)}
               >
                 {!cell.isBlocked && (
                   <>
                     {cell.number && (
-                      <span className="absolute top-0 left-0 text-xs font-bold leading-none p-0.5 text-black dark:text-white">
+                      <span className="absolute top-0.5 left-1 text-xs font-bold leading-none text-black dark:text-white">
                         {cell.number}
                       </span>
                     )}
                     <Input
                       value={cell.userInput}
                       onChange={(e) => onInputChange(rowIndex, colIndex, e.target.value)}
-                      className="w-full h-full border-none bg-transparent text-center text-sm font-bold p-0 focus:outline-none focus:ring-0 text-black dark:text-white"
+                      className="w-full h-full border-none bg-transparent text-center text-lg font-bold p-0 focus:outline-none focus:ring-0 text-black dark:text-white"
                       maxLength={1}
                     />
                   </>
@@ -67,17 +68,17 @@ export const CrosswordGrid = ({
           )}
         </div>
         
-        <div className="mt-4 text-center">
-          <Button onClick={onNewGame} className="bg-green-600 hover:bg-green-700">
+        <div className="mt-6 text-center">
+          <Button onClick={onNewGame} className="bg-green-600 hover:bg-green-700 px-6 py-2">
             Novo Jogo
           </Button>
         </div>
         
         {isCompleted && (
-          <div className="mt-4 text-center">
-            <div className="bg-green-500/20 border border-green-500 rounded-lg p-4">
-              <h2 className="text-xl font-bold text-green-400">Parabéns!</h2>
-              <p className="text-green-300">Você completou o jogo!</p>
+          <div className="mt-6 text-center">
+            <div className="bg-green-500/20 border border-green-500 rounded-lg p-6">
+              <h2 className="text-2xl font-bold text-green-400">Parabéns!</h2>
+              <p className="text-green-300 mt-2">Você completou o jogo!</p>
             </div>
           </div>
         )}
