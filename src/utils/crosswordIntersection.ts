@@ -39,3 +39,19 @@ export const findIntersections = (
   
   return intersections;
 };
+
+// Função auxiliar para encontrar posições de intersecção (mantida para compatibilidade)
+export const findIntersectionPositions = (
+  word: string,
+  placedWords: PlacedWord[],
+  grid: any
+): IntersectionPosition[] => {
+  const allIntersections: IntersectionPosition[] = [];
+  
+  for (const placedWord of placedWords) {
+    const intersections = findIntersections(word, placedWord, grid.length);
+    allIntersections.push(...intersections);
+  }
+  
+  return allIntersections;
+};

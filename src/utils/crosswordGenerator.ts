@@ -1,10 +1,10 @@
 
 import { CrosswordPuzzle, CrosswordCell, CrosswordClue } from '@/types/crossword';
-import { crosswordWords } from '@/data/crosswordWords';
+import { CROSSWORD_WORDS } from '@/data/crosswordWords';
 import { PlacedWord } from '@/types/crosswordGenerator';
 import { placeWordOnGrid } from '@/utils/crosswordPlacement';
-import { findIntersectionPositions } from '@/utils/crosswordIntersection';
-import { canPlaceWord, validatePlacement } from '@/utils/crosswordValidation';
+import { findIntersections } from '@/utils/crosswordIntersection';
+import { canPlaceWord } from '@/utils/crosswordValidation';
 
 const GRID_SIZE = 15;
 const MAX_PLACEMENT_ATTEMPTS = 50;
@@ -28,7 +28,7 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
   }
 
   // Get shuffled word list
-  const availableWords = [...crosswordWords].sort(() => Math.random() - 0.5);
+  const availableWords = [...CROSSWORD_WORDS].sort(() => Math.random() - 0.5);
   let clueNumber = 1;
 
   // Place first word horizontally in the center
@@ -56,12 +56,17 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
     while (!placed && attempts < MAX_PLACEMENT_ATTEMPTS) {
       attempts++;
       
-      const intersections = findIntersectionPositions(wordDef.word, placedWords, grid);
+      // Find intersections with all placed words
+      const allIntersections = [];
+      for (const placedWord of placedWords) {
+        const intersections = findIntersections(wordDef.word, placedWord, GRID_SIZE);
+        allIntersections.push(...intersections);
+      }
       
-      if (intersections.length > 0) {
-        const randomIntersection = intersections[Math.floor(Math.random() * intersections.length)];
+      if (allIntersections.length > 0) {
+        const randomIntersection = allIntersections[Math.floor(Math.random() * allIntersections.length)];
         
-        if (canPlaceWord(wordDef.word, randomIntersection.row, randomIntersection.col, randomIntersection.direction, grid)) {
+        if (canPlaceWord(wordDef.word, randomIntersection.row, randomIntersection.col, randomIntersection.direction, grid, placedWords, GRID_SIZE)) {
           clueNumber = placeWordOnGrid(
             wordDef,
             randomIntersection.row,
