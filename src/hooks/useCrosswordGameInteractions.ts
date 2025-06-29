@@ -1,6 +1,7 @@
 
 import { CrosswordPuzzle } from '@/types/crossword';
-import { updateCellCorrectness, checkCompletion } from '@/utils/crosswordCellUtils';
+import { useCrosswordCellNavigation } from './useCrosswordCellNavigation';
+import { useCrosswordInputHandling } from './useCrosswordInputHandling';
 
 interface UseCrosswordGameInteractionsProps {
   puzzle: CrosswordPuzzle | null;
@@ -32,6 +33,27 @@ export const useCrosswordGameInteractions = ({
   checkWordCompletion
 }: UseCrosswordGameInteractionsProps) => {
 
+  const { moveToNextCell, moveToPreviousCell } = useCrosswordCellNavigation({
+    puzzle,
+    setSelectedCell
+  });
+
+  const { handleKeyDown, handleInputChange } = useCrosswordInputHandling({
+    puzzle,
+    setPuzzle,
+    selectedCell,
+    selectedDirection,
+    hasGameStarted,
+    setHasGameStarted,
+    setCompletedWords,
+    setIsCompleted,
+    isCompleted,
+    checkWordCompletion,
+    moveToNextCell,
+    moveToPreviousCell,
+    setSelectedCell
+  });
+
   const handleCellClick = (row: number, col: number) => {
     if (!puzzle || puzzle.grid[row][col].isBlocked) return;
     
@@ -39,209 +61,6 @@ export const useCrosswordGameInteractions = ({
       setSelectedDirection(selectedDirection === 'across' ? 'down' : 'across');
     } else {
       setSelectedCell({ row, col });
-    }
-  };
-
-  const moveToNextCell = (currentRow: number, currentCol: number, direction: 'across' | 'down') => {
-    if (!puzzle) {
-      console.log('No puzzle available');
-      return;
-    }
-    
-    console.log(`Moving from (${currentRow}, ${currentCol}) in direction: ${direction}`);
-    
-    let nextRow = currentRow;
-    let nextCol = currentCol;
-    
-    // Fix: Correctly handle direction for movement
-    if (direction === 'across') {
-      nextCol = currentCol + 1;
-    } else { // direction === 'down'
-      nextRow = currentRow + 1;
-    }
-    
-    console.log(`Next cell would be: (${nextRow}, ${nextCol})`);
-    
-    // Verificar limites
-    if (nextRow >= puzzle.size || nextCol >= puzzle.size) {
-      console.log('Next cell is out of bounds');
-      return;
-    }
-    
-    // Verificar se a célula é realmente bloqueada (preta)
-    const nextCell = puzzle.grid[nextRow][nextCol];
-    if (nextCell.isBlocked) {
-      console.log('Next cell is blocked (black cell)');
-      return;
-    }
-    
-    // Verificar se a célula pertence à direção atual
-    const belongsToCurrentDirection = direction === 'across' 
-      ? nextCell.belongsToWords.across 
-      : nextCell.belongsToWords.down;
-    
-    if (!belongsToCurrentDirection) {
-      console.log(`Next cell doesn't belong to current ${direction} word`);
-      return;
-    }
-    
-    console.log(`Moving to cell (${nextRow}, ${nextCol})`);
-    setSelectedCell({ row: nextRow, col: nextCol });
-    
-    // Focar no próximo input automaticamente
-    setTimeout(() => {
-      const nextInput = document.querySelector(`input[data-cell="${nextRow}-${nextCol}"]`) as HTMLInputElement;
-      if (nextInput) {
-        nextInput.focus();
-        console.log(`Focused on input at (${nextRow}, ${nextCol})`);
-      } else {
-        console.log(`Could not find input for cell (${nextRow}, ${nextCol})`);
-      }
-    }, 50);
-  };
-
-  const moveToPreviousCell = (currentRow: number, currentCol: number, direction: 'across' | 'down') => {
-    if (!puzzle) {
-      console.log('No puzzle available for previous move');
-      return;
-    }
-    
-    console.log(`Moving backwards from (${currentRow}, ${currentCol}) in direction: ${direction}`);
-    
-    let prevRow = currentRow;
-    let prevCol = currentCol;
-    
-    // Fix: Correctly handle direction for backward movement
-    if (direction === 'across') {
-      prevCol = currentCol - 1;
-    } else { // direction === 'down'
-      prevRow = currentRow - 1;
-    }
-    
-    console.log(`Previous cell would be: (${prevRow}, ${prevCol})`);
-    
-    // Verificar limites
-    if (prevRow < 0 || prevCol < 0) {
-      console.log('Previous cell is out of bounds');
-      return;
-    }
-    
-    // Verificar se a célula é realmente bloqueada (preta)
-    const prevCell = puzzle.grid[prevRow][prevCol];
-    if (prevCell.isBlocked) {
-      console.log('Previous cell is blocked (black cell)');
-      return;
-    }
-    
-    // Verificar se a célula pertence à direção atual
-    const belongsToCurrentDirection = direction === 'across' 
-      ? prevCell.belongsToWords.across 
-      : prevCell.belongsToWords.down;
-    
-    if (!belongsToCurrentDirection) {
-      console.log(`Previous cell doesn't belong to current ${direction} word`);
-      return;
-    }
-    
-    console.log(`Moving to previous cell (${prevRow}, ${prevCol}) and clearing it`);
-    
-    // Limpar a célula anterior primeiro
-    const newGrid = [...puzzle.grid];
-    newGrid[prevRow][prevCol] = { ...newGrid[prevRow][prevCol], userInput: '' };
-    
-    let newPuzzle = { ...puzzle, grid: newGrid };
-    
-    // Verificar palavras completadas
-    const completed = checkWordCompletion(newPuzzle);
-    setCompletedWords(completed);
-    
-    // Atualizar células com estado de correção
-    newPuzzle = updateCellCorrectness(newPuzzle, completed);
-    
-    setPuzzle(newPuzzle);
-    
-    // Verificar se o jogo ainda está completo
-    const allCellsCorrect = checkCompletion(newPuzzle);
-    if (!allCellsCorrect && isCompleted) {
-      setIsCompleted(false);
-    }
-    
-    // Mover para a célula anterior
-    setSelectedCell({ row: prevRow, col: prevCol });
-    
-    // Focar no input anterior automaticamente
-    setTimeout(() => {
-      const prevInput = document.querySelector(`input[data-cell="${prevRow}-${prevCol}"]`) as HTMLInputElement;
-      if (prevInput) {
-        prevInput.focus();
-        console.log(`Focused on previous input at (${prevRow}, ${prevCol})`);
-      } else {
-        console.log(`Could not find input for cell (${prevRow}, ${prevCol})`);
-      }
-    }, 50);
-  };
-
-  const handleKeyDown = (row: number, col: number, event: React.KeyboardEvent) => {
-    console.log(`KeyDown event: ${event.key} at (${row}, ${col})`);
-    
-    if (event.key === 'Backspace') {
-      event.preventDefault();
-      console.log('Backspace pressed!');
-      
-      if (!puzzle || !selectedCell) {
-        console.log('No puzzle or selected cell');
-        return;
-      }
-      
-      const currentCell = puzzle.grid[row][col];
-      console.log(`Current cell content: "${currentCell.userInput}"`);
-      
-      // Se a célula atual tem conteúdo, apaga e fica na mesma célula
-      if (currentCell.userInput.trim() !== '') {
-        console.log(`Clearing current cell (${row}, ${col})`);
-        handleInputChange(row, col, '');
-      } else {
-        // Se a célula atual está vazia, move para a anterior
-        console.log(`Current cell is empty, moving to previous cell`);
-        moveToPreviousCell(row, col, selectedDirection);
-      }
-    }
-  };
-
-  const handleInputChange = (row: number, col: number, value: string) => {
-    if (!puzzle) return;
-    
-    console.log(`Input change at (${row}, ${col}): "${value}"`);
-    
-    // Mark game as started when first input is made
-    if (!hasGameStarted && value.trim() !== '') {
-      setHasGameStarted(true);
-      localStorage.setItem('crossword_game_started', 'true');
-    }
-    
-    const newGrid = [...puzzle.grid];
-    newGrid[row][col] = { ...newGrid[row][col], userInput: value.toUpperCase() };
-    
-    let newPuzzle = { ...puzzle, grid: newGrid };
-    
-    // Verificar palavras completadas
-    const completed = checkWordCompletion(newPuzzle);
-    setCompletedWords(completed);
-    
-    // Atualizar células com estado de correção
-    newPuzzle = updateCellCorrectness(newPuzzle, completed);
-    
-    setPuzzle(newPuzzle);
-    
-    const allCellsCorrect = checkCompletion(newPuzzle);
-    if (allCellsCorrect && !isCompleted) {
-      setIsCompleted(true);
-    }
-    
-    // Mover para a próxima célula se uma letra foi digitada
-    if (value.trim() !== '' && selectedCell && value.length === 1) {
-      console.log(`Attempting to move from selected cell: (${selectedCell.row}, ${selectedCell.col}) in direction: ${selectedDirection}`);
-      moveToNextCell(selectedCell.row, selectedCell.col, selectedDirection);
     }
   };
 
