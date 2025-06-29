@@ -43,7 +43,7 @@ export const canPlaceWord = (
     }
   }
   
-  // Verificar cada posição da palavra e contar intersecções válidas
+  // Contar intersecções válidas - MÁXIMO 2 intersecções
   let validIntersectionCount = 0;
   
   for (let i = 0; i < len; i++) {
@@ -86,6 +86,11 @@ export const canPlaceWord = (
       
       if (hasPerpendicularWord) {
         validIntersectionCount++;
+        
+        // LIMITE: máximo 2 intersecções por palavra
+        if (validIntersectionCount > 2) {
+          return false;
+        }
       } else {
         // Se não há palavra perpendicular, esta intersecção é inválida
         return false;
@@ -112,8 +117,8 @@ export const canPlaceWord = (
     }
   }
   
-  // Para palavras que não a primeira, deve ter pelo menos uma intersecção válida
-  if (placedWords.length > 0 && validIntersectionCount === 0) {
+  // Para palavras que não a primeira, deve ter pelo menos 1 intersecção válida (mas máximo 2)
+  if (placedWords.length > 0 && (validIntersectionCount === 0 || validIntersectionCount > 2)) {
     return false;
   }
   
