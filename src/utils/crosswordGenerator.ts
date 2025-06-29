@@ -14,7 +14,7 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
   const placedWords: PlacedWord[] = [];
   const clues = { across: [] as CrosswordClue[], down: [] as CrosswordClue[] };
   
-  // Initialize grid with blocked cells
+  // Initialize grid with properly structured blocked cells
   for (let i = 0; i < GRID_SIZE; i++) {
     grid[i] = [];
     for (let j = 0; j < GRID_SIZE; j++) {
@@ -22,7 +22,8 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
         letter: '',
         isBlocked: true,
         userInput: '',
-        belongsToWords: {}
+        belongsToWords: {},
+        number: undefined
       };
     }
   }
@@ -38,6 +39,7 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
   
   console.log(`Placing first word: "${firstWord.word}" at row ${centerRow}, col ${startCol} with number ${clueNumber}`);
   
+  // Place the first word and ensure it gets number 1
   clueNumber = placeWordOnGrid(
     firstWord,
     centerRow,
@@ -48,6 +50,8 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
     clues,
     clueNumber
   );
+
+  console.log(`After placing first word, grid[${centerRow}][${startCol}].number =`, grid[centerRow][startCol].number);
 
   // Try to place remaining words
   for (let i = 1; i < availableWords.length && placedWords.length < 12; i++) {

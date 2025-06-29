@@ -14,6 +14,14 @@ export const placeWordOnGrid = (
 ): number => {
   const word = wordDef.word.toUpperCase();
   
+  console.log(`placeWordOnGrid: Placing "${word}" at [${row}, ${col}] with number ${clueNumber}`);
+  
+  // Primeiro, colocar o número na primeira célula ANTES de qualquer outra coisa
+  if (!grid[row][col].number) {
+    grid[row][col].number = clueNumber;
+    console.log(`Set number ${clueNumber} at position [${row}, ${col}]`);
+  }
+  
   // Marcar células como não bloqueadas e colocar as letras
   for (let i = 0; i < word.length; i++) {
     const currentRow = direction === 'across' ? row : row + i;
@@ -27,15 +35,16 @@ export const placeWordOnGrid = (
     };
     
     // Adicionar informação sobre qual palavra esta célula pertence
+    if (!grid[currentRow][currentCol].belongsToWords) {
+      grid[currentRow][currentCol].belongsToWords = {};
+    }
+    
     if (direction === 'across') {
       grid[currentRow][currentCol].belongsToWords.across = clueNumber;
     } else {
       grid[currentRow][currentCol].belongsToWords.down = clueNumber;
     }
   }
-  
-  // Sempre colocar o número na primeira célula da palavra
-  grid[row][col].number = clueNumber;
   
   // Adicionar a palavra colocada
   placedWords.push({
@@ -63,6 +72,8 @@ export const placeWordOnGrid = (
   } else {
     clues.down.push(clue);
   }
+  
+  console.log(`placeWordOnGrid: Successfully placed "${word}" with number ${clueNumber}`);
   
   return clueNumber + 1;
 };
