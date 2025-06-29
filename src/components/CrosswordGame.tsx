@@ -150,7 +150,7 @@ export const CrosswordGame = () => {
           {user && !isGuestMode ? (
             <UserDropdown 
               nickname={user.user_metadata?.nickname || user.email?.split('@')[0] || 'Usuário'} 
-              currentMode="cruzadas" as any
+              currentMode="solo"
             />
           ) : isGuestMode ? (
             <GuestModeDropdown />
