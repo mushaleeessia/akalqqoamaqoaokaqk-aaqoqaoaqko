@@ -12,6 +12,7 @@ export const canPlaceWord = (
   size: number
 ): boolean => {
   const len = word.length;
+  const upperWord = word.toUpperCase();
   
   // Verificar limites básicos
   if (direction === 'across') {
@@ -20,7 +21,7 @@ export const canPlaceWord = (
     if (row + len > size) return false;
   }
   
-  // Verificar se há espaço antes da palavra (não deve haver letra)
+  // Verificar se há espaço antes da palavra
   if (direction === 'across') {
     if (col > 0 && !grid[row][col - 1].isBlocked && grid[row][col - 1].letter !== '') {
       return false;
@@ -31,7 +32,7 @@ export const canPlaceWord = (
     }
   }
   
-  // Verificar se há espaço depois da palavra (não deve haver letra)
+  // Verificar se há espaço depois da palavra
   if (direction === 'across') {
     if (col + len < size && !grid[row][col + len].isBlocked && grid[row][col + len].letter !== '') {
       return false;
@@ -42,134 +43,77 @@ export const canPlaceWord = (
     }
   }
   
-  // Verificar cada posição da palavra
-  let intersectionCount = 0;
+  // Verificar cada posição da palavra e contar intersecções válidas
+  let validIntersectionCount = 0;
+  
   for (let i = 0; i < len; i++) {
     const currentRow = direction === 'across' ? row : row + i;
     const currentCol = direction === 'across' ? col + i : col;
     const currentCell = grid[currentRow][currentCol];
     
-    // Se a célula já tem uma letra, deve ser exatamente a mesma
+    // Se a célula já tem uma letra
     if (!currentCell.isBlocked && currentCell.letter !== '') {
-      if (currentCell.letter.toUpperCase() !== word[i].toUpperCase()) {
+      // A letra deve ser exatamente a mesma
+      if (currentCell.letter.toUpperCase() !== upperWord[i]) {
         return false;
       }
-      intersectionCount++;
-    } else {
-      // Se a célula está vazia, verificar se não há conflitos adjacentes
-      if (direction === 'across') {
-        // Verificar acima
-        if (currentRow > 0) {
-          const cellAbove = grid[currentRow - 1][currentCol];
-          if (!cellAbove.isBlocked && cellAbove.letter !== '') {
-            // Se há letra acima, deve haver uma palavra vertical válida
-            const belongsToVerticalWord = cellAbove.belongsToWords?.down;
-            if (!belongsToVerticalWord) return false;
-            
-            // Verificar se essa posição faz parte da mesma palavra vertical
-            const verticalWord = placedWords.find(pw => 
-              pw.direction === 'down' && 
-              pw.number === belongsToVerticalWord &&
-              pw.row <= currentRow - 1 && 
-              pw.row + pw.word.length > currentRow - 1 &&
-              pw.col === currentCol
-            );
-            
-            if (verticalWord) {
-              // Verificar se a palavra vertical continua até a posição atual
-              const verticalIndex = currentRow - verticalWord.row;
-              if (verticalIndex >= 0 && verticalIndex < verticalWord.word.length) {
-                if (verticalWord.word[verticalIndex].toUpperCase() !== word[i].toUpperCase()) {
-                  return false;
-                }
-              }
+      
+      // Verificar se há realmente uma palavra perpendicular passando por aqui
+      let hasPerpendicularWord = false;
+      
+      for (const placedWord of placedWords) {
+        if (placedWord.direction !== direction) {
+          // Verificar se a palavra perpendicular passa por esta célula
+          if (direction === 'across') {
+            // Nossa palavra é horizontal, verificar palavras verticais
+            if (placedWord.col === currentCol && 
+                placedWord.row <= currentRow && 
+                placedWord.row + placedWord.word.length > currentRow) {
+              hasPerpendicularWord = true;
+              break;
+            }
+          } else {
+            // Nossa palavra é vertical, verificar palavras horizontais
+            if (placedWord.row === currentRow && 
+                placedWord.col <= currentCol && 
+                placedWord.col + placedWord.word.length > currentCol) {
+              hasPerpendicularWord = true;
+              break;
             }
           }
         }
-        
-        // Verificar abaixo
-        if (currentRow < size - 1) {
-          const cellBelow = grid[currentRow + 1][currentCol];
-          if (!cellBelow.isBlocked && cellBelow.letter !== '') {
-            const belongsToVerticalWord = cellBelow.belongsToWords?.down;
-            if (!belongsToVerticalWord) return false;
-            
-            const verticalWord = placedWords.find(pw => 
-              pw.direction === 'down' && 
-              pw.number === belongsToVerticalWord &&
-              pw.row <= currentRow + 1 && 
-              pw.row + pw.word.length > currentRow + 1 &&
-              pw.col === currentCol
-            );
-            
-            if (verticalWord) {
-              const verticalIndex = currentRow - verticalWord.row;
-              if (verticalIndex >= 0 && verticalIndex < verticalWord.word.length) {
-                if (verticalWord.word[verticalIndex].toUpperCase() !== word[i].toUpperCase()) {
-                  return false;
-                }
-              }
-            }
-          }
+      }
+      
+      if (hasPerpendicularWord) {
+        validIntersectionCount++;
+      } else {
+        // Se não há palavra perpendicular, esta intersecção é inválida
+        return false;
+      }
+    } else {
+      // Célula vazia - verificar se não há conflitos adjacentes
+      if (direction === 'across') {
+        // Verificar acima e abaixo
+        if (currentRow > 0 && !grid[currentRow - 1][currentCol].isBlocked && grid[currentRow - 1][currentCol].letter !== '') {
+          return false;
+        }
+        if (currentRow < size - 1 && !grid[currentRow + 1][currentCol].isBlocked && grid[currentRow + 1][currentCol].letter !== '') {
+          return false;
         }
       } else {
-        // Verificar esquerda
-        if (currentCol > 0) {
-          const cellLeft = grid[currentRow][currentCol - 1];
-          if (!cellLeft.isBlocked && cellLeft.letter !== '') {
-            const belongsToHorizontalWord = cellLeft.belongsToWords?.across;
-            if (!belongsToHorizontalWord) return false;
-            
-            const horizontalWord = placedWords.find(pw => 
-              pw.direction === 'across' && 
-              pw.number === belongsToHorizontalWord &&
-              pw.col <= currentCol - 1 && 
-              pw.col + pw.word.length > currentCol - 1 &&
-              pw.row === currentRow
-            );
-            
-            if (horizontalWord) {
-              const horizontalIndex = currentCol - horizontalWord.col;
-              if (horizontalIndex >= 0 && horizontalIndex < horizontalWord.word.length) {
-                if (horizontalWord.word[horizontalIndex].toUpperCase() !== word[i].toUpperCase()) {
-                  return false;
-                }
-              }
-            }
-          }
+        // Verificar esquerda e direita
+        if (currentCol > 0 && !grid[currentRow][currentCol - 1].isBlocked && grid[currentRow][currentCol - 1].letter !== '') {
+          return false;
         }
-        
-        // Verificar direita
-        if (currentCol < size - 1) {
-          const cellRight = grid[currentRow][currentCol + 1];
-          if (!cellRight.isBlocked && cellRight.letter !== '') {
-            const belongsToHorizontalWord = cellRight.belongsToWords?.across;
-            if (!belongsToHorizontalWord) return false;
-            
-            const horizontalWord = placedWords.find(pw => 
-              pw.direction === 'across' && 
-              pw.number === belongsToHorizontalWord &&
-              pw.col <= currentCol + 1 && 
-              pw.col + pw.word.length > currentCol + 1 &&
-              pw.row === currentRow
-            );
-            
-            if (horizontalWord) {
-              const horizontalIndex = currentCol - horizontalWord.col;
-              if (horizontalIndex >= 0 && horizontalIndex < horizontalWord.word.length) {
-                if (horizontalWord.word[horizontalIndex].toUpperCase() !== word[i].toUpperCase()) {
-                  return false;
-                }
-              }
-            }
-          }
+        if (currentCol < size - 1 && !grid[currentRow][currentCol + 1].isBlocked && grid[currentRow][currentCol + 1].letter !== '') {
+          return false;
         }
       }
     }
   }
   
-  // Para palavras que não a primeira, deve ter pelo menos uma intersecção
-  if (placedWords.length > 0 && intersectionCount === 0) {
+  // Para palavras que não a primeira, deve ter pelo menos uma intersecção válida
+  if (placedWords.length > 0 && validIntersectionCount === 0) {
     return false;
   }
   

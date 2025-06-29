@@ -10,6 +10,7 @@ export const findIntersections = (
   const upperWord = word.toUpperCase();
   const upperPlacedWord = placedWord.word.toUpperCase();
   
+  // Encontrar todas as letras em comum
   for (let i = 0; i < upperWord.length; i++) {
     for (let j = 0; j < upperPlacedWord.length; j++) {
       if (upperWord[i] === upperPlacedWord[j]) {
@@ -28,35 +29,10 @@ export const findIntersections = (
         }
         
         // Verificar se a posição é válida dentro dos limites
-        if (newRow >= 0 && newCol >= 0 && 
-            newRow + (newDirection === 'down' ? upperWord.length : 0) <= size &&
-            newCol + (newDirection === 'across' ? upperWord.length : 0) <= size) {
-          
-          // Verificar se há espaço suficiente antes e depois da palavra
-          let hasSpaceBefore = true;
-          let hasSpaceAfter = true;
-          
-          if (newDirection === 'across') {
-            // Verificar espaço antes (à esquerda)
-            if (newCol > 0) {
-              hasSpaceBefore = true; // Pode haver uma célula bloqueada ou vazia
-            }
-            // Verificar espaço depois (à direita)
-            if (newCol + upperWord.length < size) {
-              hasSpaceAfter = true; // Pode haver uma célula bloqueada ou vazia
-            }
-          } else {
-            // Verificar espaço antes (acima)
-            if (newRow > 0) {
-              hasSpaceBefore = true; // Pode haver uma célula bloqueada ou vazia
-            }
-            // Verificar espaço depois (abaixo)
-            if (newRow + upperWord.length < size) {
-              hasSpaceAfter = true; // Pode haver uma célula bloqueada ou vazia
-            }
-          }
-          
-          if (hasSpaceBefore && hasSpaceAfter) {
+        if (newRow >= 0 && newCol >= 0) {
+          if (newDirection === 'across' && newCol + upperWord.length <= size) {
+            intersections.push({ row: newRow, col: newCol, direction: newDirection });
+          } else if (newDirection === 'down' && newRow + upperWord.length <= size) {
             intersections.push({ row: newRow, col: newCol, direction: newDirection });
           }
         }
