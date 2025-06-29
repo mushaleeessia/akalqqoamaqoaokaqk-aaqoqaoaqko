@@ -38,6 +38,8 @@ export const CrosswordGrid = ({
                   w-8 h-8 border border-gray-400 dark:border-gray-600 relative cursor-pointer
                   ${cell.isBlocked 
                     ? 'bg-black dark:bg-gray-900' 
+                    : cell.isCorrect
+                    ? 'bg-green-400/30 dark:bg-green-600/30 text-black dark:text-white'
                     : selectedCell?.row === rowIndex && selectedCell?.col === colIndex
                     ? 'bg-blue-400 dark:bg-blue-600 text-white'
                     : 'bg-white dark:bg-gray-700 text-black dark:text-white'
