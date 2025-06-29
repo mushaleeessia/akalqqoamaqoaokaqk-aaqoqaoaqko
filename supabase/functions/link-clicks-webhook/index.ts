@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
@@ -10,11 +9,6 @@ interface DiscordEmbed {
   title: string;
   description: string;
   color: number;
-  fields?: Array<{
-    name: string;
-    value: string;
-    inline?: boolean;
-  }>;
   footer?: {
     text: string;
   };
@@ -35,25 +29,13 @@ serve(async (req) => {
     const { type, data } = await req.json();
 
     if (type === 'click_log') {
-      // Log individual click
-      const { linkTitle, linkUrl, userAgent, ipAddress } = data;
+      // Log individual click - versão simplificada
+      const { linkTitle, linkUrl } = data;
       
       const embed: DiscordEmbed = {
         title: "🔗 Link Clicado",
         description: `**${linkTitle}**\n${linkUrl}`,
         color: 0x3498db,
-        fields: [
-          {
-            name: "🌐 User Agent",
-            value: userAgent ? userAgent.substring(0, 100) : "Não identificado",
-            inline: false
-          },
-          {
-            name: "📍 IP",
-            value: ipAddress || "Não identificado",
-            inline: true
-          }
-        ],
         footer: {
           text: "aleeessia.com"
         },
