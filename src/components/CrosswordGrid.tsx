@@ -9,6 +9,7 @@ interface CrosswordGridProps {
   isCompleted: boolean;
   onCellClick: (row: number, col: number) => void;
   onInputChange: (row: number, col: number, value: string) => void;
+  onKeyDown: (row: number, col: number, event: React.KeyboardEvent) => void;
   onNewGame: () => void;
 }
 
@@ -17,7 +18,8 @@ export const CrosswordGrid = ({
   selectedCell, 
   isCompleted, 
   onCellClick, 
-  onInputChange, 
+  onInputChange,
+  onKeyDown,
   onNewGame 
 }: CrosswordGridProps) => {
   return (
@@ -58,6 +60,7 @@ export const CrosswordGrid = ({
                     <Input
                       value={cell.userInput}
                       onChange={(e) => onInputChange(rowIndex, colIndex, e.target.value)}
+                      onKeyDown={(e) => onKeyDown(rowIndex, colIndex, e)}
                       className="w-full h-full border-none bg-transparent text-center text-lg font-bold p-0 focus:outline-none focus:ring-0 text-black dark:text-white"
                       maxLength={1}
                       data-cell={`${rowIndex}-${colIndex}`}

@@ -1,4 +1,3 @@
-
 import { useCrosswordGameState } from '@/hooks/useCrosswordGameState';
 import { useCrosswordGameInteractions } from '@/hooks/useCrosswordGameInteractions';
 import { CrosswordHeader } from './CrosswordHeader';
@@ -25,7 +24,7 @@ export const CrosswordGameContainer = () => {
     checkWordCompletion
   } = useCrosswordGameState();
 
-  const { handleCellClick, handleInputChange } = useCrosswordGameInteractions({
+  const { handleCellClick, handleInputChange, handleKeyDown } = useCrosswordGameInteractions({
     puzzle,
     setPuzzle,
     selectedCell,
@@ -59,6 +58,7 @@ export const CrosswordGameContainer = () => {
             isCompleted={isCompleted}
             onCellClick={handleCellClick}
             onInputChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             onNewGame={generateNewPuzzle}
           />
 
