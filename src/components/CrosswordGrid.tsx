@@ -60,6 +60,7 @@ export const CrosswordGrid = ({
                       onChange={(e) => onInputChange(rowIndex, colIndex, e.target.value)}
                       className="w-full h-full border-none bg-transparent text-center text-lg font-bold p-0 focus:outline-none focus:ring-0 text-black dark:text-white"
                       maxLength={1}
+                      data-cell={`${rowIndex}-${colIndex}`}
                     />
                   </>
                 )}

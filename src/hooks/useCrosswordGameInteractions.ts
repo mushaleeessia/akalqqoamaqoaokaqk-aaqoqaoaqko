@@ -86,6 +86,17 @@ export const useCrosswordGameInteractions = ({
     
     console.log(`Moving to cell (${nextRow}, ${nextCol})`);
     setSelectedCell({ row: nextRow, col: nextCol });
+    
+    // Focar no próximo input automaticamente
+    setTimeout(() => {
+      const nextInput = document.querySelector(`input[data-cell="${nextRow}-${nextCol}"]`) as HTMLInputElement;
+      if (nextInput) {
+        nextInput.focus();
+        console.log(`Focused on input at (${nextRow}, ${nextCol})`);
+      } else {
+        console.log(`Could not find input for cell (${nextRow}, ${nextCol})`);
+      }
+    }, 50);
   };
 
   const handleInputChange = (row: number, col: number, value: string) => {
