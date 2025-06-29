@@ -162,6 +162,23 @@ const Index = () => {
             </button>
           </Link>
         </div>
+
+        {/* Botão das Palavras Cruzadas */}
+        <div className="mb-4">
+          <Link to="/cruzadas">
+            <button className="w-full relative overflow-hidden flex items-center justify-center space-x-3 px-6 py-4 text-white rounded-xl border-2 border-purple-500/30 hover:border-purple-400 transition-all duration-300 text-lg font-bold bg-gradient-to-r from-purple-900/80 via-blue-800/60 to-purple-900/80 hover:from-purple-800/90 hover:via-blue-700/70 hover:to-purple-800/90 group shadow-lg hover:shadow-purple-500/20">
+              {/* Efeito de brilho animado */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+              
+              <Gamepad2 className="w-6 h-6 relative z-10 text-purple-300" />
+              <span className="relative z-10 text-purple-100">PALAVRAS CRUZADAS</span>
+              
+              {/* Partículas de fundo */}
+              <div className="absolute top-1 right-2 w-1 h-1 bg-purple-400 rounded-full animate-pulse opacity-70" />
+              <div className="absolute bottom-2 left-3 w-1.5 h-1.5 bg-blue-300 rounded-full animate-pulse delay-300 opacity-50" />
+            </button>
+          </Link>
+        </div>
          
         <div className="space-y-4">
           {links.map((link, index) => (
