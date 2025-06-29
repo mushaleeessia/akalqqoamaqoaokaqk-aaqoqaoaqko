@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -117,7 +118,7 @@ export const CrosswordGame = () => {
           {user && !isGuestMode ? (
             <UserDropdown 
               nickname={user.user_metadata?.nickname || user.email?.split('@')[0] || 'Usuário'} 
-              currentMode="cruzadas"
+              currentMode="solo"
             />
           ) : isGuestMode ? (
             <GuestModeDropdown />
