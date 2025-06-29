@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signInWithDiscord = async () => {
-    const redirectUrl = `${window.location.origin}/termo`;
+    const redirectUrl = `${window.location.origin}/`;
     await supabase.auth.signInWithOAuth({
       provider: 'discord',
       options: {
