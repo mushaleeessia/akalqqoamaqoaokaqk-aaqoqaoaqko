@@ -5,23 +5,75 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { generateCrosswordPuzzle } from '@/utils/crosswordGenerator';
 import { CrosswordPuzzle, CrosswordCell } from '@/types/crossword';
 import { CheckCircle, RotateCcw } from 'lucide-react';
+import { useSupabaseGameSession } from '@/hooks/useSupabaseGameSession';
+import { useToast } from '@/hooks/use-toast';
 
 export const CrosswordGame = () => {
   const [puzzle, setPuzzle] = useState<CrosswordPuzzle>(() => generateCrosswordPuzzle());
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
   const [selectedDirection, setSelectedDirection] = useState<'across' | 'down'>('across');
   const [isComplete, setIsComplete] = useState(false);
+  const [completedWords, setCompletedWords] = useState<Set<string>>(new Set());
   const gridRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  // Preparar dados para o sistema de sessão
+  const targetWords = puzzle.clues.across.concat(puzzle.clues.down).map(clue => clue.answer);
+  const { saveGameSession, sessionExists, loading } = useSupabaseGameSession('cruzadas', targetWords);
 
   const resetGame = () => {
     const newPuzzle = generateCrosswordPuzzle();
     setPuzzle(newPuzzle);
     setSelectedCell(null);
     setIsComplete(false);
+    setCompletedWords(new Set());
   };
 
+  const checkWordCompletion = useCallback((currentPuzzle: CrosswordPuzzle) => {
+    const newCompletedWords = new Set<string>();
+    let hasNewCompletion = false;
+
+    // Verificar cada palavra nas pistas
+    [...currentPuzzle.clues.across, ...currentPuzzle.clues.down].forEach(clue => {
+      const wordKey = `${clue.direction}-${clue.number}`;
+      let userWord = '';
+      
+      // Construir a palavra do usuário
+      for (let i = 0; i < clue.length; i++) {
+        const row = clue.direction === 'across' ? clue.startRow : clue.startRow + i;
+        const col = clue.direction === 'across' ? clue.startCol + i : clue.startCol;
+        userWord += currentPuzzle.grid[row][col].userInput || '';
+      }
+
+      // Verificar se a palavra está completa e correta
+      if (userWord.length === clue.length && userWord.toUpperCase() === clue.answer.toUpperCase()) {
+        newCompletedWords.add(wordKey);
+        
+        // Se é uma nova palavra completa, marcar como nova
+        if (!completedWords.has(wordKey)) {
+          hasNewCompletion = true;
+        }
+      }
+    });
+
+    if (hasNewCompletion) {
+      // Mostrar toast para nova palavra completada
+      const newWords = [...newCompletedWords].filter(word => !completedWords.has(word));
+      if (newWords.length > 0) {
+        toast({
+          title: "Palavra completada! 🎉",
+          description: `Parabéns! Você completou ${newWords.length} palavra(s).`,
+          duration: 2000,
+        });
+      }
+    }
+
+    setCompletedWords(newCompletedWords);
+    return newCompletedWords;
+  }, [completedWords, toast]);
+
   const updateCell = useCallback((row: number, col: number, letter: string) => {
-    if (puzzle.grid[row][col].isBlocked) return;
+    if (puzzle.grid[row][col].isBlocked || puzzle.grid[row][col].isLocked) return;
 
     const newPuzzle = { ...puzzle };
     newPuzzle.grid = puzzle.grid.map((gridRow, r) =>
@@ -34,22 +86,69 @@ export const CrosswordGame = () => {
     );
 
     setPuzzle(newPuzzle);
-    checkCompletion(newPuzzle);
-  }, [puzzle]);
-
-  const checkCompletion = (currentPuzzle: CrosswordPuzzle) => {
-    const allCorrect = currentPuzzle.grid.every((row, r) =>
-      row.every((cell, c) => {
-        if (cell.isBlocked) return true;
-        return cell.userInput === cell.letter;
+    
+    // Verificar completude das palavras
+    const newCompletedWords = checkWordCompletion(newPuzzle);
+    
+    // Marcar células das palavras completadas como corretas e bloqueadas
+    newPuzzle.grid = newPuzzle.grid.map((gridRow, r) =>
+      gridRow.map((cell, c) => {
+        if (cell.isBlocked) return cell;
+        
+        let isPartOfCompletedWord = false;
+        
+        // Verificar se faz parte de alguma palavra completada
+        if (cell.belongsToWords.across) {
+          const wordKey = `across-${cell.belongsToWords.across}`;
+          if (newCompletedWords.has(wordKey)) {
+            isPartOfCompletedWord = true;
+          }
+        }
+        
+        if (cell.belongsToWords.down) {
+          const wordKey = `down-${cell.belongsToWords.down}`;
+          if (newCompletedWords.has(wordKey)) {
+            isPartOfCompletedWord = true;
+          }
+        }
+        
+        if (isPartOfCompletedWord) {
+          return { ...cell, isCorrect: true, isLocked: true };
+        }
+        
+        return cell;
       })
     );
-    setIsComplete(allCorrect);
+
+    setPuzzle(newPuzzle);
+    checkFullCompletion(newPuzzle, newCompletedWords);
+  }, [puzzle, checkWordCompletion]);
+
+  const checkFullCompletion = (currentPuzzle: CrosswordPuzzle, completedWords: Set<string>) => {
+    const totalWords = currentPuzzle.clues.across.length + currentPuzzle.clues.down.length;
+    const completedCount = completedWords.size;
+    
+    if (completedCount === totalWords) {
+      setIsComplete(true);
+      
+      // Salvar sessão do jogo
+      const allGuesses = currentPuzzle.grid.flat()
+        .filter(cell => !cell.isBlocked && cell.userInput)
+        .map(cell => cell.userInput);
+      
+      saveGameSession(allGuesses, true);
+      
+      toast({
+        title: "Parabéns! 🎊",
+        description: "Você completou todas as palavras cruzadas!",
+        duration: 5000,
+      });
+    }
   };
 
   const handleCellClick = (row: number, col: number) => {
     const cell = puzzle.grid[row][col];
-    if (cell.isBlocked) return;
+    if (cell.isBlocked || cell.isLocked) return;
 
     // Se já está selecionada, alternar direção
     if (selectedCell?.row === row && selectedCell?.col === col) {
@@ -98,7 +197,8 @@ export const CrosswordGame = () => {
     }
 
     if (nextRow < puzzle.size && nextCol < puzzle.size && 
-        !puzzle.grid[nextRow][nextCol].isBlocked) {
+        !puzzle.grid[nextRow][nextCol].isBlocked && 
+        !puzzle.grid[nextRow][nextCol].isLocked) {
       setSelectedCell({ row: nextRow, col: nextCol });
     }
   };
@@ -117,7 +217,8 @@ export const CrosswordGame = () => {
     }
 
     if (prevRow >= 0 && prevCol >= 0 && 
-        !puzzle.grid[prevRow][prevCol].isBlocked) {
+        !puzzle.grid[prevRow][prevCol].isBlocked &&
+        !puzzle.grid[prevRow][prevCol].isLocked) {
       setSelectedCell({ row: prevRow, col: prevCol });
     }
   };
@@ -144,7 +245,7 @@ export const CrosswordGame = () => {
         break;
     }
 
-    if (!puzzle.grid[newRow][newCol].isBlocked) {
+    if (!puzzle.grid[newRow][newCol].isBlocked && !puzzle.grid[newRow][newCol].isLocked) {
       setSelectedCell({ row: newRow, col: newCol });
     }
   };
@@ -163,24 +264,49 @@ export const CrosswordGame = () => {
         puzzle.grid[selectedCell.row][selectedCell.col].belongsToWords.down)
     );
 
-    let className = 'w-8 h-8 border border-gray-400 flex items-center justify-center text-sm font-bold relative cursor-pointer transition-colors ';
+    let className = 'w-6 h-6 border border-gray-400 flex items-center justify-center text-xs font-bold relative transition-colors ';
     
     if (cell.isBlocked) {
       className += 'bg-gray-900 cursor-default';
+    } else if (cell.isCorrect && cell.isLocked) {
+      className += 'bg-green-200/60 border-green-400 cursor-default';
     } else if (isSelected) {
-      className += 'bg-blue-200 border-blue-500';
+      className += 'bg-blue-200 border-blue-500 cursor-pointer';
     } else if (isInSelectedWord) {
-      className += 'bg-blue-50';
+      className += 'bg-blue-50 cursor-pointer';
     } else {
-      className += 'bg-white hover:bg-gray-50';
+      className += 'bg-white hover:bg-gray-50 cursor-pointer';
     }
 
     return className;
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 flex items-center justify-center">
+        <div className="text-center">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (sessionExists && !isComplete) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-bold mb-4">Você já jogou hoje!</h2>
+            <p className="text-gray-600 mb-4">
+              Volte amanhã para um novo desafio de palavras cruzadas.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Palavras Cruzadas
@@ -197,6 +323,9 @@ export const CrosswordGame = () => {
               </div>
             )}
           </div>
+          <div className="text-sm text-gray-600">
+            Palavras completadas: {completedWords.size} / {puzzle.clues.across.length + puzzle.clues.down.length}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -206,8 +335,11 @@ export const CrosswordGame = () => {
               <CardContent className="p-6">
                 <div 
                   ref={gridRef}
-                  className="grid grid-cols-10 gap-0 mx-auto w-fit border-2 border-gray-400"
-                  style={{ fontSize: '12px' }}
+                  className="grid gap-0 mx-auto w-fit border-2 border-gray-400"
+                  style={{ 
+                    gridTemplateColumns: `repeat(${puzzle.size}, 1fr)`,
+                    fontSize: '10px'
+                  }}
                 >
                   {puzzle.grid.map((row, rowIndex) =>
                     row.map((cell, colIndex) => (
@@ -217,7 +349,7 @@ export const CrosswordGame = () => {
                         onClick={() => handleCellClick(rowIndex, colIndex)}
                       >
                         {cell.number && (
-                          <span className="absolute top-0 left-0 text-xs leading-none p-0.5">
+                          <span className="absolute top-0 left-0.5 text-xs leading-none font-normal">
                             {cell.number}
                           </span>
                         )}
@@ -230,6 +362,8 @@ export const CrosswordGame = () => {
                 </div>
                 <div className="mt-4 text-center text-sm text-gray-600">
                   Clique numa célula e digite as letras. Use as setas para navegar.
+                  <br />
+                  Palavras corretas ficam verdes e são bloqueadas.
                 </div>
               </CardContent>
             </Card>
@@ -241,12 +375,16 @@ export const CrosswordGame = () => {
               <CardHeader>
                 <CardTitle className="text-lg">Horizontais</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {puzzle.clues.across.map((clue) => (
-                  <div key={`across-${clue.number}`} className="text-sm">
-                    <span className="font-semibold">{clue.number}.</span> {clue.clue}
-                  </div>
-                ))}
+              <CardContent className="space-y-2 max-h-80 overflow-y-auto">
+                {puzzle.clues.across.map((clue) => {
+                  const isCompleted = completedWords.has(`across-${clue.number}`);
+                  return (
+                    <div key={`across-${clue.number}`} className={`text-sm ${isCompleted ? 'text-green-600 line-through' : ''}`}>
+                      <span className="font-semibold">{clue.number}.</span> {clue.clue}
+                      {isCompleted && <span className="ml-2">✓</span>}
+                    </div>
+                  );
+                })}
               </CardContent>
             </Card>
 
@@ -254,12 +392,16 @@ export const CrosswordGame = () => {
               <CardHeader>
                 <CardTitle className="text-lg">Verticais</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {puzzle.clues.down.map((clue) => (
-                  <div key={`down-${clue.number}`} className="text-sm">
-                    <span className="font-semibold">{clue.number}.</span> {clue.clue}
-                  </div>
-                ))}
+              <CardContent className="space-y-2 max-h-80 overflow-y-auto">
+                {puzzle.clues.down.map((clue) => {
+                  const isCompleted = completedWords.has(`down-${clue.number}`);
+                  return (
+                    <div key={`down-${clue.number}`} className={`text-sm ${isCompleted ? 'text-green-600 line-through' : ''}`}>
+                      <span className="font-semibold">{clue.number}.</span> {clue.clue}
+                      {isCompleted && <span className="ml-2">✓</span>}
+                    </div>
+                  );
+                })}
               </CardContent>
             </Card>
           </div>

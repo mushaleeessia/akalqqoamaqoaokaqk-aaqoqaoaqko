@@ -1,24 +1,37 @@
 
 import { CrosswordPuzzle, CrosswordCell, CrosswordClue } from '@/types/crossword';
 
-// Dados de exemplo para uma palavra cruzada 10x10
+// Dados expandidos para uma palavra cruzada 20x20
 const SAMPLE_CROSSWORD_DATA = {
   words: [
-    { word: 'BRASIL', clue: 'País onde ficam as Cataratas do Iguaçu', row: 0, col: 2, direction: 'across' as const },
-    { word: 'AMOR', clue: 'Sentimento profundo de afeto', row: 0, col: 2, direction: 'down' as const },
-    { word: 'CASA', clue: 'Local onde moramos', row: 2, col: 0, direction: 'across' as const },
-    { word: 'AGUA', clue: 'Líquido essencial para a vida', row: 2, col: 3, direction: 'down' as const },
-    { word: 'TERRA', clue: 'Planeta onde vivemos', row: 4, col: 1, direction: 'across' as const },
-    { word: 'SOL', clue: 'Estrela do nosso sistema solar', row: 6, col: 3, direction: 'across' as const },
-    { word: 'LIVRO', clue: 'Objeto usado para leitura', row: 1, col: 6, direction: 'down' as const },
-    { word: 'FLOR', clue: 'Parte colorida da planta', row: 3, col: 7, direction: 'across' as const },
-    { word: 'VERDE', clue: 'Cor da natureza', row: 5, col: 8, direction: 'down' as const },
-    { word: 'CARRO', clue: 'Veículo de quatro rodas', row: 8, col: 1, direction: 'across' as const }
+    // Palavras horizontais
+    { word: 'BRASIL', clue: 'País onde ficam as Cataratas do Iguaçu', row: 1, col: 2, direction: 'across' as const },
+    { word: 'CASA', clue: 'Local onde moramos', row: 3, col: 0, direction: 'across' as const },
+    { word: 'TERRA', clue: 'Planeta onde vivemos', row: 5, col: 8, direction: 'across' as const },
+    { word: 'SOL', clue: 'Estrela do nosso sistema solar', row: 7, col: 4, direction: 'across' as const },
+    { word: 'FLOR', clue: 'Parte colorida da planta', row: 9, col: 1, direction: 'across' as const },
+    { word: 'CARRO', clue: 'Veículo de quatro rodas', row: 11, col: 10, direction: 'across' as const },
+    { word: 'MUSICA', clue: 'Arte dos sons organizados', row: 13, col: 5, direction: 'across' as const },
+    { word: 'PAPEL', clue: 'Material feito de celulose', row: 15, col: 2, direction: 'across' as const },
+    { word: 'ESCOLA', clue: 'Local de ensino', row: 17, col: 7, direction: 'across' as const },
+    { word: 'TEMPO', clue: 'Duração dos acontecimentos', row: 19, col: 0, direction: 'across' as const },
+    
+    // Palavras verticais
+    { word: 'AMOR', clue: 'Sentimento profundo de afeto', row: 1, col: 2, direction: 'down' as const },
+    { word: 'AGUA', clue: 'Líquido essencial para a vida', row: 3, col: 3, direction: 'down' as const },
+    { word: 'LIVRO', clue: 'Objeto usado para leitura', row: 0, col: 6, direction: 'down' as const },
+    { word: 'VERDE', clue: 'Cor da natureza', row: 2, col: 12, direction: 'down' as const },
+    { word: 'AMIGO', clue: 'Pessoa querida e próxima', row: 6, col: 1, direction: 'down' as const },
+    { word: 'CIDADE', clue: 'Área urbana populated', row: 8, col: 14, direction: 'down' as const },
+    { word: 'PONTE', clue: 'Estrutura que atravessa obstáculos', row: 4, col: 16, direction: 'down' as const },
+    { word: 'JANELA', clue: 'Abertura na parede para luz', row: 10, col: 8, direction: 'down' as const },
+    { word: 'MESA', clue: 'Móvel com tampo horizontal', row: 12, col: 18, direction: 'down' as const },
+    { word: 'NOITE', clue: 'Período de escuridão', row: 15, col: 5, direction: 'down' as const }
   ]
 };
 
 export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
-  const size = 10;
+  const size = 20;
   
   // Inicializar grade vazia
   const grid: CrosswordCell[][] = Array(size).fill(null).map(() =>

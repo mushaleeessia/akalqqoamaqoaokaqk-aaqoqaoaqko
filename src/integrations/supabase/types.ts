@@ -161,6 +161,10 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: undefined
       }
+      is_crossword_complete: {
+        Args: { grid_data: Json; target_words: Json }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

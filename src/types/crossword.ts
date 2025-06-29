@@ -8,6 +8,8 @@ export interface CrosswordCell {
     across?: number;
     down?: number;
   };
+  isCorrect?: boolean;
+  isLocked?: boolean;
 }
 
 export interface CrosswordClue {
@@ -18,6 +20,7 @@ export interface CrosswordClue {
   startCol: number;
   direction: 'across' | 'down';
   length: number;
+  isCompleted?: boolean;
 }
 
 export interface CrosswordPuzzle {
