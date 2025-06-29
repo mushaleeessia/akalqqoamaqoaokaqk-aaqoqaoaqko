@@ -17,7 +17,7 @@ const Index = () => {
 
   const links = [
     {
-      title: isEnglish ? "Does Alessia ban wrong or without reason?" : "A Alessia bane errado ou sem motivo?",
+      title: isEnglish ? "Does Alessia ban wrongly or without reason?" : "A Alessia bane errado ou sem motivo?",
       description: isEnglish ? "Check out the whole truth here" : "Confira aqui toda a verdade",
       url: "https://forum.mush.com.br/topic/275986/denuncia-adm-aleeesia",
       icon: HelpCircle,
@@ -25,20 +25,20 @@ const Index = () => {
     },
     {
       title: isEnglish ? "My TikTok" : "Meu TikTok",
-      description: isEnglish ? "Follow me @aleeessia_" : "Me segue @aleeessia_",
+      description: isEnglish ? "@aleeessia_" : "@aleeessia_",
       url: "https://tiktok.com/@aleeessia_",
       icon: Video,
       color: "from-red-900 to-red-700"
     },
     {
-      title: isEnglish ? "Mush Website" : "Site Mush",
+      title: isEnglish ? "Mush's Website" : "Site Mush",
       description: isEnglish ? "Official server website" : "Site oficial do servidor",
       url: "https://mush.com.br",
       icon: Globe,
       color: "from-amber-900 to-red-800"
     },
     {
-      title: isEnglish ? "Mush Discord" : "Discord Mush",
+      title: isEnglish ? "Mush's Discord" : "Discord Mush",
       description: isEnglish ? "Join our Discord community" : "Entre no nosso Discord",
       url: "https://discord.gg/mush",
       icon: MessageSquare,
