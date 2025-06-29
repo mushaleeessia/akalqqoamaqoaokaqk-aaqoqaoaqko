@@ -76,6 +76,11 @@ export const CrosswordGame = () => {
     return completedCount;
   };
 
+  const getTotalWords = (): number => {
+    if (!puzzle) return 0;
+    return puzzle.clues.across.length + puzzle.clues.down.length;
+  };
+
   const generateNewPuzzle = () => {
     const newPuzzle = generateCrosswordPuzzle();
     setPuzzle(newPuzzle);
@@ -137,12 +142,18 @@ export const CrosswordGame = () => {
     return <div className="flex items-center justify-center min-h-screen dark:bg-gray-900 bg-gray-100 dark:text-white text-gray-900">Carregando...</div>;
   }
 
+  const completedWords = countCompletedWords(puzzle);
+  const totalWords = getTotalWords();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-white">
       {/* Header with theme switch and user dropdown */}
       <div className="flex justify-between items-center p-4 bg-black/20 backdrop-blur-sm">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold">Palavras Cruzadas</h1>
+          <div className="text-lg font-semibold text-blue-300 dark:text-blue-400">
+            Palavras {completedWords}/{totalWords}
+          </div>
         </div>
         
         <div className="flex items-center gap-4">
@@ -179,7 +190,7 @@ export const CrosswordGame = () => {
                         ${cell.isBlocked 
                           ? 'bg-black dark:bg-gray-900' 
                           : selectedCell?.row === rowIndex && selectedCell?.col === colIndex
-                          ? 'bg-yellow-300 text-black'
+                          ? 'bg-blue-400 dark:bg-blue-600 text-white'
                           : 'bg-white dark:bg-gray-700 text-black dark:text-white'
                         }
                       `}
@@ -233,7 +244,7 @@ export const CrosswordGame = () => {
                   <div className="space-y-2">
                     {puzzle.clues.across.map((clue) => (
                       <div key={`across-${clue.number}`} className="text-sm">
-                        <span className="font-bold">{clue.number}.</span> {clue.clue}
+                        <span className="font-bold">{clue.number}.</span> {clue.clue} ({clue.length} letras)
                       </div>
                     ))}
                   </div>
@@ -244,7 +255,7 @@ export const CrosswordGame = () => {
                   <div className="space-y-2">
                     {puzzle.clues.down.map((clue) => (
                       <div key={`down-${clue.number}`} className="text-sm">
-                        <span className="font-bold">{clue.number}.</span> {clue.clue}
+                        <span className="font-bold">{clue.number}.</span> {clue.clue} ({clue.length} letras)
                       </div>
                     ))}
                   </div>
