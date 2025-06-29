@@ -101,7 +101,7 @@ export const useCrosswordGameInteractions = ({
 
   const moveToPreviousCell = (currentRow: number, currentCol: number, direction: 'across' | 'down') => {
     if (!puzzle) {
-      console.log('No puzzle available');
+      console.log('No puzzle available for previous move');
       return;
     }
     
@@ -124,7 +124,7 @@ export const useCrosswordGameInteractions = ({
       return;
     }
     
-    // Verificar se a célula é realmente bloqueada (preta) ou apenas uma interseção
+    // Verificar se a célula é realmente bloqueada (preta)
     const prevCell = puzzle.grid[prevRow][prevCol];
     if (prevCell.isBlocked) {
       console.log('Previous cell is blocked (black cell)');
@@ -141,7 +141,30 @@ export const useCrosswordGameInteractions = ({
       return;
     }
     
-    console.log(`Moving to previous cell (${prevRow}, ${prevCol})`);
+    console.log(`Moving to previous cell (${prevRow}, ${prevCol}) and clearing it`);
+    
+    // Limpar a célula anterior primeiro
+    const newGrid = [...puzzle.grid];
+    newGrid[prevRow][prevCol] = { ...newGrid[prevRow][prevCol], userInput: '' };
+    
+    let newPuzzle = { ...puzzle, grid: newGrid };
+    
+    // Verificar palavras completadas
+    const completed = checkWordCompletion(newPuzzle);
+    setCompletedWords(completed);
+    
+    // Atualizar células com estado de correção
+    newPuzzle = updateCellCorrectness(newPuzzle, completed);
+    
+    setPuzzle(newPuzzle);
+    
+    // Verificar se o jogo ainda está completo
+    const allCellsCorrect = checkCompletion(newPuzzle);
+    if (!allCellsCorrect && isCompleted) {
+      setIsCompleted(false);
+    }
+    
+    // Mover para a célula anterior
     setSelectedCell({ row: prevRow, col: prevCol });
     
     // Focar no input anterior automaticamente
@@ -157,21 +180,28 @@ export const useCrosswordGameInteractions = ({
   };
 
   const handleKeyDown = (row: number, col: number, event: React.KeyboardEvent) => {
+    console.log(`KeyDown event: ${event.key} at (${row}, ${col})`);
+    
     if (event.key === 'Backspace') {
       event.preventDefault();
+      console.log('Backspace pressed!');
       
-      if (!puzzle || !selectedCell) return;
+      if (!puzzle || !selectedCell) {
+        console.log('No puzzle or selected cell');
+        return;
+      }
       
       const currentCell = puzzle.grid[row][col];
+      console.log(`Current cell content: "${currentCell.userInput}"`);
       
       // Se a célula atual tem conteúdo, apaga e fica na mesma célula
       if (currentCell.userInput.trim() !== '') {
         console.log(`Clearing current cell (${row}, ${col})`);
         handleInputChange(row, col, '');
       } else {
-        // Se a célula atual está vazia, move para a anterior e apaga
+        // Se a célula atual está vazia, move para a anterior
         console.log(`Current cell is empty, moving to previous cell`);
-        moveToPreviousCell(selectedCell.row, selectedCell.col, selectedDirection);
+        moveToPreviousCell(row, col, selectedDirection);
       }
     }
   };
