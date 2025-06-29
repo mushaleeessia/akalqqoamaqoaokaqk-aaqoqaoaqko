@@ -1,100 +1,97 @@
 
 import { CrosswordPuzzle, CrosswordCell, CrosswordClue } from '@/types/crossword';
+import { getBalancedWords, WordDefinition } from '@/data/crosswordWords';
 
-// Dados expandidos para uma palavra cruzada 20x20
-const SAMPLE_CROSSWORD_DATA = {
-  words: [
-    // Palavras horizontais
-    { word: 'BRASIL', clue: 'País onde ficam as Cataratas do Iguaçu', row: 1, col: 2, direction: 'across' as const },
-    { word: 'CASA', clue: 'Local onde moramos', row: 3, col: 0, direction: 'across' as const },
-    { word: 'TERRA', clue: 'Planeta onde vivemos', row: 5, col: 8, direction: 'across' as const },
-    { word: 'SOL', clue: 'Estrela do nosso sistema solar', row: 7, col: 4, direction: 'across' as const },
-    { word: 'FLOR', clue: 'Parte colorida da planta', row: 9, col: 1, direction: 'across' as const },
-    { word: 'CARRO', clue: 'Veículo de quatro rodas', row: 11, col: 10, direction: 'across' as const },
-    { word: 'MUSICA', clue: 'Arte dos sons organizados', row: 13, col: 5, direction: 'across' as const },
-    { word: 'PAPEL', clue: 'Material feito de celulose', row: 15, col: 2, direction: 'across' as const },
-    { word: 'ESCOLA', clue: 'Local de ensino', row: 17, col: 7, direction: 'across' as const },
-    { word: 'TEMPO', clue: 'Duração dos acontecimentos', row: 19, col: 0, direction: 'across' as const },
-    
-    // Palavras verticais
-    { word: 'AMOR', clue: 'Sentimento profundo de afeto', row: 1, col: 2, direction: 'down' as const },
-    { word: 'AGUA', clue: 'Líquido essencial para a vida', row: 3, col: 3, direction: 'down' as const },
-    { word: 'LIVRO', clue: 'Objeto usado para leitura', row: 0, col: 6, direction: 'down' as const },
-    { word: 'VERDE', clue: 'Cor da natureza', row: 2, col: 12, direction: 'down' as const },
-    { word: 'AMIGO', clue: 'Pessoa querida e próxima', row: 6, col: 1, direction: 'down' as const },
-    { word: 'CIDADE', clue: 'Área urbana populated', row: 8, col: 14, direction: 'down' as const },
-    { word: 'PONTE', clue: 'Estrutura que atravessa obstáculos', row: 4, col: 16, direction: 'down' as const },
-    { word: 'JANELA', clue: 'Abertura na parede para luz', row: 10, col: 8, direction: 'down' as const },
-    { word: 'MESA', clue: 'Móvel com tampo horizontal', row: 12, col: 18, direction: 'down' as const },
-    { word: 'NOITE', clue: 'Período de escuridão', row: 15, col: 5, direction: 'down' as const }
-  ]
-};
+interface PlacedWord {
+  word: string;
+  clue: string;
+  row: number;
+  col: number;
+  direction: 'across' | 'down';
+  number: number;
+}
 
 export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
-  const size = 20;
+  const size = 15; // Reduzido para 15x15 para ter mais densidade
+  const words = getBalancedWords();
   
   // Inicializar grade vazia
   const grid: CrosswordCell[][] = Array(size).fill(null).map(() =>
     Array(size).fill(null).map(() => ({
       letter: '',
-      isBlocked: true, // Começar tudo bloqueado
+      isBlocked: true,
       userInput: '',
       belongsToWords: {}
     }))
   );
 
+  const placedWords: PlacedWord[] = [];
   const clues: { across: CrosswordClue[]; down: CrosswordClue[] } = {
     across: [],
     down: []
   };
 
   let clueNumber = 1;
-  const numberedCells = new Set<string>();
 
-  // Processar cada palavra
-  SAMPLE_CROSSWORD_DATA.words.forEach((wordData) => {
-    const { word, clue, row, col, direction } = wordData;
+  // Função para verificar se uma palavra pode ser colocada
+  const canPlaceWord = (word: string, row: number, col: number, direction: 'across' | 'down'): boolean => {
+    const len = word.length;
     
-    // Verificar se precisa numerar a célula inicial
-    const cellKey = `${row}-${col}`;
-    let number: number | undefined;
+    // Verificar limites
+    if (direction === 'across' && col + len > size) return false;
+    if (direction === 'down' && row + len > size) return false;
     
-    if (!numberedCells.has(cellKey)) {
-      number = clueNumber++;
-      numberedCells.add(cellKey);
-    } else {
-      // Encontrar o número já atribuído
-      for (const existingClue of [...clues.across, ...clues.down]) {
-        if (existingClue.startRow === row && existingClue.startCol === col) {
-          number = existingClue.number;
-          break;
-        }
+    // Verificar conflitos e intersecções
+    for (let i = 0; i < len; i++) {
+      const currentRow = direction === 'across' ? row : row + i;
+      const currentCol = direction === 'across' ? col + i : col;
+      const currentCell = grid[currentRow][currentCol];
+      
+      // Se a célula já tem uma letra, deve ser a mesma
+      if (!currentCell.isBlocked && currentCell.letter !== '' && currentCell.letter !== word[i]) {
+        return false;
       }
     }
+    
+    return true;
+  };
 
-    // Colocar as letras na grade
+  // Função para colocar uma palavra
+  const placeWord = (wordDef: WordDefinition, row: number, col: number, direction: 'across' | 'down'): boolean => {
+    const word = wordDef.word;
+    if (!canPlaceWord(word, row, col, direction)) return false;
+    
+    // Marcar células como não bloqueadas e colocar letras
     for (let i = 0; i < word.length; i++) {
       const currentRow = direction === 'across' ? row : row + i;
       const currentCol = direction === 'across' ? col + i : col;
       
-      if (currentRow < size && currentCol < size) {
-        grid[currentRow][currentCol] = {
-          letter: word[i],
-          isBlocked: false,
-          userInput: '',
-          number: i === 0 ? number : undefined,
-          belongsToWords: {
-            ...grid[currentRow][currentCol].belongsToWords,
-            [direction]: number
-          }
-        };
-      }
+      grid[currentRow][currentCol] = {
+        letter: word[i],
+        isBlocked: false,
+        userInput: '',
+        number: i === 0 ? clueNumber : grid[currentRow][currentCol].number,
+        belongsToWords: {
+          ...grid[currentRow][currentCol].belongsToWords,
+          [direction]: clueNumber
+        }
+      };
     }
 
-    // Adicionar pista
+    // Adicionar à lista de palavras colocadas
+    placedWords.push({
+      word,
+      clue: wordDef.clue,
+      row,
+      col,
+      direction,
+      number: clueNumber
+    });
+
+    // Criar a pista
     const clueObj: CrosswordClue = {
-      number: number!,
-      clue,
+      number: clueNumber,
+      clue: wordDef.clue,
       answer: word,
       startRow: row,
       startCol: col,
@@ -103,7 +100,86 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
     };
 
     clues[direction].push(clueObj);
-  });
+    clueNumber++;
+    
+    return true;
+  };
+
+  // Encontrar intersecções possíveis
+  const findIntersections = (word: string, placedWord: PlacedWord): Array<{row: number, col: number, direction: 'across' | 'down'}> => {
+    const intersections = [];
+    
+    for (let i = 0; i < word.length; i++) {
+      for (let j = 0; j < placedWord.word.length; j++) {
+        if (word[i] === placedWord.word[j]) {
+          // Calcular posição para intersecção
+          let newRow, newCol, newDirection: 'across' | 'down';
+          
+          if (placedWord.direction === 'across') {
+            // Nova palavra será vertical
+            newDirection = 'down';
+            newRow = placedWord.row - i;
+            newCol = placedWord.col + j;
+          } else {
+            // Nova palavra será horizontal
+            newDirection = 'across';
+            newRow = placedWord.row + j;
+            newCol = placedWord.col - i;
+          }
+          
+          // Verificar se a posição é válida
+          if (newRow >= 0 && newCol >= 0) {
+            intersections.push({ row: newRow, col: newCol, direction: newDirection });
+          }
+        }
+      }
+    }
+    
+    return intersections;
+  };
+
+  // Colocar a primeira palavra no centro
+  if (words.length > 0) {
+    const firstWord = words[0];
+    const startRow = Math.floor(size / 2);
+    const startCol = Math.floor((size - firstWord.word.length) / 2);
+    placeWord(firstWord, startRow, startCol, 'across');
+  }
+
+  // Tentar colocar as outras palavras
+  for (let i = 1; i < words.length && i < 12; i++) {
+    const currentWord = words[i];
+    let placed = false;
+    
+    // Tentar intersecções com palavras já colocadas
+    for (const placedWord of placedWords) {
+      if (placed) break;
+      
+      const intersections = findIntersections(currentWord.word, placedWord);
+      
+      for (const intersection of intersections) {
+        if (canPlaceWord(currentWord.word, intersection.row, intersection.col, intersection.direction)) {
+          placeWord(currentWord, intersection.row, intersection.col, intersection.direction);
+          placed = true;
+          break;
+        }
+      }
+    }
+    
+    // Se não conseguiu intersecção, tentar colocar em posição livre
+    if (!placed) {
+      for (let attempts = 0; attempts < 50 && !placed; attempts++) {
+        const direction = Math.random() < 0.5 ? 'across' : 'down';
+        const row = Math.floor(Math.random() * (size - (direction === 'down' ? currentWord.word.length : 0)));
+        const col = Math.floor(Math.random() * (size - (direction === 'across' ? currentWord.word.length : 0)));
+        
+        if (canPlaceWord(currentWord.word, row, col, direction)) {
+          placeWord(currentWord, row, col, direction);
+          placed = true;
+        }
+      }
+    }
+  }
 
   // Ordenar pistas por número
   clues.across.sort((a, b) => a.number - b.number);

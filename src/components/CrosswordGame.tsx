@@ -18,7 +18,7 @@ export const CrosswordGame = () => {
 
   // Preparar dados para o sistema de sessão
   const targetWords = puzzle.clues.across.concat(puzzle.clues.down).map(clue => clue.answer);
-  const { saveGameSession, sessionExists, loading } = useSupabaseGameSession('solo' as any, targetWords);
+  const { saveGameSession, sessionExists, loading } = useSupabaseGameSession('cruzadas', targetWords);
 
   const resetGame = () => {
     const newPuzzle = generateCrosswordPuzzle();
