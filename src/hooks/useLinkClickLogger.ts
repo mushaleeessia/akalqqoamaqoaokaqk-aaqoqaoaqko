@@ -14,6 +14,8 @@ const getClientIP = async (): Promise<string> => {
 export const useLinkClickLogger = () => {
   const logClick = async (linkTitle: string, linkUrl: string) => {
     try {
+      console.log('Registrando clique no link:', linkTitle);
+      
       const clientIP = await getClientIP();
       const userAgent = navigator.userAgent;
 
@@ -32,18 +34,24 @@ export const useLinkClickLogger = () => {
         return;
       }
 
+      console.log('Clique inserido no banco com sucesso, enviando webhook...');
+
       // Enviar webhook de clique individual
-      await supabase.functions.invoke('link-clicks-webhook', {
+      const { data, error } = await supabase.functions.invoke('link-clicks-webhook', {
         body: {
           type: 'click_log',
           data: {
             linkTitle,
-            linkUrl,
-            userAgent,
-            ipAddress: clientIP
+            linkUrl
           }
         }
       });
+
+      if (error) {
+        console.error('Erro ao enviar webhook:', error);
+      } else {
+        console.log('Webhook enviado com sucesso:', data);
+      }
 
     } catch (error) {
       console.error('Erro ao registrar clique:', error);
@@ -52,6 +60,8 @@ export const useLinkClickLogger = () => {
 
   const updateStats = async () => {
     try {
+      console.log('Atualizando estatísticas...');
+      
       // Buscar estatísticas
       const { data: stats, error } = await supabase
         .rpc('get_link_click_stats');
@@ -61,8 +71,10 @@ export const useLinkClickLogger = () => {
         return;
       }
 
+      console.log('Estatísticas obtidas:', stats);
+
       // Atualizar mensagem estática
-      await supabase.functions.invoke('link-clicks-webhook', {
+      const { data, error: webhookError } = await supabase.functions.invoke('link-clicks-webhook', {
         body: {
           type: 'stats_update',
           data: {
@@ -70,6 +82,12 @@ export const useLinkClickLogger = () => {
           }
         }
       });
+
+      if (webhookError) {
+        console.error('Erro ao atualizar estatísticas via webhook:', webhookError);
+      } else {
+        console.log('Estatísticas atualizadas com sucesso:', data);
+      }
 
     } catch (error) {
       console.error('Erro ao atualizar estatísticas:', error);

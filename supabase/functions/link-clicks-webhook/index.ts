@@ -27,11 +27,14 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Webhook chamado, processando...');
     const { type, data } = await req.json();
+    console.log('Tipo de webhook:', type, 'Dados:', data);
 
     if (type === 'click_log') {
       // Log individual click - versão simplificada
       const { linkTitle, linkUrl } = data;
+      console.log('Processando clique:', linkTitle, linkUrl);
       
       const embed: DiscordEmbed = {
         title: "🔗 Link Clicado",
@@ -50,16 +53,25 @@ serve(async (req) => {
       const DISCORD_CLICKS_WEBHOOK = Deno.env.get('DISCORD_CLICKS_WEBHOOK');
       
       if (!DISCORD_CLICKS_WEBHOOK) {
+        console.error('Discord clicks webhook URL not configured');
         throw new Error('Discord clicks webhook URL not configured');
       }
 
-      await fetch(DISCORD_CLICKS_WEBHOOK, {
+      console.log('Enviando para Discord...');
+      const response = await fetch(DISCORD_CLICKS_WEBHOOK, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+        console.error('Erro ao enviar para Discord:', response.status, await response.text());
+        throw new Error(`Discord webhook failed: ${response.status}`);
+      }
+
+      console.log('Mensagem enviada para Discord com sucesso');
 
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -68,6 +80,7 @@ serve(async (req) => {
     } else if (type === 'stats_update') {
       // Update static stats message
       const { stats } = data;
+      console.log('Atualizando estatísticas:', stats);
       
       let description = "📊 **Estatísticas de Cliques nos Links**\n\n";
       
@@ -98,11 +111,12 @@ serve(async (req) => {
       const DISCORD_STATIC_MESSAGE = Deno.env.get('DISCORD_STATIC_MESSAGE');
       
       if (!DISCORD_STATIC_MESSAGE) {
+        console.error('Discord static message URL not configured');
         throw new Error('Discord static message URL not configured');
       }
 
       // Edit the existing message
-      await fetch(DISCORD_STATIC_MESSAGE, {
+      const response = await fetch(DISCORD_STATIC_MESSAGE, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -110,11 +124,19 @@ serve(async (req) => {
         body: JSON.stringify(payload),
       });
 
+      if (!response.ok) {
+        console.error('Erro ao atualizar mensagem estática:', response.status, await response.text());
+        throw new Error(`Discord static message update failed: ${response.status}`);
+      }
+
+      console.log('Mensagem estática atualizada com sucesso');
+
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
+    console.log('Tipo de webhook inválido:', type);
     return new Response(JSON.stringify({ success: false, message: 'Invalid type' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
