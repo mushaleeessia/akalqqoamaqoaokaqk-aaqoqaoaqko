@@ -18,7 +18,7 @@ export const CrosswordGame = () => {
   
   const { user } = useAuth();
   const { isGuestMode } = useGuestMode();
-  const { saveGameSession } = useSupabaseGameSession('cruzadas');
+  const { saveGameSession } = useSupabaseGameSession('cruzadas', []);
 
   useEffect(() => {
     const savedPuzzle = localStorage.getItem('crossword_puzzle');
@@ -37,9 +37,11 @@ export const CrosswordGame = () => {
 
   useEffect(() => {
     if (puzzle && user && !isGuestMode) {
-      saveGameSession(puzzle);
+      // Para palavras cruzadas, vamos salvar o estado do puzzle
+      const guesses = puzzle.grid.flat().map(cell => cell.userInput).filter(input => input !== '');
+      saveGameSession(guesses, isCompleted);
     }
-  }, [puzzle, user, isGuestMode, saveGameSession]);
+  }, [puzzle, user, isGuestMode, saveGameSession, isCompleted]);
 
   const generateNewPuzzle = () => {
     const newPuzzle = generateCrosswordPuzzle();
@@ -115,7 +117,7 @@ export const CrosswordGame = () => {
           {user && !isGuestMode ? (
             <UserDropdown 
               nickname={user.user_metadata?.nickname || user.email?.split('@')[0] || 'Usuário'} 
-              currentMode="normal"
+              currentMode="cruzadas"
             />
           ) : isGuestMode ? (
             <GuestModeDropdown />
