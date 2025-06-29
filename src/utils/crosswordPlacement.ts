@@ -1,10 +1,9 @@
 
 import { CrosswordCell, CrosswordClue } from '@/types/crossword';
-import { WordDefinition } from '@/data/crosswordWords';
 import { PlacedWord } from '@/types/crosswordGenerator';
 
 export const placeWordOnGrid = (
-  wordDef: WordDefinition,
+  wordDef: { word: string; clue: string },
   row: number,
   col: number,
   direction: 'across' | 'down',
@@ -15,48 +14,55 @@ export const placeWordOnGrid = (
 ): number => {
   const word = wordDef.word.toUpperCase();
   
-  // Marcar células como não bloqueadas e colocar letras
+  // Marcar células como não bloqueadas e colocar as letras
   for (let i = 0; i < word.length; i++) {
     const currentRow = direction === 'across' ? row : row + i;
     const currentCol = direction === 'across' ? col + i : col;
     
-    // Preservar número existente se já houver
-    const existingNumber = grid[currentRow][currentCol].number;
-    
     grid[currentRow][currentCol] = {
+      ...grid[currentRow][currentCol],
       letter: word[i],
       isBlocked: false,
-      userInput: '',
-      number: i === 0 ? clueNumber : existingNumber,
-      belongsToWords: {
-        ...grid[currentRow][currentCol].belongsToWords,
-        [direction]: clueNumber
-      }
+      userInput: ''
     };
+    
+    // Adicionar informação sobre qual palavra esta célula pertence
+    if (direction === 'across') {
+      grid[currentRow][currentCol].belongsToWords.across = clueNumber;
+    } else {
+      grid[currentRow][currentCol].belongsToWords.down = clueNumber;
+    }
   }
-
-  // Adicionar à lista de palavras colocadas
+  
+  // Sempre colocar o número na primeira célula da palavra
+  grid[row][col].number = clueNumber;
+  
+  // Adicionar a palavra colocada
   placedWords.push({
-    word,
+    word: wordDef.word,
     clue: wordDef.clue,
     row,
     col,
     direction,
     number: clueNumber
   });
-
-  // Criar a pista
-  const clueObj: CrosswordClue = {
+  
+  // Adicionar a pista
+  const clue: CrosswordClue = {
     number: clueNumber,
     clue: wordDef.clue,
-    answer: word,
+    answer: wordDef.word.toUpperCase(),
     startRow: row,
     startCol: col,
     direction,
-    length: word.length
+    length: wordDef.word.length
   };
-
-  clues[direction].push(clueObj);
+  
+  if (direction === 'across') {
+    clues.across.push(clue);
+  } else {
+    clues.down.push(clue);
+  }
   
   return clueNumber + 1;
 };

@@ -31,10 +31,12 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
   const availableWords = [...CROSSWORD_WORDS].sort(() => Math.random() - 0.5);
   let clueNumber = 1;
 
-  // Place first word horizontally in the center
+  // Place first word horizontally in the center - GARANTIR que receba número 1
   const firstWord = availableWords[0];
   const centerRow = Math.floor(GRID_SIZE / 2);
   const startCol = Math.floor((GRID_SIZE - firstWord.word.length) / 2);
+  
+  console.log(`Placing first word: "${firstWord.word}" at row ${centerRow}, col ${startCol} with number ${clueNumber}`);
   
   clueNumber = placeWordOnGrid(
     firstWord,
@@ -67,6 +69,8 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
         const randomIntersection = allIntersections[Math.floor(Math.random() * allIntersections.length)];
         
         if (canPlaceWord(wordDef.word, randomIntersection.row, randomIntersection.col, randomIntersection.direction, grid, placedWords, GRID_SIZE)) {
+          console.log(`Placing word: "${wordDef.word}" at row ${randomIntersection.row}, col ${randomIntersection.col} with number ${clueNumber}`);
+          
           clueNumber = placeWordOnGrid(
             wordDef,
             randomIntersection.row,
@@ -86,7 +90,7 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
   // Block all remaining cells that don't belong to any word
   for (let i = 0; i < GRID_SIZE; i++) {
     for (let j = 0; j < GRID_SIZE; j++) {
-      if (grid[i][j].isBlocked && !grid[i][j].letter) {
+      if (grid[i][j].letter === '') {
         grid[i][j].isBlocked = true;
       }
     }
@@ -95,6 +99,9 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
   // Sort clues by number
   clues.across.sort((a, b) => a.number - b.number);
   clues.down.sort((a, b) => a.number - b.number);
+
+  console.log('Generated clues:', clues);
+  console.log('Grid with numbers:', grid.map(row => row.map(cell => cell.number || '.')));
 
   return {
     grid,
