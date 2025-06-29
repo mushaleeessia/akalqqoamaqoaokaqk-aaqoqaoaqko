@@ -1,4 +1,3 @@
-
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CrosswordPuzzle } from '@/types/crossword';
@@ -61,7 +60,7 @@ export const CrosswordGrid = ({
                 {!cell.isBlocked && (
                   <>
                     {cell.number && (
-                      <span className="absolute top-0.5 left-1 text-xs font-bold leading-none text-black dark:text-white">
+                      <span className="absolute top-0 left-0.5 text-xs font-bold leading-none text-black dark:text-white z-10 bg-white/80 dark:bg-gray-800/80 px-0.5 rounded-br">
                         {cell.number}
                       </span>
                     )}
@@ -69,7 +68,7 @@ export const CrosswordGrid = ({
                       value={cell.userInput}
                       onChange={(e) => onInputChange(rowIndex, colIndex, e.target.value)}
                       onKeyDown={(e) => onKeyDown(rowIndex, colIndex, e)}
-                      className="w-full h-full border-none bg-transparent text-center text-lg font-bold p-0 focus:outline-none focus:ring-0 text-black dark:text-white"
+                      className="w-full h-full border-none bg-transparent text-center text-lg font-bold p-0 focus:outline-none focus:ring-0 text-black dark:text-white pt-3"
                       maxLength={1}
                       data-cell={`${rowIndex}-${colIndex}`}
                       readOnly={isMobile}
