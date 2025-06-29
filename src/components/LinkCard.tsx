@@ -1,6 +1,7 @@
 
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLinkClickLogger } from "@/hooks/useLinkClickLogger";
 
 interface LinkCardProps {
   title: string;
@@ -12,7 +13,13 @@ interface LinkCardProps {
 }
 
 export const LinkCard = ({ title, description, url, icon: Icon, color, delay = 0 }: LinkCardProps) => {
-  const handleClick = () => {
+  const { logClick } = useLinkClickLogger();
+
+  const handleClick = async () => {
+    // Log the click
+    await logClick(title, url);
+    
+    // Open the link
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 

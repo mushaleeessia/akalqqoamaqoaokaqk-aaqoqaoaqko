@@ -127,6 +127,33 @@ export type Database = {
           },
         ]
       }
+      link_clicks: {
+        Row: {
+          clicked_at: string
+          id: string
+          ip_address: string | null
+          link_title: string
+          link_url: string
+          user_agent: string | null
+        }
+        Insert: {
+          clicked_at?: string
+          id?: string
+          ip_address?: string | null
+          link_title: string
+          link_url: string
+          user_agent?: string | null
+        }
+        Update: {
+          clicked_at?: string
+          id?: string
+          ip_address?: string | null
+          link_title?: string
+          link_url?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -160,6 +187,16 @@ export type Database = {
       delete_user_account: {
         Args: { user_uuid: string }
         Returns: undefined
+      }
+      get_link_click_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          link_title: string
+          total_clicks: number
+          clicks_today: number
+          clicks_this_week: number
+          last_click: string
+        }[]
       }
       is_crossword_complete: {
         Args: { grid_data: Json; target_words: Json }

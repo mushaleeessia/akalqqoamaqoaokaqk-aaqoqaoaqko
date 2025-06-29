@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ProfileSection } from "@/components/ProfileSection";
 import { LinkCard } from "@/components/LinkCard";
@@ -8,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { HelpAssistant } from "@/components/HelpAssistant";
 import { TwitchEmbed } from "@/components/TwitchEmbed";
 import { MusicPlayer } from "@/components/MusicPlayer";
+import { StatsUpdater } from "@/components/StatsUpdater";
 import { Globe, MessageSquare, Video, Gamepad2, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -52,6 +52,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-red-950/40 to-gray-900 relative overflow-hidden">
+      {/* Stats Updater - componente invisível para atualizar estatísticas */}
+      <StatsUpdater />
+      
       {/* Header do Mush */}
       <Header 
         onLanguageChange={handleLanguageChange}
