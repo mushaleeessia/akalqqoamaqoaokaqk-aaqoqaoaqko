@@ -12,7 +12,7 @@ interface PlacedWord {
 }
 
 export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
-  const size = 15; // Reduzido para 15x15 para ter mais densidade
+  const size = 15;
   const words = getBalancedWords();
   
   // Inicializar grade vazia
@@ -41,16 +41,62 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
     if (direction === 'across' && col + len > size) return false;
     if (direction === 'down' && row + len > size) return false;
     
+    // Verificar se há espaço antes e depois da palavra (para evitar palavras muito grudadas)
+    if (direction === 'across') {
+      // Verificar célula antes
+      if (col > 0 && !grid[row][col - 1].isBlocked && grid[row][col - 1].letter !== '') return false;
+      // Verificar célula depois
+      if (col + len < size && !grid[row][col + len].isBlocked && grid[row][col + len].letter !== '') return false;
+    } else {
+      // Verificar célula antes
+      if (row > 0 && !grid[row - 1][col].isBlocked && grid[row - 1][col].letter !== '') return false;
+      // Verificar célula depois
+      if (row + len < size && !grid[row + len][col].isBlocked && grid[row + len][col].letter !== '') return false;
+    }
+    
     // Verificar conflitos e intersecções
+    let intersectionCount = 0;
     for (let i = 0; i < len; i++) {
       const currentRow = direction === 'across' ? row : row + i;
       const currentCol = direction === 'across' ? col + i : col;
       const currentCell = grid[currentRow][currentCol];
       
       // Se a célula já tem uma letra, deve ser a mesma
-      if (!currentCell.isBlocked && currentCell.letter !== '' && currentCell.letter !== word[i]) {
-        return false;
+      if (!currentCell.isBlocked && currentCell.letter !== '') {
+        if (currentCell.letter !== word[i]) {
+          return false;
+        }
+        intersectionCount++;
       }
+      
+      // Verificar células adjacentes para evitar letras soltas
+      const adjacentPositions = [
+        [currentRow - 1, currentCol], [currentRow + 1, currentCol],
+        [currentRow, currentCol - 1], [currentRow, currentCol + 1]
+      ];
+      
+      for (const [adjRow, adjCol] of adjacentPositions) {
+        if (adjRow >= 0 && adjRow < size && adjCol >= 0 && adjCol < size) {
+          const adjCell = grid[adjRow][adjCol];
+          if (!adjCell.isBlocked && adjCell.letter !== '') {
+            // Se é uma intersecção válida, ok
+            if ((direction === 'across' && (adjRow === row - 1 || adjRow === row + 1)) ||
+                (direction === 'down' && (adjCol === col - 1 || adjCol === col + 1))) {
+              // Só permitir se for exatamente no ponto de intersecção
+              const isIntersectionPoint = (direction === 'across' && adjCol === currentCol) ||
+                                        (direction === 'down' && adjRow === currentRow);
+              if (!isIntersectionPoint) {
+                return false;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // Para palavras que não a primeira, deve ter pelo menos uma intersecção
+    if (placedWords.length > 0 && intersectionCount === 0) {
+      return false;
     }
     
     return true;
@@ -146,18 +192,21 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
     placeWord(firstWord, startRow, startCol, 'across');
   }
 
-  // Tentar colocar as outras palavras
-  for (let i = 1; i < words.length && i < 12; i++) {
+  // Tentar colocar as outras palavras com mais tentativas e estratégia melhor
+  for (let i = 1; i < words.length && i < 20; i++) {
     const currentWord = words[i];
     let placed = false;
     
     // Tentar intersecções com palavras já colocadas
-    for (const placedWord of placedWords) {
+    const shuffledPlacedWords = [...placedWords].sort(() => 0.5 - Math.random());
+    
+    for (const placedWord of shuffledPlacedWords) {
       if (placed) break;
       
       const intersections = findIntersections(currentWord.word, placedWord);
+      const shuffledIntersections = intersections.sort(() => 0.5 - Math.random());
       
-      for (const intersection of intersections) {
+      for (const intersection of shuffledIntersections) {
         if (canPlaceWord(currentWord.word, intersection.row, intersection.col, intersection.direction)) {
           placeWord(currentWord, intersection.row, intersection.col, intersection.direction);
           placed = true;
@@ -166,12 +215,16 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
       }
     }
     
-    // Se não conseguiu intersecção, tentar colocar em posição livre
+    // Se não conseguiu intersecção, tentar colocar em posição livre com mais espaçamento
     if (!placed) {
-      for (let attempts = 0; attempts < 50 && !placed; attempts++) {
+      for (let attempts = 0; attempts < 100 && !placed; attempts++) {
         const direction = Math.random() < 0.5 ? 'across' : 'down';
-        const row = Math.floor(Math.random() * (size - (direction === 'down' ? currentWord.word.length : 0)));
-        const col = Math.floor(Math.random() * (size - (direction === 'across' ? currentWord.word.length : 0)));
+        const maxRow = size - (direction === 'down' ? currentWord.word.length : 0);
+        const maxCol = size - (direction === 'across' ? currentWord.word.length : 0);
+        
+        // Tentar posições mais espalhadas
+        const row = Math.floor(Math.random() * maxRow);
+        const col = Math.floor(Math.random() * maxCol);
         
         if (canPlaceWord(currentWord.word, row, col, direction)) {
           placeWord(currentWord, row, col, direction);

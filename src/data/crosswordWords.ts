@@ -18,6 +18,9 @@ export const CROSSWORD_WORDS: WordDefinition[] = [
   { word: 'RAIZ', clue: 'Parte subterrânea de uma planta', category: 'natureza' },
   { word: 'ORVALHO', clue: 'Gotas d\'água que se formam de manhã', category: 'natureza' },
   { word: 'RIO', clue: 'Curso natural de água', category: 'natureza' },
+  { word: 'SOL', clue: 'Estrela do nosso sistema solar', category: 'natureza' },
+  { word: 'FLOR', clue: 'Parte colorida da planta', category: 'natureza' },
+  { word: 'AGUA', clue: 'Líquido essencial para a vida', category: 'natureza' },
 
   // Ações
   { word: 'CORRER', clue: 'Mover-se rapidamente com os pés', category: 'acoes' },
@@ -54,6 +57,11 @@ export const CROSSWORD_WORDS: WordDefinition[] = [
   { word: 'FOGAO', clue: 'Usado para cozinhar', category: 'objetos' },
   { word: 'GELADEIRA', clue: 'Conserva alimentos frios', category: 'objetos' },
   { word: 'TELHADO', clue: 'Cobre a casa', category: 'objetos' },
+  { word: 'CASA', clue: 'Local onde moramos', category: 'objetos' },
+  { word: 'CARRO', clue: 'Veículo de quatro rodas', category: 'objetos' },
+  { word: 'PAPEL', clue: 'Material feito de celulose', category: 'objetos' },
+  { word: 'JANELA', clue: 'Abertura na parede para luz', category: 'objetos' },
+  { word: 'MESA', clue: 'Móvel com tampo horizontal', category: 'objetos' },
 
   // Cores
   { word: 'VERDE', clue: 'Cor da natureza', category: 'cores' },
@@ -101,27 +109,19 @@ export const CROSSWORD_WORDS: WordDefinition[] = [
   { word: 'LITORAL', clue: 'Região próxima ao mar', category: 'geografia' },
   { word: 'CONTINENTE', clue: 'Grande massa de terra', category: 'geografia' },
   { word: 'VULCAO', clue: 'Montanha que libera lava', category: 'geografia' },
-
-  // Palavras originais mantidas
   { word: 'BRASIL', clue: 'País onde ficam as Cataratas do Iguaçu', category: 'geografia' },
-  { word: 'CASA', clue: 'Local onde moramos', category: 'objetos' },
-  { word: 'SOL', clue: 'Estrela do nosso sistema solar', category: 'natureza' },
-  { word: 'FLOR', clue: 'Parte colorida da planta', category: 'natureza' },
-  { word: 'CARRO', clue: 'Veículo de quatro rodas', category: 'objetos' },
+
+  // Conceitos e outros
   { word: 'MUSICA', clue: 'Arte dos sons organizados', category: 'arte' },
-  { word: 'PAPEL', clue: 'Material feito de celulose', category: 'objetos' },
   { word: 'ESCOLA', clue: 'Local de ensino', category: 'lugares' },
   { word: 'TEMPO', clue: 'Duração dos acontecimentos', category: 'conceitos' },
-  { word: 'AGUA', clue: 'Líquido essencial para a vida', category: 'natureza' },
   { word: 'AMIGO', clue: 'Pessoa querida e próxima', category: 'relacionamentos' },
   { word: 'PONTE', clue: 'Estrutura que atravessa obstáculos', category: 'construcoes' },
-  { word: 'JANELA', clue: 'Abertura na parede para luz', category: 'objetos' },
-  { word: 'MESA', clue: 'Móvel com tampo horizontal', category: 'objetos' },
   { word: 'NOITE', clue: 'Período de escuridão', category: 'tempo' }
 ];
 
 // Função para obter palavras aleatórias
-export const getRandomWords = (count: number = 15): WordDefinition[] => {
+export const getRandomWords = (count: number = 20): WordDefinition[] => {
   const shuffled = [...CROSSWORD_WORDS].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, count);
 };
@@ -130,16 +130,16 @@ export const getRandomWords = (count: number = 15): WordDefinition[] => {
 export const getBalancedWords = (): WordDefinition[] => {
   const words = [...CROSSWORD_WORDS];
   
-  // Separar por tamanho
+  // Separar por tamanho para um mix melhor
   const short = words.filter(w => w.word.length <= 4);
   const medium = words.filter(w => w.word.length >= 5 && w.word.length <= 7);
   const long = words.filter(w => w.word.length >= 8);
   
-  // Selecionar um mix balanceado
+  // Selecionar um mix balanceado com mais palavras
   const selected = [
-    ...short.sort(() => 0.5 - Math.random()).slice(0, 4),
-    ...medium.sort(() => 0.5 - Math.random()).slice(0, 8),
-    ...long.sort(() => 0.5 - Math.random()).slice(0, 3)
+    ...short.sort(() => 0.5 - Math.random()).slice(0, 6),
+    ...medium.sort(() => 0.5 - Math.random()).slice(0, 12),
+    ...long.sort(() => 0.5 - Math.random()).slice(0, 4)
   ];
   
   return selected.sort(() => 0.5 - Math.random());
