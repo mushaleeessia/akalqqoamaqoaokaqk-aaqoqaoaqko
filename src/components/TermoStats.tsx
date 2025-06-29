@@ -154,6 +154,36 @@ export const TermoStats = ({ mode, isGuest = false }: TermoStatsProps) => {
 
   const winRate = stats.total_games > 0 ? Math.round((stats.total_wins / stats.total_games) * 100) : 0;
 
+  // Customizar layout para palavras cruzadas
+  if (mode === 'crossword') {
+    return (
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-6">
+        <h3 className="text-white text-lg font-semibold mb-4 text-center">
+          Estatísticas - {getModeLabel(mode)}
+          {isGuest && <span className="text-yellow-400 text-sm ml-2">(Modo Convidado)</span>}
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+          <div className="bg-blue-600/20 rounded-lg p-4">
+            <div className="text-3xl font-bold text-white">{stats.total_games}</div>
+            <div className="text-blue-200 text-sm mt-1">Jogos</div>
+          </div>
+          
+          <div className="bg-green-600/20 rounded-lg p-4">
+            <div className="text-3xl font-bold text-white">{winRate}%</div>
+            <div className="text-green-200 text-sm mt-1">Taxa de Vitória</div>
+          </div>
+          
+          <div className="bg-purple-600/20 rounded-lg p-4">
+            <div className="text-3xl font-bold text-white">{stats.total_wins}</div>
+            <div className="text-purple-200 text-sm mt-1">Vitórias</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Layout padrão para outros modos
   return (
     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 mb-6">
       <h3 className="text-white text-lg font-semibold mb-4 text-center">

@@ -15,16 +15,33 @@ export const CrosswordGameContainer = () => {
   const [selectedDirection, setSelectedDirection] = useState<'across' | 'down'>('across');
   const [isCompleted, setIsCompleted] = useState(false);
   const [completedWords, setCompletedWords] = useState<Set<string>>(new Set());
+  const [hasGameStarted, setHasGameStarted] = useState(false);
   
   const { user } = useAuth();
   const { isGuestMode } = useGuestMode();
   // Use "crossword" mode instead of "solo"
-  const { saveGameSession } = useSupabaseGameSession('crossword', []);
+  const { saveGameSession, sessionExists } = useSupabaseGameSession('crossword', []);
 
   useEffect(() => {
     const savedPuzzle = localStorage.getItem('crossword_puzzle');
+    const savedGameStarted = localStorage.getItem('crossword_game_started');
+    
     if (savedPuzzle) {
-      setPuzzle(JSON.parse(savedPuzzle));
+      const parsedPuzzle = JSON.parse(savedPuzzle);
+      setPuzzle(parsedPuzzle);
+      setHasGameStarted(savedGameStarted === 'true');
+      
+      // Check if game was already completed
+      const allCellsCorrect = parsedPuzzle.grid.every((row: CrosswordCell[]) =>
+        row.every((cell: CrosswordCell) => {
+          if (cell.isBlocked) return true;
+          return cell.userInput.toUpperCase() === cell.letter.toUpperCase();
+        })
+      );
+      
+      if (allCellsCorrect) {
+        setIsCompleted(true);
+      }
     } else {
       generateNewPuzzle();
     }
@@ -36,12 +53,13 @@ export const CrosswordGameContainer = () => {
     }
   }, [puzzle]);
 
+  // Only save game session when the game is actually completed
   useEffect(() => {
-    if (puzzle && user && !isGuestMode) {
+    if (puzzle && isCompleted && hasGameStarted && !sessionExists) {
       const completedCount = countCompletedWords(puzzle);
-      saveGameSession([completedCount.toString()], isCompleted);
+      saveGameSession([completedCount.toString()], true);
     }
-  }, [puzzle, user, isGuestMode, saveGameSession, isCompleted]);
+  }, [isCompleted, hasGameStarted, sessionExists]);
 
   const checkWordCompletion = (currentPuzzle: CrosswordPuzzle): Set<string> => {
     const completed = new Set<string>();
@@ -125,6 +143,11 @@ export const CrosswordGameContainer = () => {
     setSelectedCell(null);
     setIsCompleted(false);
     setCompletedWords(new Set());
+    setHasGameStarted(false);
+    
+    // Clear localStorage
+    localStorage.removeItem('crossword_puzzle');
+    localStorage.removeItem('crossword_game_started');
   };
 
   const handleCellClick = (row: number, col: number) => {
@@ -139,6 +162,12 @@ export const CrosswordGameContainer = () => {
 
   const handleInputChange = (row: number, col: number, value: string) => {
     if (!puzzle) return;
+    
+    // Mark game as started when first input is made
+    if (!hasGameStarted && value.trim() !== '') {
+      setHasGameStarted(true);
+      localStorage.setItem('crossword_game_started', 'true');
+    }
     
     const newGrid = [...puzzle.grid];
     newGrid[row][col] = { ...newGrid[row][col], userInput: value.toUpperCase() };
@@ -165,7 +194,7 @@ export const CrosswordGameContainer = () => {
       })
     );
     
-    if (allCellsCorrect) {
+    if (allCellsCorrect && !isCompleted) {
       setIsCompleted(true);
     }
   };
