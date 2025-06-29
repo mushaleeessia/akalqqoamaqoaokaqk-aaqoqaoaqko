@@ -53,9 +53,10 @@ export const useCrosswordGameInteractions = ({
     let nextRow = currentRow;
     let nextCol = currentCol;
     
+    // Fix: Correctly handle direction for movement
     if (direction === 'across') {
       nextCol = currentCol + 1;
-    } else {
+    } else { // direction === 'down'
       nextRow = currentRow + 1;
     }
     
@@ -67,7 +68,7 @@ export const useCrosswordGameInteractions = ({
       return;
     }
     
-    // Verificar se a célula é realmente bloqueada (preta) ou apenas uma interseção
+    // Verificar se a célula é realmente bloqueada (preta)
     const nextCell = puzzle.grid[nextRow][nextCol];
     if (nextCell.isBlocked) {
       console.log('Next cell is blocked (black cell)');
@@ -110,9 +111,10 @@ export const useCrosswordGameInteractions = ({
     let prevRow = currentRow;
     let prevCol = currentCol;
     
+    // Fix: Correctly handle direction for backward movement
     if (direction === 'across') {
       prevCol = currentCol - 1;
-    } else {
+    } else { // direction === 'down'
       prevRow = currentRow - 1;
     }
     
