@@ -42,6 +42,24 @@ export const useCrosswordGameInteractions = ({
     }
   };
 
+  const moveToNextCell = (currentRow: number, currentCol: number, direction: 'across' | 'down') => {
+    if (!puzzle) return;
+    
+    let nextRow = currentRow;
+    let nextCol = currentCol;
+    
+    if (direction === 'across') {
+      nextCol = currentCol + 1;
+    } else {
+      nextRow = currentRow + 1;
+    }
+    
+    // Verificar se a próxima célula está dentro dos limites e não é bloqueada
+    if (nextRow < puzzle.size && nextCol < puzzle.size && !puzzle.grid[nextRow][nextCol].isBlocked) {
+      setSelectedCell({ row: nextRow, col: nextCol });
+    }
+  };
+
   const handleInputChange = (row: number, col: number, value: string) => {
     if (!puzzle) return;
     
@@ -68,6 +86,11 @@ export const useCrosswordGameInteractions = ({
     const allCellsCorrect = checkCompletion(newPuzzle);
     if (allCellsCorrect && !isCompleted) {
       setIsCompleted(true);
+    }
+    
+    // Mover para a próxima célula se uma letra foi digitada
+    if (value.trim() !== '' && selectedCell) {
+      moveToNextCell(row, col, selectedDirection);
     }
   };
 
