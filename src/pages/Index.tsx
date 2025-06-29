@@ -8,7 +8,7 @@ import { Footer } from "@/components/Footer";
 import { HelpAssistant } from "@/components/HelpAssistant";
 import { TwitchEmbed } from "@/components/TwitchEmbed";
 import { MusicPlayer } from "@/components/MusicPlayer";
-import { Globe, MessageSquare, Video, Gamepad2 } from "lucide-react";
+import { Globe, MessageSquare, Video, Gamepad2, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -16,6 +16,13 @@ const Index = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const links = [
+    {
+      title: isEnglish ? "Does Alessia ban wrong or without reason?" : "A Alessia bane errado ou sem motivo?",
+      description: isEnglish ? "Check out the whole truth here" : "Confira aqui toda a verdade",
+      url: "https://forum.mush.com.br/topic/275986/denuncia-adm-aleeesia",
+      icon: HelpCircle,
+      color: "from-purple-900 to-purple-700"
+    },
     {
       title: isEnglish ? "My TikTok" : "Meu TikTok",
       description: isEnglish ? "Follow me @aleeessia_" : "Me segue @aleeessia_",
