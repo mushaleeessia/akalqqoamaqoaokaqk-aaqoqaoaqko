@@ -14,7 +14,7 @@ interface GameStats {
 }
 
 interface TermoStatsProps {
-  mode: GameMode;
+  mode: GameMode | 'crossword';
   isGuest?: boolean;
 }
 
@@ -119,14 +119,15 @@ export const TermoStats = ({ mode, isGuest = false }: TermoStatsProps) => {
     );
   }
 
-  const getModeLabel = (mode: GameMode): string => {
+  const getModeLabel = (mode: GameMode | 'crossword'): string => {
     const labels = {
       solo: 'Solo',
       duo: 'Duo',
       trio: 'Trio',
-      quarteto: 'Quarteto'
+      quarteto: 'Quarteto',
+      crossword: 'Palavras Cruzadas'
     };
-    return labels[mode];
+    return labels[mode] || mode;
   };
 
   // Mostrar mensagem quando não há estatísticas

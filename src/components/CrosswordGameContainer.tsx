@@ -18,7 +18,8 @@ export const CrosswordGameContainer = () => {
   
   const { user } = useAuth();
   const { isGuestMode } = useGuestMode();
-  const { saveGameSession } = useSupabaseGameSession('solo', []);
+  // Use "crossword" mode instead of "solo"
+  const { saveGameSession } = useSupabaseGameSession('crossword', []);
 
   useEffect(() => {
     const savedPuzzle = localStorage.getItem('crossword_puzzle');

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ChevronDown, Settings, LogOut, Trash2, BarChart3 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,7 @@ import { sendAccountDeletionToDiscord } from '@/utils/discordWebhook';
 
 interface UserDropdownProps {
   nickname: string;
-  currentMode: GameMode;
+  currentMode: GameMode | 'crossword';
 }
 
 export const UserDropdown = ({ nickname, currentMode }: UserDropdownProps) => {
@@ -111,7 +112,7 @@ export const UserDropdown = ({ nickname, currentMode }: UserDropdownProps) => {
             onClick={() => setShowDeleteDialog(true)}
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            Deletar conta
+            Deletear conta
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

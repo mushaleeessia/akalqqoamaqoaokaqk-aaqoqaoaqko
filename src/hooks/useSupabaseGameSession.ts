@@ -152,6 +152,7 @@ export const useSupabaseGameSession = (mode: GameMode | string, targetWords: str
           })
           .eq('id', existingStats.id);
       } else {
+        // Create new stats record for this game mode
         await supabase
           .from('game_stats')
           .insert({

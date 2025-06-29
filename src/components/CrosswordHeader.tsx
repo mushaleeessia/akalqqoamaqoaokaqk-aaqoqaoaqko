@@ -4,6 +4,8 @@ import { UserDropdown } from '@/components/UserDropdown';
 import { GuestModeDropdown } from '@/components/GuestModeDropdown';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGuestMode } from '@/hooks/useGuestMode';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CrosswordHeaderProps {
   completedWords: number;
@@ -13,6 +15,32 @@ interface CrosswordHeaderProps {
 export const CrosswordHeader = ({ completedWords, totalWords }: CrosswordHeaderProps) => {
   const { user } = useAuth();
   const { isGuestMode } = useGuestMode();
+  const [userProfile, setUserProfile] = useState<{ nickname: string } | null>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user && !isGuestMode) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('nickname')
+            .eq('id', user.id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching user profile:', error);
+            return;
+          }
+
+          setUserProfile(data);
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [user, isGuestMode]);
 
   return (
     <div className="flex justify-between items-center p-4 bg-black/20 backdrop-blur-sm">
@@ -27,8 +55,8 @@ export const CrosswordHeader = ({ completedWords, totalWords }: CrosswordHeaderP
         <ThemeSwitch />
         {user && !isGuestMode ? (
           <UserDropdown 
-            nickname={user.user_metadata?.nickname || user.email?.split('@')[0] || 'Usuário'} 
-            currentMode="solo"
+            nickname={userProfile?.nickname || user.user_metadata?.nickname || user.email?.split('@')[0] || 'Usuário'} 
+            currentMode="crossword"
           />
         ) : isGuestMode ? (
           <GuestModeDropdown />
