@@ -43,7 +43,12 @@ export const useCrosswordGameInteractions = ({
   };
 
   const moveToNextCell = (currentRow: number, currentCol: number, direction: 'across' | 'down') => {
-    if (!puzzle) return;
+    if (!puzzle) {
+      console.log('No puzzle available');
+      return;
+    }
+    
+    console.log(`Moving from (${currentRow}, ${currentCol}) in direction: ${direction}`);
     
     let nextRow = currentRow;
     let nextCol = currentCol;
@@ -54,14 +59,28 @@ export const useCrosswordGameInteractions = ({
       nextRow = currentRow + 1;
     }
     
-    // Verificar se a próxima célula está dentro dos limites e não é bloqueada
-    if (nextRow < puzzle.size && nextCol < puzzle.size && !puzzle.grid[nextRow][nextCol].isBlocked) {
-      setSelectedCell({ row: nextRow, col: nextCol });
+    console.log(`Next cell would be: (${nextRow}, ${nextCol})`);
+    
+    // Verificar limites
+    if (nextRow >= puzzle.size || nextCol >= puzzle.size) {
+      console.log('Next cell is out of bounds');
+      return;
     }
+    
+    // Verificar se não é bloqueada
+    if (puzzle.grid[nextRow][nextCol].isBlocked) {
+      console.log('Next cell is blocked');
+      return;
+    }
+    
+    console.log(`Moving to cell (${nextRow}, ${nextCol})`);
+    setSelectedCell({ row: nextRow, col: nextCol });
   };
 
   const handleInputChange = (row: number, col: number, value: string) => {
     if (!puzzle) return;
+    
+    console.log(`Input change at (${row}, ${col}): "${value}"`);
     
     // Mark game as started when first input is made
     if (!hasGameStarted && value.trim() !== '') {
@@ -89,8 +108,9 @@ export const useCrosswordGameInteractions = ({
     }
     
     // Mover para a próxima célula se uma letra foi digitada
-    if (value.trim() !== '' && selectedCell) {
-      moveToNextCell(row, col, selectedDirection);
+    if (value.trim() !== '' && selectedCell && value.length === 1) {
+      console.log(`Attempting to move from selected cell: (${selectedCell.row}, ${selectedCell.col}) in direction: ${selectedDirection}`);
+      moveToNextCell(selectedCell.row, selectedCell.col, selectedDirection);
     }
   };
 
