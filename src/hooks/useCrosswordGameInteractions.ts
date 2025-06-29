@@ -67,9 +67,20 @@ export const useCrosswordGameInteractions = ({
       return;
     }
     
-    // Verificar se não é bloqueada
-    if (puzzle.grid[nextRow][nextCol].isBlocked) {
-      console.log('Next cell is blocked');
+    // Verificar se a célula é realmente bloqueada (preta) ou apenas uma interseção
+    const nextCell = puzzle.grid[nextRow][nextCol];
+    if (nextCell.isBlocked) {
+      console.log('Next cell is blocked (black cell)');
+      return;
+    }
+    
+    // Verificar se a célula pertence à direção atual
+    const belongsToCurrentDirection = direction === 'across' 
+      ? nextCell.belongsToWords.across 
+      : nextCell.belongsToWords.down;
+    
+    if (!belongsToCurrentDirection) {
+      console.log(`Next cell doesn't belong to current ${direction} word`);
       return;
     }
     
