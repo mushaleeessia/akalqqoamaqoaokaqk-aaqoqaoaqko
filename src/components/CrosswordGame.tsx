@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +18,7 @@ export const CrosswordGame = () => {
 
   // Preparar dados para o sistema de sessão
   const targetWords = puzzle.clues.across.concat(puzzle.clues.down).map(clue => clue.answer);
-  const { saveGameSession, sessionExists, loading } = useSupabaseGameSession('cruzadas', targetWords);
+  const { saveGameSession, sessionExists, loading } = useSupabaseGameSession('solo' as any, targetWords);
 
   const resetGame = () => {
     const newPuzzle = generateCrosswordPuzzle();

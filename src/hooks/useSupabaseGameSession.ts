@@ -16,7 +16,7 @@ interface GameSession {
   completed_at: string;
 }
 
-export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) => {
+export const useSupabaseGameSession = (mode: GameMode | string, targetWords: string[]) => {
   const { user } = useAuth();
   const { isGuestMode, saveGuestGameSession, checkGuestSession } = useGuestMode();
   const [sessionExists, setSessionExists] = useState(false);
@@ -30,7 +30,7 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
 
   const checkExistingSession = async () => {
     if (isGuestMode) {
-      const guestSession = checkGuestSession(mode);
+      const guestSession = checkGuestSession(mode as GameMode);
       setSessionExists(!!guestSession);
       setLoading(false);
       return guestSession;
@@ -72,7 +72,7 @@ export const useSupabaseGameSession = (mode: GameMode, targetWords: string[]) =>
 
   const saveGameSession = async (guesses: string[], won: boolean) => {
     if (isGuestMode) {
-      saveGuestGameSession(mode, guesses, won);
+      saveGuestGameSession(mode as GameMode, guesses, won);
       setSessionExists(true);
       return;
     }
