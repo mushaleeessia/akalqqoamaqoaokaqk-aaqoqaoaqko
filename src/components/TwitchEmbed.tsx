@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { checkStreamStatus } from '@/services/twitchService';
 import { X } from 'lucide-react';
@@ -14,7 +13,7 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
   const [showingVOD, setShowingVOD] = useState(false);
 
   // Lista de streamers em ordem de prioridade
-  const twitchStreamers = ['mushmc', 'ffeijao', 'satturnni', 'nobriell'];
+  const twitchStreamers = ['mushmc', 'ffeijao', 'satturnni', 'excluikk', 'nobriell'];
 
   useEffect(() => {
     const checkStreams = async () => {
