@@ -1,3 +1,4 @@
+
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CrosswordPuzzle } from '@/types/crossword';
@@ -29,9 +30,34 @@ export const CrosswordGrid = ({
 }: CrosswordGridProps) => {
   const isMobile = useIsMobile();
 
+  // Calcular tamanho da célula baseado no tamanho do grid
+  const getCellSize = (gridSize: number) => {
+    if (gridSize <= 15) return 'w-12 h-12';
+    if (gridSize <= 19) return 'w-10 h-10';
+    if (gridSize <= 23) return 'w-8 h-8';
+    return 'w-7 h-7';
+  };
+
+  const getTextSize = (gridSize: number) => {
+    if (gridSize <= 15) return 'text-lg';
+    if (gridSize <= 19) return 'text-base';
+    if (gridSize <= 23) return 'text-sm';
+    return 'text-xs';
+  };
+
+  const getNumberSize = (gridSize: number) => {
+    if (gridSize <= 15) return 'text-xs';
+    if (gridSize <= 19) return 'text-[10px]';
+    return 'text-[8px]';
+  };
+
+  const cellSize = getCellSize(puzzle.size);
+  const textSize = getTextSize(puzzle.size);
+  const numberSize = getNumberSize(puzzle.size);
+
   return (
     <div className="flex-1 flex flex-col items-center space-y-6">
-      <div className="bg-white/10 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-8 border border-white/20 dark:border-gray-700">
+      <div className="bg-white/10 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-8 border border-white/20 dark:border-gray-700 max-w-full overflow-auto">
         <div 
           className="grid gap-1 mx-auto"
           style={{ 
@@ -44,7 +70,7 @@ export const CrosswordGrid = ({
               <div
                 key={`${rowIndex}-${colIndex}`}
                 className={`
-                  w-12 h-12 border-2 border-gray-400 dark:border-gray-600 relative cursor-pointer rounded-sm
+                  ${cellSize} border-2 border-gray-400 dark:border-gray-600 relative cursor-pointer rounded-sm
                   ${cell.isBlocked 
                     ? 'bg-black dark:bg-gray-900' 
                     : cell.isCorrect
@@ -60,7 +86,7 @@ export const CrosswordGrid = ({
                 {!cell.isBlocked && (
                   <>
                     {cell.number && (
-                      <span className="absolute top-0 left-0.5 text-xs font-bold leading-none text-black dark:text-white z-10 bg-white/80 dark:bg-gray-800/80 px-0.5 rounded-br">
+                      <span className={`absolute top-0 left-0.5 ${numberSize} font-bold leading-none text-black dark:text-white z-10 bg-white/80 dark:bg-gray-800/80 px-0.5 rounded-br`}>
                         {cell.number}
                       </span>
                     )}
@@ -68,7 +94,7 @@ export const CrosswordGrid = ({
                       value={cell.userInput}
                       onChange={(e) => onInputChange(rowIndex, colIndex, e.target.value)}
                       onKeyDown={(e) => onKeyDown(rowIndex, colIndex, e)}
-                      className="w-full h-full border-none bg-transparent text-center text-lg font-bold p-0 focus:outline-none focus:ring-0 text-black dark:text-white pt-3"
+                      className={`w-full h-full border-none bg-transparent text-center ${textSize} font-bold p-0 focus:outline-none focus:ring-0 text-black dark:text-white pt-3`}
                       maxLength={1}
                       data-cell={`${rowIndex}-${colIndex}`}
                       readOnly={isMobile}
@@ -83,6 +109,9 @@ export const CrosswordGrid = ({
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-300 dark:text-gray-400">
             Use as setas do teclado para se mover entre os espaços
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            Grade {puzzle.size}×{puzzle.size} • {puzzle.clues.across.length + puzzle.clues.down.length} palavras
           </p>
         </div>
         

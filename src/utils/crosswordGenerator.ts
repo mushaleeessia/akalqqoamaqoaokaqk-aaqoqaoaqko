@@ -6,10 +6,28 @@ import { placeWordOnGrid } from '@/utils/crosswordPlacement';
 import { findIntersections } from '@/utils/crosswordIntersection';
 import { canPlaceWord } from '@/utils/crosswordValidation';
 
-const GRID_SIZE = 15;
-const MAX_PLACEMENT_ATTEMPTS = 30;
+const MAX_PLACEMENT_ATTEMPTS = 50;
+
+// Configurações de dificuldade baseadas no número de palavras
+const DIFFICULTY_CONFIGS = [
+  { words: 10, gridSize: 15 },
+  { words: 12, gridSize: 17 },
+  { words: 14, gridSize: 19 },
+  { words: 15, gridSize: 19 },
+  { words: 18, gridSize: 21 },
+  { words: 19, gridSize: 21 },
+  { words: 20, gridSize: 23 },
+  { words: 25, gridSize: 25 }
+];
 
 export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
+  // Escolher configuração aleatória
+  const config = DIFFICULTY_CONFIGS[Math.floor(Math.random() * DIFFICULTY_CONFIGS.length)];
+  const GRID_SIZE = config.gridSize;
+  const TARGET_WORDS = config.words;
+  
+  console.log(`Generating puzzle with ${TARGET_WORDS} words on ${GRID_SIZE}x${GRID_SIZE} grid`);
+  
   const grid: CrosswordCell[][] = [];
   const placedWords: PlacedWord[] = [];
   const clues = { across: [] as CrosswordClue[], down: [] as CrosswordClue[] };
@@ -37,7 +55,7 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
   const centerRow = Math.floor(GRID_SIZE / 2);
   const startCol = Math.floor((GRID_SIZE - firstWord.word.length) / 2);
   
-  console.log(`Generating puzzle - placing first word: "${firstWord.word}" at [${centerRow}, ${startCol}]`);
+  console.log(`Placing first word: "${firstWord.word}" at [${centerRow}, ${startCol}]`);
   
   nextClueNumber = placeWordOnGrid(
     firstWord,
@@ -52,8 +70,10 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
 
   console.log(`After placing first word, nextClueNumber is now: ${nextClueNumber}`);
 
-  // Try to place remaining words
-  for (let i = 1; i < availableWords.length && placedWords.length < 10; i++) {
+  // Try to place remaining words with increased attempts for larger puzzles
+  const maxAttempts = Math.min(availableWords.length, TARGET_WORDS * 2);
+  
+  for (let i = 1; i < maxAttempts && placedWords.length < TARGET_WORDS; i++) {
     const wordDef = availableWords[i];
     let placed = false;
     let attempts = 0;
@@ -69,7 +89,7 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
       }
       
       if (allIntersections.length > 0) {
-        // Embaralhar as intersecções para variedade
+        // Shuffle intersections for variety
         const shuffledIntersections = allIntersections.sort(() => Math.random() - 0.5);
         
         for (const intersection of shuffledIntersections) {
@@ -92,6 +112,11 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
         }
       }
     }
+    
+    // Se não conseguiu colocar uma palavra após muitas tentativas, pular para a próxima
+    if (!placed) {
+      console.log(`Could not place word: "${wordDef.word}" after ${MAX_PLACEMENT_ATTEMPTS} attempts`);
+    }
   }
 
   // Block all remaining cells that don't belong to any word
@@ -107,15 +132,7 @@ export const generateCrosswordPuzzle = (): CrosswordPuzzle => {
   clues.across.sort((a, b) => a.number - b.number);
   clues.down.sort((a, b) => a.number - b.number);
 
-  console.log('Final grid numbers check:');
-  for (let i = 0; i < GRID_SIZE; i++) {
-    for (let j = 0; j < GRID_SIZE; j++) {
-      if (grid[i][j].number) {
-        console.log(`Grid[${i}][${j}].number = ${grid[i][j].number}`);
-      }
-    }
-  }
-
+  console.log(`Final puzzle stats: ${placedWords.length} words placed on ${GRID_SIZE}x${GRID_SIZE} grid`);
   console.log('Final clues:', {
     across: clues.across.map(c => `${c.number}: ${c.clue}`),
     down: clues.down.map(c => `${c.number}: ${c.clue}`)
