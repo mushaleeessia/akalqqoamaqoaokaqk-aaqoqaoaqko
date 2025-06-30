@@ -199,72 +199,93 @@ const Index = () => {
         </div>
          
         <div className="space-y-4">
-          {links.map((link, index) => (
+          {/* Renderizar apenas o primeiro link */}
+          <LinkCard 
+            key={0} 
+            title={links[0].title} 
+            description={links[0].description} 
+            url={links[0].url} 
+            icon={links[0].icon} 
+            color={links[0].color} 
+            delay={0} 
+          />
+          
+          {/* Renderizar o segundo link (TikTok) */}
+          <LinkCard 
+            key={1} 
+            title={links[1].title} 
+            description={links[1].description} 
+            url={links[1].url} 
+            icon={links[1].icon} 
+            color={links[1].color} 
+            delay={100} 
+          />
+          
+          {/* Botão especial do Discord do clan [ITALIAN] - logo após o TikTok */}
+          <div 
+            className="animate-fade-in cursor-pointer group"
+            style={{ animationDelay: `200ms` }}
+            onClick={handleDiscordClick}
+          >
+            <div className="relative overflow-hidden rounded-xl bg-gray-900/70 backdrop-blur-sm border-2 border-red-600/50 hover:border-white/70 transition-all duration-300 hover:shadow-2xl hover:shadow-red-500/30 hover:-translate-y-2 transform">
+              {/* Gradiente de fundo especial inspirado na bandeira italiana */}
+              <div className="absolute inset-0 bg-gradient-to-r from-red-600/30 via-white/20 to-red-600/30 opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
+              
+              {/* Efeito de brilho adicional */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="relative p-6 flex items-center space-x-4">
+                {/* Ícone customizado com imagem cobrindo toda a área */}
+                <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-gradient-to-br from-red-600 via-white to-red-600 flex items-center justify-center shadow-lg relative overflow-hidden">
+                  <img 
+                    src="https://cdn.discordapp.com/icons/1321583518081355837/fb0af693fd6c5e2c6790138903c67423.png?size=2048" 
+                    alt="Discord Icon" 
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                  {/* Brilho no ícone */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                </div>
+                
+                {/* Conteúdo */}
+                <div className="flex-grow min-w-0">
+                  <h3 className="text-white font-bold text-lg group-hover:text-red-200 transition-colors duration-300">
+                    Discord do clan <span className="text-purple-400 font-extrabold">[ITALIAN]</span>
+                  </h3>
+                  <p className="text-gray-300 text-sm group-hover:text-gray-200 transition-colors duration-300">
+                    Discord do clan e vendas de VIPS baratos
+                  </p>
+                </div>
+                
+                {/* Seta indicadora especial */}
+                <div className="flex-shrink-0 text-red-400 group-hover:text-white group-hover:translate-x-2 transition-all duration-300 transform group-hover:scale-110">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+              
+              {/* Efeito shimmer especial */}
+              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1200 bg-gradient-to-r from-transparent via-red-400/20 to-transparent skew-x-12"></div>
+              
+              {/* Partículas decorativas */}
+              <div className="absolute top-2 right-3 w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse opacity-70" />
+              <div className="absolute bottom-3 left-4 w-1 h-1 bg-white rounded-full animate-pulse delay-300 opacity-80" />
+              <div className="absolute top-4 left-16 w-1 h-1 bg-purple-400 rounded-full animate-pulse delay-600 opacity-60" />
+            </div>
+          </div>
+          
+          {/* Renderizar os links restantes */}
+          {links.slice(2).map((link, index) => (
             <LinkCard 
-              key={index} 
+              key={index + 2} 
               title={link.title} 
               description={link.description} 
               url={link.url} 
               icon={link.icon} 
               color={link.color} 
-              delay={index * 100} 
+              delay={(index + 3) * 100} 
             />
           ))}
-          
-          {/* Botão especial do Discord do clan [ITALIAN] - posicionado após o TikTok */}
-          {links.findIndex(link => link.url.includes('tiktok')) === 1 && (
-            <div 
-              className="animate-fade-in cursor-pointer group"
-              style={{ animationDelay: `${(1 + 1) * 100}ms` }}
-              onClick={handleDiscordClick}
-            >
-              <div className="relative overflow-hidden rounded-xl bg-gray-900/70 backdrop-blur-sm border-2 border-red-600/50 hover:border-white/70 transition-all duration-300 hover:shadow-2xl hover:shadow-red-500/30 hover:-translate-y-2 transform">
-                {/* Gradiente de fundo especial inspirado na bandeira italiana */}
-                <div className="absolute inset-0 bg-gradient-to-r from-red-600/30 via-white/20 to-red-600/30 opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                
-                {/* Efeito de brilho adicional */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                <div className="relative p-6 flex items-center space-x-4">
-                  {/* Ícone customizado */}
-                  <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-gradient-to-br from-red-600 via-white to-red-600 flex items-center justify-center shadow-lg relative overflow-hidden">
-                    <img 
-                      src="https://cdn.discordapp.com/icons/1321583518081355837/fb0af693fd6c5e2c6790138903c67423.png?size=2048" 
-                      alt="Discord Icon" 
-                      className="w-8 h-8 rounded-sm"
-                    />
-                    {/* Brilho no ícone */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                  </div>
-                  
-                  {/* Conteúdo */}
-                  <div className="flex-grow min-w-0">
-                    <h3 className="text-white font-bold text-lg group-hover:text-red-200 transition-colors duration-300">
-                      Discord do clan <span className="text-purple-400 font-extrabold">[ITALIAN]</span>
-                    </h3>
-                    <p className="text-gray-300 text-sm group-hover:text-gray-200 transition-colors duration-300">
-                      Discord do clan e vendas de VIPS baratos
-                    </p>
-                  </div>
-                  
-                  {/* Seta indicadora especial */}
-                  <div className="flex-shrink-0 text-red-400 group-hover:text-white group-hover:translate-x-2 transition-all duration-300 transform group-hover:scale-110">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
-                
-                {/* Efeito shimmer especial */}
-                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1200 bg-gradient-to-r from-transparent via-red-400/20 to-transparent skew-x-12"></div>
-                
-                {/* Partículas decorativas */}
-                <div className="absolute top-2 right-3 w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse opacity-70" />
-                <div className="absolute bottom-3 left-4 w-1 h-1 bg-white rounded-full animate-pulse delay-300 opacity-80" />
-                <div className="absolute top-4 left-16 w-1 h-1 bg-purple-400 rounded-full animate-pulse delay-600 opacity-60" />
-              </div>
-            </div>
-          )}
         </div>
 
         <BlogSection isEnglish={isEnglish} />
