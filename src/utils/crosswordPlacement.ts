@@ -16,9 +16,16 @@ export const placeWordOnGrid = (
   
   console.log(`placeWordOnGrid: Placing "${word}" at [${row}, ${col}] with number ${clueNumber}`);
   
-  // SEMPRE colocar o número na primeira célula - GARANTIR que seja definido
-  grid[row][col].number = clueNumber;
-  console.log(`FORCED number ${clueNumber} at position [${row}, ${col}]`);
+  // Verificar se a célula inicial já tem um número
+  // Se não tiver, atribuir o número atual
+  if (!grid[row][col].number) {
+    grid[row][col].number = clueNumber;
+    console.log(`Assigned number ${clueNumber} to cell [${row}, ${col}]`);
+  } else {
+    console.log(`Cell [${row}, ${col}] already has number ${grid[row][col].number}, using existing number`);
+    // Se já tem número, usar o número existente para esta palavra
+    clueNumber = grid[row][col].number;
+  }
   
   // Marcar células como não bloqueadas e colocar as letras
   for (let i = 0; i < word.length; i++) {
@@ -78,7 +85,30 @@ export const placeWordOnGrid = (
   }
   
   console.log(`placeWordOnGrid: Successfully placed "${word}" with number ${clueNumber}`);
-  console.log(`Grid cell [${row}][${col}] number is now:`, grid[row][col].number);
   
-  return clueNumber + 1;
+  // Retornar o próximo número disponível apenas se criamos um novo número
+  // Se reutilizamos um número existente, incrementar para o próximo
+  if (grid[row][col].number === clueNumber) {
+    return clueNumber + 1;
+  } else {
+    // Encontrar o próximo número disponível
+    let nextNumber = 1;
+    const usedNumbers = new Set<number>();
+    
+    // Coletar todos os números já usados
+    for (let i = 0; i < grid.length; i++) {
+      for (let j = 0; j < grid[i].length; j++) {
+        if (grid[i][j].number) {
+          usedNumbers.add(grid[i][j].number);
+        }
+      }
+    }
+    
+    // Encontrar o próximo número não usado
+    while (usedNumbers.has(nextNumber)) {
+      nextNumber++;
+    }
+    
+    return nextNumber;
+  }
 };
