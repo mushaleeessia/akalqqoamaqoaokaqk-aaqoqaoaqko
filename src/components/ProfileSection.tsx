@@ -17,8 +17,8 @@ export const ProfileSection = ({ isEnglish }: ProfileSectionProps) => {
     const newClickCount = clickCount + 1;
     setClickCount(newClickCount);
 
-    // Fecha o site após 100 cliques
-    if (newClickCount >= 100) {
+    // Fecha o site após 200 cliques
+    if (newClickCount >= 200) {
       window.close();
       return;
     }
