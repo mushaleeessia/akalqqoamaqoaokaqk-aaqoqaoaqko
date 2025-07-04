@@ -31,7 +31,7 @@ export const useInfinityMode = () => {
 	    'salgado', 'quente', 'gelado', 'areia', 'canto', 'meios', 'salto', 'ruido',
         'brisa', 'fases', 'janela', 'cidade', 'sabado', 'viagem', 'noivos', 'flores', 'folhas',
 	    'familia', 'memoria', 'sorriso', 'amizade', 'alegria', 'crianca',
-	    'leitura', 'vitoria'
+	    'leitura', 'vitoria', 'aureo', 'furia', 'aguas', 'mushmc', 'feijaoo', 'mariaum'
       ];
 
       // Gerar um índice aleatório baseado no timestamp para garantir aleatoriedade
