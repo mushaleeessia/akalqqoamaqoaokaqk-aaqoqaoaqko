@@ -30,43 +30,7 @@ const fetchWithTimeout = async (url: string, timeoutMs = 2000): Promise<Response
   }
 };
 
-// API 1: Priberam Dictionary (mais confiável)
-const validateWithPriberam = async (word: string): Promise<boolean> => {
-  try {
-    const response = await fetchWithTimeout(
-      `https://dicionario.priberam.org/${encodeURIComponent(word)}`, 
-      2000
-    );
-    
-    if (response.ok) {
-      const html = await response.text();
-      // Se encontrar o padrão de definição, a palavra existe
-      return html.includes('class="definicao"') || html.includes('class="pb"');
-    }
-  } catch (error) {
-    // Silently fail
-  }
-  return false;
-};
-
-// API 2: Michaelis UOL (confiável)
-const validateWithMichaelis = async (word: string): Promise<boolean> => {
-  try {
-    const response = await fetchWithTimeout(
-      `https://michaelis.uol.com.br/busca?id=${encodeURIComponent(word)}`, 
-      2000
-    );
-    
-    if (response.ok) {
-      const html = await response.text();
-      // Se não redirecionou para página de "não encontrado"
-      return !html.includes('Ops! Não encontramos') && html.includes('verbete');
-    }
-  } catch (error) {
-    // Silently fail
-  }
-  return false;
-};
+// Removidas APIs externas que causam problemas de CORS - usando apenas base expandida e confiável
 
 // API 3: Base expandida de palavras portuguesas conhecidas (fallback mais robusto)
 const validateWithExtendedDatabase = async (word: string): Promise<boolean> => {
@@ -142,13 +106,23 @@ const validateWithExtendedDatabase = async (word: string): Promise<boolean> => {
     'rio', 'lago', 'lagoa', 'mar', 'oceano', 'praia', 'areia', 'rocha', 'pedra', 'terra', 'solo',
     'ceu', 'nuvem', 'chuva', 'neve', 'gelo', 'sol', 'lua', 'estrela', 'planeta', 'universo', 'vento',
     
-    // Palavras específicas do jogo (50+)
+    // Palavras específicas do jogo e palavras de 6+ letras (100+)
     'termo', 'navio', 'patos', 'gatos', 'caes', 'peixes', 'velas', 'rodas', 'telas', 'casas', 'lapis',
     'regua', 'mesa', 'cadeira', 'poltrona', 'sofa', 'cama', 'travesseiro', 'cobertor', 'lencol', 'toalha',
     'prato', 'copo', 'xicara', 'garfo', 'faca', 'colher', 'panela', 'frigideira', 'geladeira', 'fogao',
+    'escola', 'amigo', 'sonho', 'espaco', 'musica', 'dentes', 'cabeca', 'cabelo', 'rosto', 'sorriso',
+    'feliz', 'triste', 'bravo', 'calmo', 'doce', 'salgado', 'quente', 'gelado', 'areia', 'canto',
+    'meios', 'salto', 'ruido', 'brisa', 'fases', 'janela', 'cidade', 'sabado', 'viagem', 'noivos',
+    'flores', 'folhas', 'familia', 'memoria', 'sorriso', 'amizade', 'alegria', 'crianca', 'leitura',
+    'vitoria', 'pessoa', 'pessoas', 'criancas', 'menino', 'menina', 'senhor', 'senhora', 'jovem',
+    'adulto', 'velho', 'idoso', 'bebê', 'nenem', 'garoto', 'garota', 'rapaz', 'moca', 'mulher',
     
     // Cores (todas as variações)
-    'cor', 'cores', 'colorido', 'colorida', 'roxo', 'rosa', 'marrom', 'cinza', 'amarelo', 'laranja'
+    'cor', 'cores', 'colorido', 'colorida', 'roxo', 'rosa', 'marrom', 'cinza', 'amarelo', 'laranja',
+    
+    // Palavras importantes que estavam sendo rejeitadas incorretamente
+    'brasil', 'cidade', 'escola', 'igreja', 'predio', 'apartamento', 'elevador', 'escada', 'janela',
+    'cortina', 'espelho', 'quadro', 'parede', 'teto', 'chao', 'tapete', 'almofada', 'plantas', 'vasos'
   ];
   
   const normalized = normalizeWord(word);
@@ -175,7 +149,7 @@ const validateWithPatterns = async (word: string): Promise<boolean> => {
   return passesPositive && passesNegative && word.length >= 3 && word.length <= 12;
 };
 
-// Função principal que usa todas as APIs melhoradas
+// Função principal que usa apenas a base expandida (sem APIs externas problemáticas)
 export const validateWithMultipleAPIs = async (word: string): Promise<{ isValid: boolean; source: string }> => {
   const normalized = normalizeWord(word);
   
@@ -184,7 +158,7 @@ export const validateWithMultipleAPIs = async (word: string): Promise<{ isValid:
     return wordCache.get(normalized)!;
   }
 
-  // 1. Primeiro testar a base expandida (instantâneo e confiável)
+  // APENAS validar contra a base expandida - sem padrões permissivos
   const databaseResult = await validateWithExtendedDatabase(word);
   if (databaseResult) {
     const result = { isValid: true, source: 'Base Expandida PT-BR' };
@@ -192,46 +166,8 @@ export const validateWithMultipleAPIs = async (word: string): Promise<{ isValid:
     return result;
   }
 
-  // 2. Testar APIs externas em paralelo (apenas para palavras não encontradas na base)
-  const validationPromises = [
-    validateWithPriberam(word).then(valid => ({ valid, source: 'Priberam' })).catch(() => ({ valid: false, source: 'Priberam (erro)' })),
-    validateWithMichaelis(word).then(valid => ({ valid, source: 'Michaelis' })).catch(() => ({ valid: false, source: 'Michaelis (erro)' })),
-  ];
-
-  try {
-    // Aguardar APIs externas com timeout mais curto
-    const results = await Promise.allSettled(validationPromises);
-    
-    // Se pelo menos uma API externa validar, considerar válida
-    for (const result of results) {
-      if (result.status === 'fulfilled' && result.value.valid) {
-        const validResult = { isValid: true, source: result.value.source };
-        wordCache.set(normalized, validResult);
-        return validResult;
-      }
-    }
-    
-    // 3. Último recurso: validação por padrões
-    const patternResult = await validateWithPatterns(word);
-    if (patternResult) {
-      const result = { isValid: true, source: 'Padrões PT-BR' };
-      wordCache.set(normalized, result);
-      return result;
-    }
-    
-    // Palavra não encontrada em nenhuma fonte
-    const invalidResult = { isValid: false, source: 'Não encontrada' };
-    wordCache.set(normalized, invalidResult);
-    return invalidResult;
-    
-  } catch (error) {
-    // Em caso de erro total, usar padrões
-    const patternResult = await validateWithPatterns(word);
-    const result = { 
-      isValid: patternResult, 
-      source: patternResult ? 'Padrões PT-BR (Fallback)' : 'Erro total' 
-    };
-    wordCache.set(normalized, result);
-    return result;
-  }
+  // Se não está na base, é inválida (mais rigoroso)
+  const invalidResult = { isValid: false, source: 'Palavra não encontrada na base' };
+  wordCache.set(normalized, invalidResult);
+  return invalidResult;
 };
