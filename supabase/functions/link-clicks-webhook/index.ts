@@ -78,23 +78,54 @@ serve(async (req) => {
       });
 
     } else if (type === 'self_update_message') {
-      // Update self-updating message with total clicks
+      // Update self-updating message with organized statistics
       const { stats } = data;
       console.log('Atualizando mensagem auto-editável:', stats);
       
-      let description = "📊 **Contador de Cliques nos Links**\n\n";
-      let totalClicks = 0;
+      let description = "📊 **Estatísticas de Cliques - aleeessia.com**\n\n";
       
       if (stats.length === 0) {
         description += "Nenhum clique registrado ainda.";
       } else {
+        // Calcular totais
+        let totalGeral = 0;
+        let totalHoje = 0;
+        let totalSemana = 0;
+        let totalMes = 0;
+
         stats.forEach((stat: any) => {
-          totalClicks += stat.total_clicks;
-          description += `**🔗 ${stat.link_title}**\n`;
-          description += `└ Total: ${stat.total_clicks} cliques\n\n`;
+          totalGeral += stat.total_clicks;
+          totalHoje += stat.clicks_today;
+          totalSemana += stat.clicks_this_week;
+          totalMes += stat.clicks_this_month;
         });
-        
-        description = `📊 **Total Geral: ${totalClicks} cliques**\n\n` + description;
+
+        // Seção de Cliques Totais
+        description += `🔢 **Cliques Totais: ${totalGeral}**\n`;
+        stats.forEach((stat: any) => {
+          description += `└ ${stat.link_title}: ${stat.total_clicks}\n`;
+        });
+        description += "\n";
+
+        // Seção de Cliques Mensais
+        description += `📅 **Cliques Mensais: ${totalMes}**\n`;
+        stats.forEach((stat: any) => {
+          description += `└ ${stat.link_title}: ${stat.clicks_this_month}\n`;
+        });
+        description += "\n";
+
+        // Seção de Cliques Semanais
+        description += `📆 **Cliques Semanais: ${totalSemana}**\n`;
+        stats.forEach((stat: any) => {
+          description += `└ ${stat.link_title}: ${stat.clicks_this_week}\n`;
+        });
+        description += "\n";
+
+        // Seção de Cliques Diários
+        description += `📊 **Cliques Diários: ${totalHoje}**\n`;
+        stats.forEach((stat: any) => {
+          description += `└ ${stat.link_title}: ${stat.clicks_today}\n`;
+        });
       }
 
       const embed: DiscordEmbed = {
@@ -118,8 +149,9 @@ serve(async (req) => {
         throw new Error('Discord self-update webhook URL not configured');
       }
 
-      // Edit the existing message
-      const response = await fetch(DISCORD_SELFUPDATE_WEBHOOK, {
+      // Tentar editar a mensagem existente primeiro (PATCH)
+      console.log('Tentando editar mensagem existente...');
+      let response = await fetch(DISCORD_SELFUPDATE_WEBHOOK, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -127,12 +159,24 @@ serve(async (req) => {
         body: JSON.stringify(payload),
       });
 
+      // Se falhar (mensagem não existe), criar uma nova (POST)
       if (!response.ok) {
-        console.error('Erro ao atualizar mensagem auto-editável:', response.status, await response.text());
+        console.log('Mensagem não existe, criando nova...');
+        response = await fetch(DISCORD_SELFUPDATE_WEBHOOK, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      if (!response.ok) {
+        console.error('Erro ao atualizar/criar mensagem:', response.status, await response.text());
         throw new Error(`Discord self-update message failed: ${response.status}`);
       }
 
-      console.log('Mensagem auto-editável atualizada com sucesso');
+      console.log('Mensagem atualizada/criada com sucesso');
 
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
