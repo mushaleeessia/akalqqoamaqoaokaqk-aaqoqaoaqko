@@ -28,7 +28,7 @@ export const TermoKeyboard = ({ onKeyPress, keyStates, isDarkMode, disabled = fa
     const colorClass = isDarkMode
       ? (state === 'correct' ? 'bg-green-600 text-white' :
          state === 'present' ? 'bg-yellow-600 text-white' :
-         state === 'absent' ? 'bg-gray-200 text-white' :
+         state === 'absent' ? 'bg-gray-300 text-white' :
          'bg-gray-600 text-white hover:bg-gray-500')
       : (state === 'correct' ? 'bg-green-500 text-white' :
          state === 'present' ? 'bg-yellow-500 text-white' :
