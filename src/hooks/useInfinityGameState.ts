@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
 import { useGameStateManager } from "./useGameStateManager";
 import { useGameKeyboardHandler } from "./useGameKeyboardHandler";
@@ -19,17 +19,73 @@ export const useInfinityGameState = (targetWord: string) => {
   
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
-  const [winstreak, setWinstreak] = useState(0);
-
-  // Estado específico para infinity, não usa sessionInfo do Solo
-  const [gameState, setGameState] = useState<GameState>({
-    guesses: [],
-    currentGuess: '',
-    gameStatus: 'playing',
-    currentRow: 0
+  const [winstreak, setWinstreak] = useState(() => {
+    const saved = localStorage.getItem('termo-infinity-winstreak');
+    return saved ? parseInt(saved, 10) : 0;
   });
 
-  const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
+  // Estado específico para infinity, carrega do localStorage se disponível
+  const [gameState, setGameState] = useState<GameState>(() => {
+    const savedState = localStorage.getItem('termo-infinity-game-state');
+    const savedWord = localStorage.getItem('termo-infinity-word');
+    
+    if (savedState && savedWord) {
+      try {
+        const parsedState = JSON.parse(savedState);
+        const parsedWordData = JSON.parse(savedWord);
+        
+        // Só restaura se for a mesma palavra
+        if (parsedWordData.word === targetWord) {
+          return parsedState;
+        }
+      } catch (error) {
+        console.error('Erro ao carregar estado do infinity:', error);
+      }
+    }
+    
+    return {
+      guesses: [],
+      currentGuess: '',
+      gameStatus: 'playing',
+      currentRow: 0
+    };
+  });
+
+  const [keyStates, setKeyStates] = useState<Record<string, LetterState>>(() => {
+    const savedKeys = localStorage.getItem('termo-infinity-key-states');
+    const savedWord = localStorage.getItem('termo-infinity-word');
+    
+    if (savedKeys && savedWord) {
+      try {
+        const parsedKeys = JSON.parse(savedKeys);
+        const parsedWordData = JSON.parse(savedWord);
+        
+        // Só restaura se for a mesma palavra
+        if (parsedWordData.word === targetWord) {
+          return parsedKeys;
+        }
+      } catch (error) {
+        console.error('Erro ao carregar estados das teclas do infinity:', error);
+      }
+    }
+    
+    return {};
+  });
+
+  // Salvar estado do jogo automaticamente
+  useEffect(() => {
+    localStorage.setItem('termo-infinity-game-state', JSON.stringify(gameState));
+  }, [gameState]);
+
+  // Salvar estados das teclas automaticamente
+  useEffect(() => {
+    localStorage.setItem('termo-infinity-key-states', JSON.stringify(keyStates));
+  }, [keyStates]);
+
+  // Salvar winstreak automaticamente
+  useEffect(() => {
+    localStorage.setItem('termo-infinity-winstreak', winstreak.toString());
+  }, [winstreak]);
 
   const { handleKeyPress } = useGameKeyboardHandler({
     gameState,

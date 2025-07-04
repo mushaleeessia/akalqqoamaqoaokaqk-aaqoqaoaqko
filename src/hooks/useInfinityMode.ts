@@ -83,7 +83,9 @@ export const useInfinityMode = () => {
 
   const clearInfinityData = useCallback(() => {
     localStorage.removeItem('termo-infinity-word');
-    // NÃO remover dados de sessão que podem conflitar com Solo
+    localStorage.removeItem('termo-infinity-game-state');
+    localStorage.removeItem('termo-infinity-key-states');
+    // NÃO remover winstreak para manter sequência entre jogos
     setCurrentWord('');
   }, []);
 
