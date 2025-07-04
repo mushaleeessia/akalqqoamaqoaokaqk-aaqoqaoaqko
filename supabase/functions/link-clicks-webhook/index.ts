@@ -32,9 +32,9 @@ serve(async (req) => {
     console.log('Tipo de webhook:', type, 'Dados:', data);
 
     if (type === 'click_log') {
-      // Log individual click - versão simplificada
+      // Log individual click
       const { linkTitle, linkUrl } = data;
-      console.log('Processando clique:', linkTitle, linkUrl);
+      console.log('Processando clique individual:', linkTitle, linkUrl);
       
       const embed: DiscordEmbed = {
         title: "🔗 Link Clicado",
@@ -57,7 +57,7 @@ serve(async (req) => {
         throw new Error('Discord clicks webhook URL not configured');
       }
 
-      console.log('Enviando para Discord...');
+      console.log('Enviando clique individual para Discord...');
       const response = await fetch(DISCORD_CLICKS_WEBHOOK, {
         method: 'POST',
         headers: {
@@ -67,11 +67,13 @@ serve(async (req) => {
       });
 
       if (!response.ok) {
-        console.error('Erro ao enviar para Discord:', response.status, await response.text());
-        throw new Error(`Discord webhook failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Erro ao enviar clique para Discord:', response.status, errorText);
+        throw new Error(`Discord webhook failed: ${response.status} - ${errorText}`);
       }
 
-      console.log('Mensagem enviada para Discord com sucesso');
+      const responseText = await response.text();
+      console.log('Clique enviado para Discord com sucesso:', responseText);
 
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -161,7 +163,7 @@ serve(async (req) => {
 
       // Se falhar (mensagem não existe), criar uma nova (POST)
       if (!response.ok) {
-        console.log('Mensagem não existe, criando nova...');
+        console.log('Mensagem não existe ou erro ao editar, criando nova...');
         response = await fetch(DISCORD_SELFUPDATE_WEBHOOK, {
           method: 'POST',
           headers: {
@@ -172,11 +174,13 @@ serve(async (req) => {
       }
 
       if (!response.ok) {
-        console.error('Erro ao atualizar/criar mensagem:', response.status, await response.text());
-        throw new Error(`Discord self-update message failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Erro ao atualizar/criar mensagem:', response.status, errorText);
+        throw new Error(`Discord self-update message failed: ${response.status} - ${errorText}`);
       }
 
-      console.log('Mensagem atualizada/criada com sucesso');
+      const responseText = await response.text();
+      console.log('Mensagem auto-editável atualizada/criada com sucesso:', responseText);
 
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -185,7 +189,7 @@ serve(async (req) => {
     } else if (type === 'stats_update') {
       // Update static stats message (existing functionality)
       const { stats } = data;
-      console.log('Atualizando estatísticas:', stats);
+      console.log('Atualizando estatísticas estáticas:', stats);
       
       let description = "📊 **Estatísticas de Cliques nos Links**\n\n";
       
@@ -230,11 +234,13 @@ serve(async (req) => {
       });
 
       if (!response.ok) {
-        console.error('Erro ao atualizar mensagem estática:', response.status, await response.text());
-        throw new Error(`Discord static message update failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Erro ao atualizar mensagem estática:', response.status, errorText);
+        throw new Error(`Discord static message update failed: ${response.status} - ${errorText}`);
       }
 
-      console.log('Mensagem estática atualizada com sucesso');
+      const responseText = await response.text();
+      console.log('Mensagem estática atualizada com sucesso:', responseText);
 
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

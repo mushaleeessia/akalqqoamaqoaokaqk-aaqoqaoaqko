@@ -34,9 +34,28 @@ export const useLinkClickLogger = () => {
         return;
       }
 
-      console.log('Clique inserido no banco com sucesso, atualizando mensagem estática...');
+      console.log('Clique inserido no banco com sucesso');
 
-      // Atualizar mensagem estática automaticamente após cada clique
+      // Enviar notificação individual do clique
+      console.log('Enviando notificação individual do clique...');
+      const { data: clickData, error: clickError } = await supabase.functions.invoke('link-clicks-webhook', {
+        body: {
+          type: 'click_log',
+          data: {
+            linkTitle: linkTitle,
+            linkUrl: linkUrl
+          }
+        }
+      });
+
+      if (clickError) {
+        console.error('Erro ao enviar notificação de clique:', clickError);
+      } else {
+        console.log('Notificação de clique enviada:', clickData);
+      }
+
+      // Atualizar mensagem auto-editável
+      console.log('Atualizando mensagem auto-editável...');
       await updateSelfUpdatingMessage();
 
     } catch (error) {
@@ -46,7 +65,7 @@ export const useLinkClickLogger = () => {
 
   const updateSelfUpdatingMessage = async () => {
     try {
-      console.log('Atualizando mensagem estática...');
+      console.log('Buscando estatísticas para mensagem auto-editável...');
       
       // Buscar estatísticas
       const { data: stats, error } = await supabase
@@ -57,10 +76,10 @@ export const useLinkClickLogger = () => {
         return;
       }
 
-      console.log('Estatísticas obtidas:', stats);
+      console.log('Estatísticas obtidas para auto-edição:', stats);
 
-      // Atualizar mensagem estática usando o novo webhook
-      const { data, error: webhookError } = await supabase.functions.invoke('link-clicks-webhook', {
+      // Atualizar mensagem auto-editável
+      const { data: updateData, error: webhookError } = await supabase.functions.invoke('link-clicks-webhook', {
         body: {
           type: 'self_update_message',
           data: {
@@ -70,13 +89,13 @@ export const useLinkClickLogger = () => {
       });
 
       if (webhookError) {
-        console.error('Erro ao atualizar mensagem estática via webhook:', webhookError);
+        console.error('Erro ao atualizar mensagem auto-editável:', webhookError);
       } else {
-        console.log('Mensagem estática atualizada com sucesso:', data);
+        console.log('Mensagem auto-editável atualizada com sucesso:', updateData);
       }
 
     } catch (error) {
-      console.error('Erro ao atualizar mensagem estática:', error);
+      console.error('Erro ao atualizar mensagem auto-editável:', error);
     }
   };
 
