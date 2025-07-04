@@ -1,4 +1,3 @@
-
 import { TermoRow } from "./TermoRow";
 import { LetterState } from "@/hooks/useTermoGameState";
 
@@ -22,13 +21,15 @@ export const TermoGrid = ({
   isWordCompleted = false
 }: TermoGridProps) => {
   
+  const wordLength = targetWord.length;
+
   const evaluateGuess = (guess: string): LetterState[] => {
     const result: LetterState[] = [];
     const targetArray = targetWord.toLowerCase().split('');
     const guessArray = guess.toLowerCase().split('');
     
     // Primeiro passo: marcar corretas
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < wordLength; i++) {
       if (guessArray[i] === targetArray[i]) {
         result[i] = 'correct';
         targetArray[i] = '#';
@@ -38,7 +39,7 @@ export const TermoGrid = ({
     }
     
     // Segundo passo: marcar presentes
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < wordLength; i++) {
       if (result[i] === 'absent') {
         const letterIndex = targetArray.indexOf(guessArray[i]);
         if (letterIndex !== -1) {
@@ -70,13 +71,13 @@ export const TermoGrid = ({
     if (rowIndex < guesses.length) {
       // Se a palavra já foi acertada e esta linha é posterior ao acerto, mostrar vazia
       if (completedRow !== -1 && rowIndex > completedRow) {
-        letters = new Array(5).fill('');
-        states = new Array(5).fill('empty');
+        letters = new Array(wordLength).fill('');
+        states = new Array(wordLength).fill('empty');
       } else {
         // Linha com guess já feito - preencher corretamente
         const guess = guesses[rowIndex];
-        letters = new Array(5).fill('');
-        for (let i = 0; i < guess.length && i < 5; i++) {
+        letters = new Array(wordLength).fill('');
+        for (let i = 0; i < guess.length && i < wordLength; i++) {
           letters[i] = guess[i];
         }
         states = evaluateGuess(guess);
@@ -84,20 +85,20 @@ export const TermoGrid = ({
     } else if (rowIndex === currentRow) {
       // Linha atual - se a palavra já foi acertada, não mostrar currentGuess
       if (completedRow !== -1) {
-        letters = new Array(5).fill('');
-        states = new Array(5).fill('empty');
+        letters = new Array(wordLength).fill('');
+        states = new Array(wordLength).fill('empty');
       } else {
         // Mostrar currentGuess sequencialmente
-        letters = new Array(5).fill('');
-        for (let i = 0; i < currentGuess.length && i < 5; i++) {
+        letters = new Array(wordLength).fill('');
+        for (let i = 0; i < currentGuess.length && i < wordLength; i++) {
           letters[i] = currentGuess[i];
         }
-        states = new Array(5).fill('empty');
+        states = new Array(wordLength).fill('empty');
       }
     } else {
       // Linha vazia
-      letters = new Array(5).fill('');
-      states = new Array(5).fill('empty');
+      letters = new Array(wordLength).fill('');
+      states = new Array(wordLength).fill('empty');
     }
 
     return { letters, states };

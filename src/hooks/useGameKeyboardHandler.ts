@@ -36,10 +36,10 @@ export const useGameKeyboardHandler = ({
   };
 
   const submitGuess = useCallback(async () => {
-    if (gameState.currentGuess.length !== 5) {
+    if (gameState.currentGuess.length !== targetWord.length) {
       toast({
         title: "Palavra incompleta",
-        description: "Digite uma palavra de 5 letras",
+        description: `Digite uma palavra de ${targetWord.length} letras`,
         variant: "destructive"
       });
       return;
@@ -112,7 +112,7 @@ export const useGameKeyboardHandler = ({
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
       }
     } else if (key.length === 1 && /^[a-zA-Z]$/.test(key)) {
-      if (gameState.currentGuess.length < 5) {
+      if (gameState.currentGuess.length < targetWord.length) {
         const newGuess = gameState.currentGuess + key.toLowerCase();
         const newGameState = {
           ...gameState,

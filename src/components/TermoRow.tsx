@@ -18,9 +18,11 @@ export const TermoRow = ({
   isCurrentRow = false
 }: TermoRowProps) => {
   
+  const wordLength = letters.length;
+
   return (
     <div className="flex space-x-2">
-      {Array.from({ length: 5 }, (_, colIndex) => (
+      {Array.from({ length: wordLength }, (_, colIndex) => (
         <TermoCell
           key={`${rowIndex}-${colIndex}`}
           letter={letters[colIndex] || ''}
