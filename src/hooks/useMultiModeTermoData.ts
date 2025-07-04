@@ -7,7 +7,8 @@ export const useMultiModeTermoData = () => {
     solo: [],
     duo: [],
     trio: [],
-    quarteto: []
+    quarteto: [],
+    infinity: []
   });
   const [loading, setLoading] = useState(true);
   const [gameStartDate, setGameStartDate] = useState<string>('');
@@ -106,7 +107,8 @@ export const useMultiModeTermoData = () => {
       solo: [],
       duo: [],
       trio: [],
-      quarteto: []
+      quarteto: [],
+      infinity: []
     };
 
     (['solo', 'duo', 'trio', 'quarteto'] as GameMode[]).forEach(mode => {
@@ -129,7 +131,8 @@ export const useMultiModeTermoData = () => {
       solo: [],
       duo: [],
       trio: [],
-      quarteto: []
+      quarteto: [],
+      infinity: []
     };
 
     let needsGeneration = false;

@@ -7,13 +7,16 @@ import { useTermoGameState } from "@/hooks/useTermoGameState";
 import { useTermoKeyboardHandler } from "@/hooks/useTermoKeyboardHandler";
 import { useDiscordNotification } from "@/hooks/useDiscordNotification";
 import { generateShareText } from "@/utils/shareUtils";
+import { GameState } from "./TermoGame";
 
 interface TermoGameLogicProps {
   targetWord: string;
   isDarkMode: boolean;
+  onGameComplete?: (gameState: GameState) => void;
+  isInfinityMode?: boolean;
 }
 
-export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) => {
+export const TermoGameLogic = ({ targetWord, isDarkMode, onGameComplete, isInfinityMode = false }: TermoGameLogicProps) => {
   const {
     gameState,
     setGameState,
@@ -80,6 +83,12 @@ export const TermoGameLogic = ({ targetWord, isDarkMode }: TermoGameLogicProps) 
 
   // PRIORIDADE 1: Se o jogo terminou na sessão atual, mostrar game over
   if ((gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') && showingFreshGameOver) {
+    // Se for modo infinity e há callback, chamar callback ao invés de mostrar game over
+    if (isInfinityMode && onGameComplete) {
+      onGameComplete(gameState);
+      return null;
+    }
+    
     return (
       <TermoGameOver
         gameState={gameState}

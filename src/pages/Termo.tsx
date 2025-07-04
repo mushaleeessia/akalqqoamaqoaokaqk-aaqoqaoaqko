@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Sun, Moon } from "lucide-react";
 import { TermoGame } from "@/components/TermoGame";
 import { MultiModeTermoGame } from "@/components/MultiModeTermoGame";
+import { InfinityTermoGame } from "@/components/InfinityTermoGame";
 import { GameModeSelector, GameMode } from "@/components/GameModeSelector";
 import { Button } from "@/components/ui/button";
 import { useTermoData } from "@/hooks/useTermoData";
@@ -129,6 +130,9 @@ const Termo = () => {
     if (selectedMode === 'solo') {
       return todayWord ? [todayWord] : [];
     }
+    if (selectedMode === 'infinity') {
+      return ['infinity']; // Placeholder, a palavra real é gerenciada pelo InfinityTermoGame
+    }
     return wordsData[selectedMode] || [];
   };
 
@@ -183,12 +187,17 @@ const Termo = () => {
           currentMode={selectedMode}
           onModeChange={handleModeChange}
           isDarkMode={isDarkMode}
+          isGuestMode={isGuestMode}
         />
 
         {currentWords.length > 0 ? (
           selectedMode === 'solo' ? (
             <TermoGame 
               targetWord={currentWords[0]} 
+              isDarkMode={isDarkMode}
+            />
+          ) : selectedMode === 'infinity' ? (
+            <InfinityTermoGame
               isDarkMode={isDarkMode}
             />
           ) : (

@@ -7,6 +7,7 @@ export const getMaxAttempts = (gameMode: GameMode) => {
     case 'duo': return 8;
     case 'trio': return 9;
     case 'quarteto': return 10;
+    case 'infinity': return 6;
     default: return 6;
   }
 };
@@ -17,6 +18,7 @@ export const getModeEmoji = (gameMode: GameMode) => {
     case 'duo': return '👥';
     case 'trio': return '👨‍👩‍👧';
     case 'quarteto': return '👨‍👩‍👧‍👦';
+    case 'infinity': return '♾️';
     default: return '🎯';
   }
 };
@@ -27,6 +29,7 @@ export const getModeLabel = (gameMode: GameMode) => {
     case 'duo': return 'Duo';
     case 'trio': return 'Trio';
     case 'quarteto': return 'Quarteto';
+    case 'infinity': return 'Infinity';
     default: return 'Solo';
   }
 };

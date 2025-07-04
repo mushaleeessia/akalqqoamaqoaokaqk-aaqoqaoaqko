@@ -1,22 +1,26 @@
 
-import { Users, User, Users2, UsersRound } from "lucide-react";
+import { Users, User, Users2, UsersRound, Infinity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export type GameMode = 'solo' | 'duo' | 'trio' | 'quarteto';
+export type GameMode = 'solo' | 'duo' | 'trio' | 'quarteto' | 'infinity';
 
 interface GameModeSelectorProps {
   currentMode: GameMode;
   onModeChange: (mode: GameMode) => void;
   isDarkMode: boolean;
+  isGuestMode?: boolean;
 }
 
-export const GameModeSelector = ({ currentMode, onModeChange, isDarkMode }: GameModeSelectorProps) => {
-  const modes = [
+export const GameModeSelector = ({ currentMode, onModeChange, isDarkMode, isGuestMode = false }: GameModeSelectorProps) => {
+  const allModes = [
     { id: 'solo' as GameMode, label: 'Solo', icon: User },
     { id: 'duo' as GameMode, label: 'Duo', icon: Users },
     { id: 'trio' as GameMode, label: 'Trio', icon: Users2 },
-    { id: 'quarteto' as GameMode, label: 'Quarteto', icon: UsersRound }
+    { id: 'quarteto' as GameMode, label: 'Quarteto', icon: UsersRound },
+    { id: 'infinity' as GameMode, label: 'Infinity', icon: Infinity, requiresAuth: true }
   ];
+
+  const modes = allModes.filter(mode => !isGuestMode || !mode.requiresAuth);
 
   return (
     <div className="flex justify-center mb-6">
