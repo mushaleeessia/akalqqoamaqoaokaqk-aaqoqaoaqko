@@ -20,6 +20,18 @@ interface DiscordWebhookPayload {
   embeds: DiscordEmbed[];
 }
 
+// Função para normalizar títulos de links (mapear inglês para português)
+const normalizeLinkTitle = (title: string): string => {
+  const titleMap: { [key: string]: string } = {
+    "Does Alessia ban wrongly or without reason?": "A Alessia bane errado ou sem motivo?",
+    "Mush's Website": "Site Mush",
+    "Mush's Discord": "Discord Mush",
+    // Adicione outros mapeamentos conforme necessário
+  };
+  
+  return titleMap[title] || title;
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -34,11 +46,12 @@ serve(async (req) => {
     if (type === 'click_log') {
       // Log individual click
       const { linkTitle, linkUrl } = data;
-      console.log('Processando clique individual:', linkTitle, linkUrl);
+      const normalizedTitle = normalizeLinkTitle(linkTitle);
+      console.log('Processando clique individual:', normalizedTitle, linkUrl);
       
       const embed: DiscordEmbed = {
         title: "🔗 Link Clicado",
-        description: `**${linkTitle}**\n${linkUrl}`,
+        description: `**${normalizedTitle}**\n${linkUrl}`,
         color: 0x3498db,
         footer: {
           text: "aleeessia.com"
@@ -80,14 +93,53 @@ serve(async (req) => {
       });
 
     } else if (type === 'self_update_message') {
-      // Update self-updating message with organized statistics
+      // Update self-updating message with organized statistics in separate embeds
       const { stats } = data;
       console.log('Atualizando mensagem auto-editável:', stats);
       
-      let description = "📊 **Estatísticas de Cliques - aleeessia.com**\n\n";
+      // Normalizar e consolidar estatísticas por título
+      const consolidatedStats = new Map();
       
-      if (stats.length === 0) {
-        description += "Nenhum clique registrado ainda.";
+      stats.forEach((stat: any) => {
+        const normalizedTitle = normalizeLinkTitle(stat.link_title);
+        
+        if (consolidatedStats.has(normalizedTitle)) {
+          const existing = consolidatedStats.get(normalizedTitle);
+          existing.total_clicks += stat.total_clicks;
+          existing.clicks_today += stat.clicks_today;
+          existing.clicks_this_week += stat.clicks_this_week;
+          existing.clicks_this_month += stat.clicks_this_month;
+          
+          // Manter o último clique mais recente
+          if (new Date(stat.last_click) > new Date(existing.last_click)) {
+            existing.last_click = stat.last_click;
+          }
+        } else {
+          consolidatedStats.set(normalizedTitle, {
+            link_title: normalizedTitle,
+            total_clicks: stat.total_clicks,
+            clicks_today: stat.clicks_today,
+            clicks_this_week: stat.clicks_this_week,
+            clicks_this_month: stat.clicks_this_month,
+            last_click: stat.last_click
+          });
+        }
+      });
+      
+      const consolidatedArray = Array.from(consolidatedStats.values());
+      
+      const embeds: DiscordEmbed[] = [];
+      
+      if (consolidatedArray.length === 0) {
+        embeds.push({
+          title: "📈 Contador de Cliques - aleeessia.com",
+          description: "Nenhum clique registrado ainda.",
+          color: 0xe74c3c,
+          footer: {
+            text: `Última atualização: ${new Date().toLocaleString('pt-BR')}`
+          },
+          timestamp: new Date().toISOString()
+        });
       } else {
         // Calcular totais
         let totalGeral = 0;
@@ -95,53 +147,80 @@ serve(async (req) => {
         let totalSemana = 0;
         let totalMes = 0;
 
-        stats.forEach((stat: any) => {
+        consolidatedArray.forEach((stat: any) => {
           totalGeral += stat.total_clicks;
           totalHoje += stat.clicks_today;
           totalSemana += stat.clicks_this_week;
           totalMes += stat.clicks_this_month;
         });
 
-        // Seção de Cliques Totais
-        description += `🔢 **Cliques Totais: ${totalGeral}**\n`;
-        stats.forEach((stat: any) => {
-          description += `└ ${stat.link_title}: ${stat.total_clicks}\n`;
+        // Embed 1: Cliques Mensais
+        let monthlyDescription = `📅 **Cliques Mensais: ${totalMes}**\n\n`;
+        consolidatedArray.forEach((stat: any) => {
+          monthlyDescription += `└ ${stat.link_title}: ${stat.clicks_this_month}\n`;
         });
-        description += "\n";
-
-        // Seção de Cliques Mensais
-        description += `📅 **Cliques Mensais: ${totalMes}**\n`;
-        stats.forEach((stat: any) => {
-          description += `└ ${stat.link_title}: ${stat.clicks_this_month}\n`;
+        
+        embeds.push({
+          title: "📅 Cliques Mensais - aleeessia.com",
+          description: monthlyDescription,
+          color: 0x9b59b6,
+          footer: {
+            text: `Última atualização: ${new Date().toLocaleString('pt-BR')}`
+          },
+          timestamp: new Date().toISOString()
         });
-        description += "\n";
 
-        // Seção de Cliques Semanais
-        description += `📆 **Cliques Semanais: ${totalSemana}**\n`;
-        stats.forEach((stat: any) => {
-          description += `└ ${stat.link_title}: ${stat.clicks_this_week}\n`;
+        // Embed 2: Cliques Semanais
+        let weeklyDescription = `📆 **Cliques Semanais: ${totalSemana}**\n\n`;
+        consolidatedArray.forEach((stat: any) => {
+          weeklyDescription += `└ ${stat.link_title}: ${stat.clicks_this_week}\n`;
         });
-        description += "\n";
+        
+        embeds.push({
+          title: "📆 Cliques Semanais - aleeessia.com",
+          description: weeklyDescription,
+          color: 0x3498db,
+          footer: {
+            text: `Última atualização: ${new Date().toLocaleString('pt-BR')}`
+          },
+          timestamp: new Date().toISOString()
+        });
 
-        // Seção de Cliques Diários
-        description += `📊 **Cliques Diários: ${totalHoje}**\n`;
-        stats.forEach((stat: any) => {
-          description += `└ ${stat.link_title}: ${stat.clicks_today}\n`;
+        // Embed 3: Cliques Diários
+        let dailyDescription = `📊 **Cliques Diários: ${totalHoje}**\n\n`;
+        consolidatedArray.forEach((stat: any) => {
+          dailyDescription += `└ ${stat.link_title}: ${stat.clicks_today}\n`;
+        });
+        
+        embeds.push({
+          title: "📊 Cliques Diários - aleeessia.com",
+          description: dailyDescription,
+          color: 0x2ecc71,
+          footer: {
+            text: `Última atualização: ${new Date().toLocaleString('pt-BR')}`
+          },
+          timestamp: new Date().toISOString()
+        });
+
+        // Embed 4: Cliques Totais
+        let totalDescription = `🔢 **Cliques Totais: ${totalGeral}**\n\n`;
+        consolidatedArray.forEach((stat: any) => {
+          totalDescription += `└ ${stat.link_title}: ${stat.total_clicks}\n`;
+        });
+        
+        embeds.push({
+          title: "🔢 Cliques Totais - aleeessia.com",
+          description: totalDescription,
+          color: 0xe74c3c,
+          footer: {
+            text: `Última atualização: ${new Date().toLocaleString('pt-BR')}`
+          },
+          timestamp: new Date().toISOString()
         });
       }
 
-      const embed: DiscordEmbed = {
-        title: "📈 Contador de Cliques - aleeessia.com",
-        description: description,
-        color: 0xe74c3c,
-        footer: {
-          text: `Última atualização: ${new Date().toLocaleString('pt-BR')}`
-        },
-        timestamp: new Date().toISOString()
-      };
-
       const payload: DiscordWebhookPayload = {
-        embeds: [embed]
+        embeds: embeds
       };
 
       const DISCORD_SELFUPDATE_MESSAGE_ID = Deno.env.get('DISCORD_SELFUPDATE_MESSAGE');
@@ -203,12 +282,41 @@ serve(async (req) => {
       const { stats } = data;
       console.log('Atualizando estatísticas estáticas:', stats);
       
+      // Normalizar e consolidar estatísticas por título
+      const consolidatedStats = new Map();
+      
+      stats.forEach((stat: any) => {
+        const normalizedTitle = normalizeLinkTitle(stat.link_title);
+        
+        if (consolidatedStats.has(normalizedTitle)) {
+          const existing = consolidatedStats.get(normalizedTitle);
+          existing.total_clicks += stat.total_clicks;
+          existing.clicks_today += stat.clicks_today;
+          existing.clicks_this_week += stat.clicks_this_week;
+          
+          // Manter o último clique mais recente
+          if (new Date(stat.last_click) > new Date(existing.last_click)) {
+            existing.last_click = stat.last_click;
+          }
+        } else {
+          consolidatedStats.set(normalizedTitle, {
+            link_title: normalizedTitle,
+            total_clicks: stat.total_clicks,
+            clicks_today: stat.clicks_today,
+            clicks_this_week: stat.clicks_this_week,
+            last_click: stat.last_click
+          });
+        }
+      });
+      
+      const consolidatedArray = Array.from(consolidatedStats.values());
+      
       let description = "📊 **Estatísticas de Cliques nos Links**\n\n";
       
-      if (stats.length === 0) {
+      if (consolidatedArray.length === 0) {
         description += "Nenhum clique registrado ainda.";
       } else {
-        stats.forEach((stat: any) => {
+        consolidatedArray.forEach((stat: any) => {
           description += `**🔗 ${stat.link_title}**\n`;
           description += `└ Total: ${stat.total_clicks} | Hoje: ${stat.clicks_today} | Esta semana: ${stat.clicks_this_week}\n`;
           description += `└ Último clique: ${stat.last_click ? new Date(stat.last_click).toLocaleString('pt-BR') : 'Nunca'}\n\n`;
