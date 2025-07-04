@@ -98,7 +98,7 @@ const validateWithExtendedDatabase = async (word: string): Promise<boolean> => {
     'livro', 'papel', 'boca', 'olho', 'dente', 'braco', 'perna', 'cabeca', 'corpo', 'amor', 'guerra', 'forca', 
     'poder', 'ordem', 'festa', 'jogo', 'arte', 'obra', 'nome', 'ideia', 'plano', 'sorte', 'calor', 'frio', 
     'verde', 'azul', 'preto', 'branco', 'carro', 'aviao', 'ponte', 'radio', 'musica', 'danca', 'filme', 'banco',
-    'praia', 'campo', 'flor', 'arvore', 'pedra', 'metal', 'vidro', 'animal', 'gato', 'cao', 'peixe', 'passaro', 'canhao'
+    'praia', 'campo', 'flor', 'arvore', 'pedra', 'metal', 'vidro', 'animal', 'gato', 'cao', 'peixe', 'passaro', 'canhao',
     
     // Palavras que estavam sendo bloqueadas incorretamente - INCLUINDO FURIA
     'furia', 'raiva', 'odio', 'medo', 'pavor', 'susto', 'terror', 'horror', 'drama', 'crise', 'trauma',
