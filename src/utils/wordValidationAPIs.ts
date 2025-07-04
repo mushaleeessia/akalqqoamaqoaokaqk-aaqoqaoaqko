@@ -106,7 +106,7 @@ const validateWithExtendedDatabase = async (word: string): Promise<boolean> => {
     'justica', 'injustica', 'verdade', 'mentira', 'segredo', 'misterio', 'enigma', 'charada', 'puzzle',
     'problema', 'solucao', 'resposta', 'pergunta', 'questao', 'duvida', 'certeza', 'crenca', 'esperanca',
     'desejo', 'vontade', 'sonho', 'objetivo', 'meta', 'plano', 'projeto', 'ideia', 'pensamento', 'mente',
-    'coracao', 'alma', 'espirito', 'sentimento', 'emocao', 'paixao', 'amor', 'carinho', 'ternura', 'afeto',
+    'coracao', 'alma', 'espirito', 'sentimento', 'emocao', 'paixao', 'amor', 'carinho', 'ternura', 'afeto', 'aureo',
     
     // Plurais importantes
     'aguas', 'fogos', 'ventos', 'noites', 'mortes', 'homens', 'mulheres', 'filhos', 'filhas', 'casas', 'portas',
