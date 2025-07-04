@@ -144,16 +144,28 @@ serve(async (req) => {
         embeds: [embed]
       };
 
-      const DISCORD_SELFUPDATE_MESSAGE = Deno.env.get('DISCORD_SELFUPDATE_MESSAGE');
+      const DISCORD_SELFUPDATE_MESSAGE_ID = Deno.env.get('DISCORD_SELFUPDATE_MESSAGE');
+      const DISCORD_SELFUPDATEMESSAGE_WEBHOOK = Deno.env.get('DISCORD_SELFUPDATEMESSAGE_WEBHOOK');
       
-      if (!DISCORD_SELFUPDATE_MESSAGE) {
-        console.error('Discord self-update message URL not configured');
-        throw new Error('Discord self-update message URL not configured');
+      if (!DISCORD_SELFUPDATE_MESSAGE_ID || !DISCORD_SELFUPDATEMESSAGE_WEBHOOK) {
+        console.error('Discord self-update message ID or webhook URL not configured');
+        throw new Error('Discord self-update message ID or webhook URL not configured');
       }
 
-      // Tentar editar a mensagem existente primeiro (PATCH)
-      console.log('Tentando editar mensagem existente com DISCORD_SELFUPDATE_MESSAGE...');
-      let response = await fetch(DISCORD_SELFUPDATE_MESSAGE, {
+      // Construir a URL da API do Discord para editar mensagens
+      // Extrair WEBHOOK_ID e WEBHOOK_TOKEN da URL do webhook
+      const webhookUrlParts = DISCORD_SELFUPDATEMESSAGE_WEBHOOK.match(/webhooks\/(\d+)\/([^\/]+)/);
+      if (!webhookUrlParts) {
+        console.error('Invalid webhook URL format');
+        throw new Error('Invalid webhook URL format');
+      }
+
+      const webhookId = webhookUrlParts[1];
+      const webhookToken = webhookUrlParts[2];
+      const editMessageUrl = `https://discord.com/api/v10/webhooks/${webhookId}/${webhookToken}/messages/${DISCORD_SELFUPDATE_MESSAGE_ID}`;
+
+      console.log('Tentando editar mensagem existente com ID:', DISCORD_SELFUPDATE_MESSAGE_ID);
+      let response = await fetch(editMessageUrl, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -164,17 +176,13 @@ serve(async (req) => {
       // Se falhar (mensagem não existe), criar uma nova usando o webhook normal (POST)
       if (!response.ok) {
         console.log('Mensagem não existe ou erro ao editar, tentando criar nova...');
-        const DISCORD_SELFUPDATEMESSAGE_WEBHOOK = Deno.env.get('DISCORD_SELFUPDATEMESSAGE_WEBHOOK');
-        
-        if (DISCORD_SELFUPDATEMESSAGE_WEBHOOK) {
-          response = await fetch(DISCORD_SELFUPDATEMESSAGE_WEBHOOK, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-          });
-        }
+        response = await fetch(DISCORD_SELFUPDATEMESSAGE_WEBHOOK, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
       }
 
       if (!response.ok) {
