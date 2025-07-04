@@ -19,6 +19,7 @@ export const useInfinityGameState = (targetWord: string) => {
   
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
+  const [winstreak, setWinstreak] = useState(0);
 
   // Estado específico para infinity, não usa sessionInfo do Solo
   const [gameState, setGameState] = useState<GameState>({
@@ -42,6 +43,14 @@ export const useInfinityGameState = (targetWord: string) => {
     setShowingFreshGameOver
   });
 
+  const updateWinstreak = useCallback((won: boolean) => {
+    if (won) {
+      setWinstreak(prev => prev + 1);
+    } else {
+      setWinstreak(0);
+    }
+  }, []);
+
   const resetGame = useCallback(() => {
     setGameState({
       guesses: [],
@@ -63,6 +72,8 @@ export const useInfinityGameState = (targetWord: string) => {
     setShowingFreshGameOver,
     handleKeyPress,
     resetGame,
+    winstreak,
+    updateWinstreak,
     evaluateGuess: (guess: string) => evaluateGuess(guess, targetWord),
     updateKeyStatesForGuess
   };

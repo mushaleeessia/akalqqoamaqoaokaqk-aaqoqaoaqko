@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { TermoGameLogic } from "./TermoGameLogic";
 import { GameOverDisplay } from "./GameOverDisplay";
+import { WinstreakWidget } from "./WinstreakWidget";
 import { Button } from "@/components/ui/button";
 import { useInfinityMode } from "@/hooks/useInfinityMode";
 import { useInfinityGameState } from "@/hooks/useInfinityGameState";
@@ -37,6 +38,7 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
 
   const handleGameComplete = (finalGameState: GameState) => {
     setGameState(finalGameState);
+    infinityGameState.updateWinstreak(finalGameState.gameStatus === 'won');
     setShowingGameOver(true);
   };
 
@@ -121,15 +123,24 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
   }
 
   return (
-    <TermoGameLogic 
-      targetWord={currentWord} 
-      isDarkMode={isDarkMode}
-      onGameComplete={handleGameComplete}
-      isInfinityMode={true}
-      gameState={infinityGameState.gameState}
-      keyStates={infinityGameState.keyStates}
-      handleKeyPress={infinityGameState.handleKeyPress}
-      isValidating={infinityGameState.isValidating}
-    />
+    <>
+      <WinstreakWidget 
+        winstreak={infinityGameState.winstreak}
+        currentAttempt={infinityGameState.gameState.currentRow}
+        maxAttempts={6}
+        isGameActive={infinityGameState.gameState.gameStatus === 'playing'}
+      />
+      
+      <TermoGameLogic 
+        targetWord={currentWord} 
+        isDarkMode={isDarkMode}
+        onGameComplete={handleGameComplete}
+        isInfinityMode={true}
+        gameState={infinityGameState.gameState}
+        keyStates={infinityGameState.keyStates}
+        handleKeyPress={infinityGameState.handleKeyPress}
+        isValidating={infinityGameState.isValidating}
+      />
+    </>
   );
 };
