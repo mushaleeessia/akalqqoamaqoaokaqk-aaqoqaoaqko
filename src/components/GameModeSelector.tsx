@@ -21,6 +21,7 @@ export const GameModeSelector = ({ currentMode, onModeChange, isDarkMode, isGues
   ];
 
   const modes = allModes.filter(mode => !isGuestMode || !mode.requiresAuth);
+  const disabledModes = isGuestMode ? allModes.filter(mode => mode.requiresAuth) : [];
 
   return (
     <div className="flex justify-center mb-6">
@@ -52,6 +53,35 @@ export const GameModeSelector = ({ currentMode, onModeChange, isDarkMode, isGues
               <IconComponent className="w-4 h-4" />
               <span className="text-sm font-medium">{mode.label}</span>
             </Button>
+          );
+        })}
+
+        {/* Modos desabilitados para convidados */}
+        {disabledModes.map((mode) => {
+          const IconComponent = mode.icon;
+          
+          return (
+            <div key={mode.id} className="relative group">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled
+                className={`flex items-center space-x-2 transition-all duration-200 opacity-50 cursor-not-allowed ${
+                  isDarkMode
+                    ? 'text-white/40'
+                    : 'text-white/40'
+                }`}
+              >
+                <IconComponent className="w-4 h-4" />
+                <span className="text-sm font-medium">{mode.label}</span>
+              </Button>
+              
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10">
+                Crie ou entre em sua conta para jogar o modo Infinity
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+              </div>
+            </div>
           );
         })}
       </div>

@@ -14,28 +14,37 @@ interface TermoGameLogicProps {
   isDarkMode: boolean;
   onGameComplete?: (gameState: GameState) => void;
   isInfinityMode?: boolean;
+  gameState?: GameState;
+  keyStates?: Record<string, any>;
+  handleKeyPress?: (key: string) => void;
+  isValidating?: boolean;
 }
 
-export const TermoGameLogic = ({ targetWord, isDarkMode, onGameComplete, isInfinityMode = false }: TermoGameLogicProps) => {
-  const {
-    gameState,
-    setGameState,
-    keyStates,
-    setKeyStates,
-    isValidating,
-    showingFreshGameOver,
-    setShowingFreshGameOver,
-    canPlay,
-    sessionInfo,
-    handleKeyPress,
-    evaluateGuess,
-    updateKeyStatesForGuess
-  } = useTermoGameState(targetWord);
+export const TermoGameLogic = ({ 
+  targetWord, 
+  isDarkMode, 
+  onGameComplete, 
+  isInfinityMode = false,
+  gameState: externalGameState,
+  keyStates: externalKeyStates,
+  handleKeyPress: externalHandleKeyPress,
+  isValidating: externalIsValidating
+}: TermoGameLogicProps) => {
+  // Use external state for Infinity mode, internal for Solo
+  const soloGameState = useTermoGameState(targetWord);
+  
+  const gameState = externalGameState || soloGameState.gameState;
+  const keyStates = externalKeyStates || soloGameState.keyStates;
+  const handleKeyPress = externalHandleKeyPress || soloGameState.handleKeyPress;
+  const isValidating = externalIsValidating !== undefined ? externalIsValidating : soloGameState.isValidating;
+  const showingFreshGameOver = soloGameState.showingFreshGameOver;
+  const canPlay = soloGameState.canPlay;
+  const sessionInfo = soloGameState.sessionInfo;
 
-  useTermoKeyboardHandler(handleKeyPress);
+  useTermoKeyboardHandler(isInfinityMode ? () => {} : handleKeyPress);
 
-  // Gerar texto de compartilhamento quando o jogo termina
-  const shareText = (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') 
+  // Gerar texto de compartilhamento quando o jogo termina (apenas para Solo)
+  const shareText = !isInfinityMode && (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') 
     ? generateShareText(
         gameState, 
         'solo',
@@ -45,50 +54,44 @@ export const TermoGameLogic = ({ targetWord, isDarkMode, onGameComplete, isInfin
       )
     : '';
 
-  // Hook para enviar resultado automaticamente para Discord
-  useDiscordNotification(gameState, shareText, 'solo');
+  // Hook para enviar resultado automaticamente para Discord (apenas para Solo)
+  useDiscordNotification(isInfinityMode ? { gameStatus: 'playing', guesses: [] } : gameState, shareText, 'solo');
 
   const maxGuesses = 6;
 
-  // Carregar progresso salvo ao inicializar
+  // Carregar progresso salvo ao inicializar (apenas para Solo)
   useEffect(() => {
-    if (sessionInfo) {
-      const newGameState = {
-        guesses: sessionInfo.guesses || [],
-        currentGuess: sessionInfo.currentGuess || '',
-        gameStatus: sessionInfo.gameStatus || 'playing',
-        currentRow: sessionInfo.guesses?.length || 0
-      };
-      
-      setGameState(prevState => {
-        if (showingFreshGameOver) {
-          return prevState;
-        }
-        if (prevState.gameStatus === 'won' || prevState.gameStatus === 'lost') {
-          return prevState;
-        }
-        return newGameState;
-      });
-
-      if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
-        const newKeyStates: Record<string, any> = {};
-        sessionInfo.guesses.forEach(guess => {
-          const evaluation = evaluateGuess(guess);
-          updateKeyStatesForGuess(guess, evaluation, newKeyStates);
-        });
-        setKeyStates(newKeyStates);
+    if (isInfinityMode || !sessionInfo) return;
+    
+    const newGameState = {
+      guesses: sessionInfo.guesses || [],
+      currentGuess: sessionInfo.currentGuess || '',
+      gameStatus: sessionInfo.gameStatus || 'playing',
+      currentRow: sessionInfo.guesses?.length || 0
+    };
+    
+    soloGameState.setGameState(prevState => {
+      if (showingFreshGameOver) {
+        return prevState;
       }
+      if (prevState.gameStatus === 'won' || prevState.gameStatus === 'lost') {
+        return prevState;
+      }
+      return newGameState;
+    });
+
+    if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
+      const newKeyStates: Record<string, any> = {};
+      sessionInfo.guesses.forEach(guess => {
+        const evaluation = soloGameState.evaluateGuess(guess);
+        soloGameState.updateKeyStatesForGuess(guess, evaluation, newKeyStates);
+      });
+      soloGameState.setKeyStates(newKeyStates);
     }
-  }, [sessionInfo, targetWord, showingFreshGameOver]);
+  }, [sessionInfo, targetWord, showingFreshGameOver, isInfinityMode]);
 
   // PRIORIDADE 1: Se o jogo terminou na sessão atual, mostrar game over
-  if ((gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') && showingFreshGameOver) {
-    // Se for modo infinity e há callback, chamar callback ao invés de mostrar game over
-    if (isInfinityMode && onGameComplete) {
-      onGameComplete(gameState);
-      return null;
-    }
-    
+  if ((gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') && showingFreshGameOver && !isInfinityMode) {
     return (
       <TermoGameOver
         gameState={gameState}
@@ -98,7 +101,13 @@ export const TermoGameLogic = ({ targetWord, isDarkMode, onGameComplete, isInfin
     );
   }
 
-  if (!canPlay && sessionInfo && (sessionInfo.completed || sessionInfo.failed)) {
+  // Para modo Infinity, chamar callback quando jogo termina
+  if ((gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') && isInfinityMode && onGameComplete) {
+    onGameComplete(gameState);
+    return null;
+  }
+
+  if (!canPlay && sessionInfo && (sessionInfo.completed || sessionInfo.failed) && !isInfinityMode) {
     return (
       <div className="flex flex-col items-center space-y-6 p-8 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20">
         <div className="text-center">

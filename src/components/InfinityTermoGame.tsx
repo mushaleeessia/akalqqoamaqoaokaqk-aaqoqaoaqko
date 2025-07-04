@@ -3,8 +3,8 @@ import { TermoGameLogic } from "./TermoGameLogic";
 import { GameOverDisplay } from "./GameOverDisplay";
 import { Button } from "@/components/ui/button";
 import { useInfinityMode } from "@/hooks/useInfinityMode";
+import { useInfinityGameState } from "@/hooks/useInfinityGameState";
 import { GameState } from "./TermoGame";
-import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
 
 interface InfinityTermoGameProps {
   isDarkMode: boolean;
@@ -12,11 +12,11 @@ interface InfinityTermoGameProps {
 
 export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
   const { currentWord, loading, generateRandomWord, getCurrentWord, clearInfinityData } = useInfinityMode();
+  const infinityGameState = useInfinityGameState(currentWord);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [showingGameOver, setShowingGameOver] = useState(false);
   const [showingNewGameCountdown, setShowingNewGameCountdown] = useState(false);
   const [countdown, setCountdown] = useState(5);
-  const { saveGameSession } = useSupabaseGameSession('infinity', [currentWord]);
 
   useEffect(() => {
     if (!currentWord) {
@@ -38,11 +38,6 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
   const handleGameComplete = (finalGameState: GameState) => {
     setGameState(finalGameState);
     setShowingGameOver(true);
-    
-    // Salvar sessão no Supabase
-    if (currentWord) {
-      saveGameSession(finalGameState.guesses, finalGameState.gameStatus === 'won');
-    }
   };
 
   const handlePlayAgain = () => {
@@ -53,6 +48,7 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
 
   const startNewGame = async () => {
     clearInfinityData();
+    infinityGameState.resetGame();
     await generateRandomWord();
     setGameState(null);
     setShowingGameOver(false);
@@ -130,6 +126,10 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
       isDarkMode={isDarkMode}
       onGameComplete={handleGameComplete}
       isInfinityMode={true}
+      gameState={infinityGameState.gameState}
+      keyStates={infinityGameState.keyStates}
+      handleKeyPress={infinityGameState.handleKeyPress}
+      isValidating={infinityGameState.isValidating}
     />
   );
 };

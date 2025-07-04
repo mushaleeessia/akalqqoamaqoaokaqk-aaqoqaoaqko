@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface InfinityWordData {
   word: string;
@@ -82,7 +81,7 @@ export const useInfinityMode = () => {
 
   const clearInfinityData = useCallback(() => {
     localStorage.removeItem('termo-infinity-word');
-    localStorage.removeItem('termo-infinity-session');
+    // NÃO remover dados de sessão que podem conflitar com Solo
     setCurrentWord('');
   }, []);
 
