@@ -77,8 +77,69 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
 
+    } else if (type === 'self_update_message') {
+      // Update self-updating message with total clicks
+      const { stats } = data;
+      console.log('Atualizando mensagem auto-editável:', stats);
+      
+      let description = "📊 **Contador de Cliques nos Links**\n\n";
+      let totalClicks = 0;
+      
+      if (stats.length === 0) {
+        description += "Nenhum clique registrado ainda.";
+      } else {
+        stats.forEach((stat: any) => {
+          totalClicks += stat.total_clicks;
+          description += `**🔗 ${stat.link_title}**\n`;
+          description += `└ Total: ${stat.total_clicks} cliques\n\n`;
+        });
+        
+        description = `📊 **Total Geral: ${totalClicks} cliques**\n\n` + description;
+      }
+
+      const embed: DiscordEmbed = {
+        title: "📈 Contador de Cliques - aleeessia.com",
+        description: description,
+        color: 0xe74c3c,
+        footer: {
+          text: `Última atualização: ${new Date().toLocaleString('pt-BR')}`
+        },
+        timestamp: new Date().toISOString()
+      };
+
+      const payload: DiscordWebhookPayload = {
+        embeds: [embed]
+      };
+
+      const DISCORD_SELFUPDATE_WEBHOOK = Deno.env.get('DISCORD_SELFUPDATEMESSAGE_WEBHOOK');
+      
+      if (!DISCORD_SELFUPDATE_WEBHOOK) {
+        console.error('Discord self-update webhook URL not configured');
+        throw new Error('Discord self-update webhook URL not configured');
+      }
+
+      // Edit the existing message
+      const response = await fetch(DISCORD_SELFUPDATE_WEBHOOK, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        console.error('Erro ao atualizar mensagem auto-editável:', response.status, await response.text());
+        throw new Error(`Discord self-update message failed: ${response.status}`);
+      }
+
+      console.log('Mensagem auto-editável atualizada com sucesso');
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+
     } else if (type === 'stats_update') {
-      // Update static stats message
+      // Update static stats message (existing functionality)
       const { stats } = data;
       console.log('Atualizando estatísticas:', stats);
       

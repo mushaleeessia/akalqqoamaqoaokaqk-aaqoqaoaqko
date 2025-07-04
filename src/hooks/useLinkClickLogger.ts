@@ -34,27 +34,49 @@ export const useLinkClickLogger = () => {
         return;
       }
 
-      console.log('Clique inserido no banco com sucesso, enviando webhook...');
+      console.log('Clique inserido no banco com sucesso, atualizando mensagem estática...');
 
-      // Enviar webhook de clique individual
-      const { data, error } = await supabase.functions.invoke('link-clicks-webhook', {
+      // Atualizar mensagem estática automaticamente após cada clique
+      await updateSelfUpdatingMessage();
+
+    } catch (error) {
+      console.error('Erro ao registrar clique:', error);
+    }
+  };
+
+  const updateSelfUpdatingMessage = async () => {
+    try {
+      console.log('Atualizando mensagem estática...');
+      
+      // Buscar estatísticas
+      const { data: stats, error } = await supabase
+        .rpc('get_link_click_stats');
+
+      if (error) {
+        console.error('Erro ao buscar estatísticas:', error);
+        return;
+      }
+
+      console.log('Estatísticas obtidas:', stats);
+
+      // Atualizar mensagem estática usando o novo webhook
+      const { data, error: webhookError } = await supabase.functions.invoke('link-clicks-webhook', {
         body: {
-          type: 'click_log',
+          type: 'self_update_message',
           data: {
-            linkTitle,
-            linkUrl
+            stats: stats || []
           }
         }
       });
 
-      if (error) {
-        console.error('Erro ao enviar webhook:', error);
+      if (webhookError) {
+        console.error('Erro ao atualizar mensagem estática via webhook:', webhookError);
       } else {
-        console.log('Webhook enviado com sucesso:', data);
+        console.log('Mensagem estática atualizada com sucesso:', data);
       }
 
     } catch (error) {
-      console.error('Erro ao registrar clique:', error);
+      console.error('Erro ao atualizar mensagem estática:', error);
     }
   };
 
@@ -94,5 +116,5 @@ export const useLinkClickLogger = () => {
     }
   };
 
-  return { logClick, updateStats };
+  return { logClick, updateStats, updateSelfUpdatingMessage };
 };
