@@ -43,33 +43,46 @@ export const WinstreakWidget = ({
     }
   };
 
-  // Determinar se deve piscar baseado nas tentativas
-  const shouldBlink = () => {
-    if (!isGameActive) return false;
+  // Determinar se deve mostrar efeito ripple baseado nas tentativas e winstreak
+  const shouldShowRipple = () => {
+    if (!isGameActive || winstreak === 0) return false;
     
-    if (currentAttempt >= 4 && currentAttempt < maxAttempts) {
-      return currentAttempt === 4 ? "animate-pulse" : "animate-ping";
-    }
-    return false;
+    return currentAttempt >= 4 && currentAttempt < maxAttempts;
+  };
+
+  const getRippleIntensity = () => {
+    if (currentAttempt === 4) return "animate-ripple";
+    if (currentAttempt === 5) return "animate-ripple-delay";
+    return "";
   };
 
   const { icon: IconComponent, color, bgGlow } = getWinstreakDisplay();
-  const blinkClass = shouldBlink();
+  const showRipple = shouldShowRipple();
+  const rippleClass = getRippleIntensity();
 
   return (
     <div className="fixed top-32 right-6 z-20">
-      <Badge 
-        className={`
-          flex items-center gap-2 px-4 py-2 text-sm font-semibold 
-          border backdrop-blur-sm transition-all duration-300
-          ${color} ${bgGlow} shadow-lg
-          ${blinkClass ? blinkClass : ""}
-          hover:scale-105 transform
-        `}
-      >
-        <IconComponent className="w-4 h-4" />
-        <span>Sequência: {winstreak}</span>
-      </Badge>
+      <div className="relative">
+        {/* Círculos de ondas - só aparecem quando está perto de perder */}
+        {showRipple && (
+          <>
+            <div className={`absolute inset-0 rounded-full border-2 border-red-400/70 ${rippleClass} pointer-events-none`}></div>
+            <div className={`absolute inset-0 rounded-full border-2 border-yellow-400/60 ${currentAttempt === 5 ? 'animate-ripple' : 'animate-ripple-delay'} pointer-events-none`}></div>
+          </>
+        )}
+        
+        <Badge 
+          className={`
+            flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+            border backdrop-blur-sm transition-all duration-300
+            ${color} ${bgGlow} shadow-lg
+            hover:scale-105 transform relative z-10
+          `}
+        >
+          <IconComponent className="w-4 h-4" />
+          <span>Sequência: {winstreak}</span>
+        </Badge>
+      </div>
     </div>
   );
 };
