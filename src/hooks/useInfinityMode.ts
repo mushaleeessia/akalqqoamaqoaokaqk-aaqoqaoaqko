@@ -15,21 +15,23 @@ export const useInfinityMode = () => {
     try {
       // Lista de palavras para o modo infinity
       const infinityWords = [
-        'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
-        'lugar', 'casos', 'vidas', 'modos', 'aguas', 'fogos', 'vento',
-        'noite', 'morte', 'homem', 'filho', 'casas', 'porta',
-        'mesas', 'livro', 'papel', 'bocas', 'olhos', 'dente', 'braco',
-        'perna', 'corpo', 'pazes', 'forca', 'poder', 'ordem', 'uniao', 
-        'festa', 'jogos', 'artes', 'obras', 'nomes', 'ideia', 'plano', 
-        'sorte', 'calor', 'frios', 'verde', 'azuis', 'preto', 'carro', 
-        'aviao', 'ponte', 'radio', 'danca', 'filme', 'banco', 'praia',
-        'campo', 'pedra', 'metal', 'vidro', 'amava', 'vivia', 'sabia', 
-        'podia', 'fazia', 'dizia', 'subiu', 'andou', 'pulou', 'nadou',
-        'comeu', 'bebeu', 'falou', 'ouviu', 'vendo', 'olhou', 'tocou', 
-        'pegou', 'abriu', 'ligou', 'parou', 'perdeu', 'jogou', 'lendo',
-        'cantou', 'rindo', 'chorou', 'escola', 'amigo', 'sonho', 'espaco',
-        'musica', 'dentes', 'cabeca', 'cabelo', 'rosto', 'smile', 'feliz',
-        'triste', 'bravo', 'calmo', 'doce', 'salgado', 'quente', 'gelado'
+	    'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma',
+	    'lugar', 'casos', 'vidas', 'modos', 'aguas', 'fogos', 'vento', 'noite',
+	    'morte', 'homem', 'filho', 'casas', 'porta', 'mesas', 'livro', 'papel',
+	    'bocas', 'olhos', 'dente', 'braco', 'perna', 'corpo', 'pazes', 'forca',
+	    'poder', 'ordem', 'uniao', 'festa', 'jogos', 'artes', 'obras', 'nomes',
+	    'ideia', 'plano', 'sorte', 'calor', 'frios', 'verde', 'azuis', 'preto',
+	    'carro', 'aviao', 'ponte', 'radio', 'danca', 'filme', 'banco', 'praia',
+	    'campo', 'pedra', 'metal', 'vidro', 'amava', 'vivia', 'sabia', 'podia',
+	    'fazia', 'dizia', 'subiu', 'andou', 'pulou', 'nadou', 'comeu', 'bebeu',
+	    'falou', 'ouviu', 'vendo', 'olhou', 'tocou', 'pegou', 'abriu', 'ligou',
+	    'parou', 'perdeu', 'jogou', 'lendo', 'cantou', 'rindo', 'chorou',
+	    'escola', 'amigo', 'sonho', 'espaco', 'musica', 'dentes', 'cabeca',
+	    'cabelo', 'rosto', 'smile', 'feliz', 'triste', 'bravo', 'calmo', 'doce',
+	    'salgado', 'quente', 'gelado', 'areia', 'canto', 'meios', 'salto', 'ruido',
+        'brisa', 'fases', 'janela', 'cidade', 'sabado', 'viagem', 'noivos', 'flores', 'folhas',
+	    'familia', 'memoria', 'sorriso', 'amizade', 'alegria', 'crianca',
+	    'leitura', 'vitoria'
       ];
 
       // Gerar um índice aleatório baseado no timestamp para garantir aleatoriedade
