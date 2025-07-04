@@ -41,7 +41,7 @@ export const TermoGameLogic = ({
   const canPlay = soloGameState.canPlay;
   const sessionInfo = soloGameState.sessionInfo;
 
-  useTermoKeyboardHandler(isInfinityMode ? () => {} : handleKeyPress);
+  useTermoKeyboardHandler(handleKeyPress);
 
   // Gerar texto de compartilhamento quando o jogo termina (apenas para Solo)
   const shareText = !isInfinityMode && (gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') 
