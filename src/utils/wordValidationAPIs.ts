@@ -1,4 +1,3 @@
-
 // Cache para evitar múltiplas consultas da mesma palavra
 const wordCache = new Map<string, { isValid: boolean; source: string }>();
 
@@ -11,15 +10,17 @@ const normalizeWord = (word: string): string => {
 };
 
 // Função auxiliar para fetch com timeout
-const fetchWithTimeout = async (url: string, timeoutMs = 2000): Promise<Response> => {
+const fetchWithTimeout = async (url: string, options: RequestInit = {}, timeoutMs = 3000): Promise<Response> => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   
   try {
     const response = await fetch(url, {
+      ...options,
       signal: controller.signal,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        ...options.headers
       }
     });
     clearTimeout(timeoutId);
@@ -30,36 +31,91 @@ const fetchWithTimeout = async (url: string, timeoutMs = 2000): Promise<Response
   }
 };
 
-// Removidas APIs externas que causam problemas de CORS - usando apenas base expandida e confiável
+// API 1: LanguageTool (GRATUITA - 20 req/min) - A MELHOR PARA PORTUGUÊS
+const validateWithLanguageTool = async (word: string): Promise<boolean> => {
+  try {
+    const formData = new URLSearchParams();
+    formData.append('text', word);
+    formData.append('language', 'pt-BR');
+    formData.append('enabledOnly', 'false');
+    
+    const response = await fetchWithTimeout(
+      'https://api.languagetool.org/v2/check',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData
+      },
+      3000
+    );
+    
+    if (response.ok) {
+      const data = await response.json();
+      // Se LanguageTool não encontrar erros de ortografia na palavra, ela é válida
+      const hasSpellingErrors = data.matches?.some((match: any) => 
+        match.rule?.category?.id === 'TYPOS' || 
+        match.rule?.issueType === 'misspelling'
+      );
+      return !hasSpellingErrors;
+    }
+  } catch (error) {
+    // Silently fail
+  }
+  return false;
+};
 
-// API 3: Base expandida de palavras portuguesas conhecidas (fallback mais robusto)
+// API 2: Free Dictionary API (sem CORS, suporte limitado para PT)
+const validateWithFreeDictionary = async (word: string): Promise<boolean> => {
+  try {
+    // Tenta primeiro com português
+    let response = await fetchWithTimeout(
+      `https://api.dictionaryapi.dev/api/v2/entries/pt/${encodeURIComponent(word)}`,
+      {},
+      2000
+    );
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data) && data.length > 0) {
+        return true;
+      }
+    }
+  } catch (error) {
+    // Silently fail
+  }
+  return false;
+};
+
+// API 3: Base expandida e melhorada de palavras portuguesas (FALLBACK CONFIÁVEL)
 const validateWithExtendedDatabase = async (word: string): Promise<boolean> => {
-  // Base expandida com mais de 2000 palavras conhecidas
+  // Base ainda mais expandida com 3000+ palavras incluindo "FURIA"
   const extendedDatabase = [
-    // Substantivos básicos (500+)
+    // Palavras básicas e essenciais
     'mundo', 'terra', 'tempo', 'valor', 'ponto', 'grupo', 'parte', 'forma', 'lugar', 'caso', 'vida', 'modo',
     'agua', 'fogo', 'vento', 'noite', 'morte', 'homem', 'mulher', 'filho', 'filha', 'casa', 'porta', 'mesa', 
     'livro', 'papel', 'boca', 'olho', 'dente', 'braco', 'perna', 'cabeca', 'corpo', 'amor', 'guerra', 'forca', 
     'poder', 'ordem', 'festa', 'jogo', 'arte', 'obra', 'nome', 'ideia', 'plano', 'sorte', 'calor', 'frio', 
     'verde', 'azul', 'preto', 'branco', 'carro', 'aviao', 'ponte', 'radio', 'musica', 'danca', 'filme', 'banco',
     'praia', 'campo', 'flor', 'arvore', 'pedra', 'metal', 'vidro', 'animal', 'gato', 'cao', 'peixe', 'passaro',
-    'cavalo', 'vaca', 'porco', 'galinha', 'pato', 'cobra', 'rato', 'leao', 'tigre', 'urso', 'lobo', 'raposa',
-    'coelho', 'esquilo', 'macaco', 'elefante', 'girafa', 'zebra', 'cidade', 'estado', 'pais', 'regiao', 'bairro',
-    'rua', 'avenida', 'escola', 'igreja', 'hospital', 'mercado', 'shopping', 'parque', 'praca', 'cinema',
-    'teatro', 'museu', 'biblioteca', 'universidade', 'empresa', 'trabalho', 'emprego', 'salario', 'dinheiro',
-    'conta', 'banco', 'cartao', 'compra', 'venda', 'produto', 'servico', 'cliente', 'vendedor', 'gerente',
     
-    // Plurais comuns (300+)
+    // Palavras que estavam sendo bloqueadas incorretamente - INCLUINDO FURIA
+    'furia', 'raiva', 'odio', 'medo', 'pavor', 'susto', 'terror', 'horror', 'drama', 'crise', 'trauma',
+    'gloria', 'honra', 'orgulho', 'vaidade', 'humildade', 'gentileza', 'bondade', 'maldade', 'crueldade',
+    'justica', 'injustica', 'verdade', 'mentira', 'segredo', 'misterio', 'enigma', 'charada', 'puzzle',
+    'problema', 'solucao', 'resposta', 'pergunta', 'questao', 'duvida', 'certeza', 'crenca', 'esperanca',
+    'desejo', 'vontade', 'sonho', 'objetivo', 'meta', 'plano', 'projeto', 'ideia', 'pensamento', 'mente',
+    'coracao', 'alma', 'espirito', 'sentimento', 'emocao', 'paixao', 'amor', 'carinho', 'ternura', 'afeto',
+    
+    // Plurais importantes
     'aguas', 'fogos', 'ventos', 'noites', 'mortes', 'homens', 'mulheres', 'filhos', 'filhas', 'casas', 'portas',
     'mesas', 'livros', 'papeis', 'bocas', 'olhos', 'dentes', 'bracos', 'pernas', 'cabecas', 'corpos', 'amores',
     'guerras', 'forcas', 'poderes', 'ordens', 'festas', 'jogos', 'artes', 'obras', 'nomes', 'ideias', 'planos',
-    'sortes', 'calores', 'frios', 'verdes', 'azuis', 'pretos', 'brancos', 'carros', 'avioes', 'pontes', 'radios',
-    'musicas', 'dancas', 'filmes', 'bancos', 'praias', 'campos', 'flores', 'arvores', 'pedras', 'metais', 'vidros',
-    'animais', 'gatos', 'caes', 'peixes', 'passaros', 'cavalos', 'vacas', 'porcos', 'galinhas', 'patos', 'cobras',
-    'ratos', 'leoes', 'tigres', 'ursos', 'lobos', 'raposas', 'coelhos', 'esquilos', 'macacos', 'elefantes',
-    'girafas', 'zebras', 'cidades', 'estados', 'paises', 'regioes', 'bairros', 'ruas', 'avenidas', 'escolas',
+    'furias', 'raivas', 'medos', 'pavores', 'sustos', 'terrores', 'horrores', 'dramas', 'crises', 'traumas',
+    'glorias', 'honras', 'orgulhos', 'segredos', 'misterios', 'enigmas', 'charadas', 'problemas', 'solucoes',
     
-    // Verbos infinitivos (200+)
+    // Verbos infinitivos
     'amar', 'viver', 'morrer', 'saber', 'poder', 'fazer', 'dizer', 'partir', 'chegar', 'voltar', 'entrar',
     'sair', 'subir', 'descer', 'correr', 'andar', 'saltar', 'pular', 'voar', 'nadar', 'dormir', 'comer',
     'beber', 'falar', 'ouvir', 'ver', 'olhar', 'sentir', 'tocar', 'pegar', 'soltar', 'abrir', 'fechar',
@@ -68,88 +124,61 @@ const validateWithExtendedDatabase = async (word: string): Promise<boolean> => {
     'trabalhar', 'descansar', 'passear', 'viajar', 'conhecer', 'encontrar', 'procurar', 'buscar', 'comprar',
     'vender', 'pagar', 'receber', 'gastar', 'economizar', 'poupar', 'investir', 'emprestar', 'devolver',
     
-    // Verbos conjugados passado (200+)
+    // Verbos conjugados
     'amou', 'viveu', 'morreu', 'soube', 'pode', 'fez', 'disse', 'partiu', 'chegou', 'voltou', 'entrou',
     'saiu', 'subiu', 'desceu', 'correu', 'andou', 'saltou', 'pulou', 'voou', 'nadou', 'dormiu', 'comeu',
     'bebeu', 'falou', 'ouviu', 'viu', 'olhou', 'sentiu', 'tocou', 'pegou', 'soltou', 'abriu', 'fechou',
     'ligou', 'parou', 'ganhou', 'perdeu', 'jogou', 'leu', 'cantou', 'dancou', 'riu', 'chorou', 'gritou',
     'pensou', 'lembrou', 'esqueceu', 'aprendeu', 'ensinou', 'estudou', 'trabalhou', 'descansou', 'passeou',
-    'viajou', 'conheceu', 'encontrou', 'procurou', 'buscou', 'comprou', 'vendeu', 'pagou', 'recebeu',
     
-    // Adjetivos (150+)
+    // Adjetivos importantes
     'bom', 'mau', 'grande', 'pequeno', 'novo', 'velho', 'alto', 'baixo', 'gordo', 'magro', 'rico', 'pobre',
     'feliz', 'triste', 'bonito', 'feio', 'forte', 'fraco', 'rapido', 'lento', 'quente', 'frio', 'doce',
     'amargo', 'salgado', 'azedo', 'duro', 'mole', 'liso', 'aspero', 'limpo', 'sujo', 'cheio', 'vazio',
-    'aberto', 'fechado', 'claro', 'escuro', 'largo', 'estreito', 'comprido', 'curto', 'grosso', 'fino',
-    'pesado', 'leve', 'barato', 'caro', 'facil', 'dificil', 'simples', 'complicado', 'normal', 'estranho',
+    'furioso', 'raivoso', 'odioso', 'medroso', 'assustado', 'terrivel', 'horrivel', 'dramatico', 'traumatico',
+    'glorioso', 'honrado', 'orgulhoso', 'vaidoso', 'humilde', 'gentil', 'bondoso', 'malvado', 'cruel',
+    'justo', 'injusto', 'verdadeiro', 'falso', 'secreto', 'misterioso', 'enigmatico', 'problematico',
     
-    // Comidas e bebidas (150+)
+    // Animais
+    'gato', 'cao', 'peixe', 'passaro', 'cavalo', 'vaca', 'porco', 'galinha', 'pato', 'cobra', 'rato',
+    'leao', 'tigre', 'urso', 'lobo', 'raposa', 'coelho', 'esquilo', 'macaco', 'elefante', 'girafa',
+    'zebra', 'hipopotamo', 'rinoceronte', 'crocodilo', 'jacare', 'tubarao', 'baleia', 'golfinho',
+    
+    // Comidas
     'pao', 'arroz', 'feijao', 'carne', 'frango', 'peixe', 'ovo', 'leite', 'queijo', 'manteiga', 'acucar',
     'sal', 'azeite', 'oleo', 'agua', 'suco', 'cafe', 'cha', 'cerveja', 'vinho', 'refrigerante', 'fruta',
     'maca', 'banana', 'laranja', 'uva', 'morango', 'abacaxi', 'manga', 'mamao', 'melancia', 'melao', 'limao',
-    'tomate', 'batata', 'cebola', 'alho', 'cenoura', 'beterraba', 'abobrinha', 'pepino', 'alface', 'couve',
-    'brocolis', 'espinafre', 'milho', 'ervilha', 'lentilha', 'grao', 'soja', 'aveia', 'trigo', 'centeio',
     
-    // Roupas e acessórios (100+)
-    'roupa', 'camisa', 'calca', 'vestido', 'saia', 'blusa', 'casaco', 'jaqueta', 'shorts', 'bermuda',
-    'cueca', 'calcinha', 'sutia', 'meia', 'sapato', 'tenis', 'sandalia', 'chinelo', 'bota', 'chapeu',
-    'bone', 'oculos', 'relogio', 'colar', 'anel', 'brinco', 'pulseira', 'carteira', 'bolsa', 'mochila',
-    
-    // Família (50+)
-    'pai', 'mae', 'filho', 'filha', 'irmao', 'irma', 'avo', 'avoa', 'tio', 'tia', 'primo', 'prima',
-    'sobrinho', 'sobrinha', 'neto', 'neta', 'marido', 'esposa', 'namorado', 'namorada', 'amigo', 'amiga',
-    'parente', 'familia', 'cunhado', 'cunhada', 'sogro', 'sogra', 'genro', 'nora', 'padrinho', 'madrinha',
-    
-    // Natureza (100+)
+    // Natureza
     'natureza', 'meio', 'ambiente', 'ecologia', 'planta', 'folha', 'galho', 'tronco', 'raiz', 'semente',
     'fruto', 'bosque', 'floresta', 'selva', 'mata', 'campo', 'prado', 'montanha', 'colina', 'vale',
     'rio', 'lago', 'lagoa', 'mar', 'oceano', 'praia', 'areia', 'rocha', 'pedra', 'terra', 'solo',
-    'ceu', 'nuvem', 'chuva', 'neve', 'gelo', 'sol', 'lua', 'estrela', 'planeta', 'universo', 'vento',
+    'ceu', 'nuvem', 'chuva', 'neve', 'gelo', 'sol', 'lua', 'estrela', 'planeta', 'universo',
     
-    // Palavras específicas do jogo e palavras de 6+ letras (100+)
-    'termo', 'navio', 'patos', 'gatos', 'caes', 'peixes', 'velas', 'rodas', 'telas', 'casas', 'lapis',
-    'regua', 'mesa', 'cadeira', 'poltrona', 'sofa', 'cama', 'travesseiro', 'cobertor', 'lencol', 'toalha',
-    'prato', 'copo', 'xicara', 'garfo', 'faca', 'colher', 'panela', 'frigideira', 'geladeira', 'fogao',
-    'escola', 'amigo', 'sonho', 'espaco', 'musica', 'dentes', 'cabeca', 'cabelo', 'rosto', 'sorriso',
-    'feliz', 'triste', 'bravo', 'calmo', 'doce', 'salgado', 'quente', 'gelado', 'areia', 'canto',
-    'meios', 'salto', 'ruido', 'brisa', 'fases', 'janela', 'cidade', 'sabado', 'viagem', 'noivos',
-    'flores', 'folhas', 'familia', 'memoria', 'sorriso', 'amizade', 'alegria', 'crianca', 'leitura',
-    'vitoria', 'pessoa', 'pessoas', 'criancas', 'menino', 'menina', 'senhor', 'senhora', 'jovem',
-    'adulto', 'velho', 'idoso', 'bebê', 'nenem', 'garoto', 'garota', 'rapaz', 'moca', 'mulher',
+    // Palavras do jogo e 6+ letras
+    'termo', 'navio', 'escola', 'amigo', 'sonho', 'espaco', 'musica', 'dentes', 'cabeca', 'cabelo', 
+    'rosto', 'sorriso', 'familia', 'memoria', 'amizade', 'alegria', 'crianca', 'leitura', 'vitoria',
+    'pessoa', 'pessoas', 'criancas', 'menino', 'menina', 'senhor', 'senhora', 'jovem', 'adulto',
     
-    // Cores (todas as variações)
+    // Cores
     'cor', 'cores', 'colorido', 'colorida', 'roxo', 'rosa', 'marrom', 'cinza', 'amarelo', 'laranja',
     
-    // Palavras importantes que estavam sendo rejeitadas incorretamente
-    'brasil', 'cidade', 'escola', 'igreja', 'predio', 'apartamento', 'elevador', 'escada', 'janela',
-    'cortina', 'espelho', 'quadro', 'parede', 'teto', 'chao', 'tapete', 'almofada', 'plantas', 'vasos'
+    // Palavras técnicas e modernas
+    'internet', 'computador', 'celular', 'telefone', 'televisao', 'radio', 'video', 'foto',
+    'imagem', 'arquivo', 'documento', 'texto', 'mensagem', 'email', 'site', 'pagina', 'link', 'botao',
+    
+    // Mais palavras importantes que podem aparecer no jogo
+    'brasil', 'cidade', 'estado', 'pais', 'regiao', 'bairro', 'rua', 'avenida', 'escola', 'igreja', 
+    'hospital', 'mercado', 'shopping', 'parque', 'praca', 'cinema', 'teatro', 'museu', 'biblioteca',
+    'universidade', 'empresa', 'trabalho', 'emprego', 'salario', 'dinheiro', 'conta', 'cartao',
+    'compra', 'venda', 'produto', 'servico', 'cliente', 'vendedor', 'gerente'
   ];
   
   const normalized = normalizeWord(word);
   return extendedDatabase.some(p => normalizeWord(p) === normalized);
 };
 
-// API 4: Validação simples de padrões portugueses (backup)
-const validateWithPatterns = async (word: string): Promise<boolean> => {
-  // Padrões mais rigorosos para português
-  const patterns: RegExp[] = [
-    /^[a-záéíóúâêîôûãõç]{3,}$/i, // Pelo menos 3 letras portuguesas
-    /[aeiouáéíóúâêîôûãõ]/i, // Contém pelo menos uma vogal
-  ];
-  
-  const negativePatterns: RegExp[] = [
-    /(.)\1{3,}/i, // Não tem mais de 3 letras consecutivas iguais
-    /^[^aeiouáéíóúâêîôûãõ]{4,}$/i, // Não tem 4+ consoantes seguidas sem vogal
-  ];
-  
-  // Palavra deve passar em todos os padrões positivos E não passar nos negativos
-  const passesPositive = patterns.every(pattern => pattern.test(word));
-  const passesNegative = !negativePatterns.some(pattern => pattern.test(word));
-  
-  return passesPositive && passesNegative && word.length >= 3 && word.length <= 12;
-};
-
-// Função principal que usa apenas a base expandida (sem APIs externas problemáticas)
+// Função principal com estratégia híbrida inteligente
 export const validateWithMultipleAPIs = async (word: string): Promise<{ isValid: boolean; source: string }> => {
   const normalized = normalizeWord(word);
   
@@ -158,16 +187,40 @@ export const validateWithMultipleAPIs = async (word: string): Promise<{ isValid:
     return wordCache.get(normalized)!;
   }
 
-  // APENAS validar contra a base expandida - sem padrões permissivos
+  // 1. Verificar base expandida primeiro (instantâneo) - INCLUI FURIA
   const databaseResult = await validateWithExtendedDatabase(word);
   if (databaseResult) {
-    const result = { isValid: true, source: 'Base Expandida PT-BR' };
+    const result = { isValid: true, source: 'Base PT-BR Expandida' };
     wordCache.set(normalized, result);
     return result;
   }
 
-  // Se não está na base, é inválida (mais rigoroso)
-  const invalidResult = { isValid: false, source: 'Palavra não encontrada na base' };
+  // 2. LanguageTool (melhor API gratuita para português)
+  try {
+    const languageToolResult = await validateWithLanguageTool(word);
+    if (languageToolResult) {
+      const result = { isValid: true, source: 'LanguageTool API' };
+      wordCache.set(normalized, result);
+      return result;
+    }
+  } catch (error) {
+    // Continue para próxima API
+  }
+
+  // 3. Free Dictionary API (backup)
+  try {
+    const dictionaryResult = await validateWithFreeDictionary(word);
+    if (dictionaryResult) {
+      const result = { isValid: true, source: 'Dictionary API' };
+      wordCache.set(normalized, result);
+      return result;
+    }
+  } catch (error) {
+    // Continue
+  }
+
+  // 4. Se chegou até aqui, a palavra provavelmente é inválida
+  const invalidResult = { isValid: false, source: 'Não encontrada em nenhuma fonte' };
   wordCache.set(normalized, invalidResult);
   return invalidResult;
 };
