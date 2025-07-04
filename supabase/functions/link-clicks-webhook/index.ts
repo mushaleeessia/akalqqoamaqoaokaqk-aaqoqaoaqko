@@ -144,16 +144,16 @@ serve(async (req) => {
         embeds: [embed]
       };
 
-      const DISCORD_SELFUPDATE_WEBHOOK = Deno.env.get('DISCORD_SELFUPDATEMESSAGE_WEBHOOK');
+      const DISCORD_SELFUPDATE_MESSAGE = Deno.env.get('DISCORD_SELFUPDATE_MESSAGE');
       
-      if (!DISCORD_SELFUPDATE_WEBHOOK) {
-        console.error('Discord self-update webhook URL not configured');
-        throw new Error('Discord self-update webhook URL not configured');
+      if (!DISCORD_SELFUPDATE_MESSAGE) {
+        console.error('Discord self-update message URL not configured');
+        throw new Error('Discord self-update message URL not configured');
       }
 
       // Tentar editar a mensagem existente primeiro (PATCH)
-      console.log('Tentando editar mensagem existente...');
-      let response = await fetch(DISCORD_SELFUPDATE_WEBHOOK, {
+      console.log('Tentando editar mensagem existente com DISCORD_SELFUPDATE_MESSAGE...');
+      let response = await fetch(DISCORD_SELFUPDATE_MESSAGE, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -161,16 +161,20 @@ serve(async (req) => {
         body: JSON.stringify(payload),
       });
 
-      // Se falhar (mensagem não existe), criar uma nova (POST)
+      // Se falhar (mensagem não existe), criar uma nova usando o webhook normal (POST)
       if (!response.ok) {
-        console.log('Mensagem não existe ou erro ao editar, criando nova...');
-        response = await fetch(DISCORD_SELFUPDATE_WEBHOOK, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
+        console.log('Mensagem não existe ou erro ao editar, tentando criar nova...');
+        const DISCORD_SELFUPDATEMESSAGE_WEBHOOK = Deno.env.get('DISCORD_SELFUPDATEMESSAGE_WEBHOOK');
+        
+        if (DISCORD_SELFUPDATEMESSAGE_WEBHOOK) {
+          response = await fetch(DISCORD_SELFUPDATEMESSAGE_WEBHOOK, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+        }
       }
 
       if (!response.ok) {
