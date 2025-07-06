@@ -72,21 +72,35 @@ export const MusicPlayer = ({ currentTrack, isAdmin, onPlayPause }: MusicPlayerP
   return (
     <Card className="bg-black/20 backdrop-blur border-white/10">
       <CardContent className="p-6">
-        <div className="flex items-center gap-6">
-          {/* Album Art */}
-          <div className="w-24 h-24 bg-gray-800 rounded-lg flex-shrink-0 overflow-hidden">
-            {currentTrack.imageUrl ? (
-              <img 
-                src={currentTrack.imageUrl} 
-                alt={currentTrack.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Volume2 className="w-8 h-8 text-gray-600" />
-              </div>
-            )}
+        <div className="flex flex-col gap-6">
+          {/* Spotify Embed */}
+          <div className="w-full">
+            <iframe 
+              src={`https://open.spotify.com/embed/track/${currentTrack.id}?utm_source=generator&theme=0`}
+              width="100%" 
+              height="152" 
+              frameBorder="0" 
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+              loading="lazy"
+              className="rounded-lg"
+            />
           </div>
+          
+          <div className="flex items-center gap-6">
+            {/* Album Art */}
+            <div className="w-24 h-24 bg-gray-800 rounded-lg flex-shrink-0 overflow-hidden">
+              {currentTrack.imageUrl ? (
+                <img 
+                  src={currentTrack.imageUrl} 
+                  alt={currentTrack.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Volume2 className="w-8 h-8 text-gray-600" />
+                </div>
+              )}
+            </div>
 
           {/* Track Info and Controls */}
           <div className="flex-grow">
@@ -95,81 +109,33 @@ export const MusicPlayer = ({ currentTrack, isAdmin, onPlayPause }: MusicPlayerP
               <p className="text-white/70">{currentTrack.artist}</p>
             </div>
 
-            {/* Controls */}
-            <div className="flex items-center gap-4 mb-4">
-              {isAdmin && (
+            {/* Status Info */}
+            <div className="flex items-center gap-2 text-white/70 mb-4">
+              {currentTrack.isPlaying ? (
                 <>
-                  <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
-                    <SkipBack className="w-4 h-4" />
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    onClick={handlePlayPause}
-                    className="bg-primary hover:bg-primary/80"
-                  >
-                    {currentTrack.isPlaying ? (
-                      <Pause className="w-4 h-4" />
-                    ) : (
-                      <Play className="w-4 h-4" />
-                    )}
-                  </Button>
-                  <Button size="sm" variant="ghost" className="text-white hover:bg-white/10">
-                    <SkipForward className="w-4 h-4" />
-                  </Button>
+                  <Play className="w-4 h-4 text-green-400" />
+                  <span>Tocando para {isAdmin ? 'todos' : 'você'}</span>
+                </>
+              ) : (
+                <>
+                  <Pause className="w-4 h-4 text-orange-400" />
+                  <span>Pausado</span>
                 </>
               )}
-              
-              {!isAdmin && (
-                <div className="flex items-center gap-2 text-white/70">
-                  {currentTrack.isPlaying ? (
-                    <>
-                      <Play className="w-4 h-4" />
-                      <span>Tocando</span>
-                    </>
-                  ) : (
-                    <>
-                      <Pause className="w-4 h-4" />
-                      <span>Pausado</span>
-                    </>
-                  )}
-                </div>
+              {isAdmin && (
+                <span className="ml-2 text-xs bg-primary/20 px-2 py-1 rounded">
+                  Admin
+                </span>
               )}
             </div>
 
-            {/* Progress Bar */}
-            <div className="flex items-center gap-3 text-sm text-white/70">
-              <span>{formatTime(currentTime)}</span>
-              <div className="flex-grow bg-white/20 rounded-full h-1">
-                <div 
-                  className="bg-primary h-1 rounded-full transition-all duration-1000"
-                  style={{ width: `${(currentTime / currentTrack.duration) * 100}%` }}
-                />
-              </div>
-              <span>{formatTime(currentTrack.duration)}</span>
+            {/* Sync Info */}
+            <div className="text-xs text-white/50">
+              <p>🎵 Use o player do Spotify acima para controlar a música</p>
+              <p>⚡ Mudanças {isAdmin ? 'suas' : 'da aleeessia'} são sincronizadas para todos</p>
             </div>
           </div>
 
-          {/* Volume Control */}
-          <div className="flex items-center gap-3 w-32">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setIsMuted(!isMuted)}
-              className="text-white hover:bg-white/10"
-            >
-              {isMuted || volume[0] === 0 ? (
-                <VolumeX className="w-4 h-4" />
-              ) : (
-                <Volume2 className="w-4 h-4" />
-              )}
-            </Button>
-            <Slider
-              value={isMuted ? [0] : volume}
-              onValueChange={setVolume}
-              max={100}
-              step={1}
-              className="flex-grow"
-            />
           </div>
         </div>
       </CardContent>

@@ -58,20 +58,42 @@ export const MusicController = ({ onTrackSelect, onQueueUpdate, currentQueue }: 
 
   const parseSpotifyUrl = async (url: string): Promise<QueueTrack | null> => {
     const id = extractSpotifyId(url);
-    if (!id) return null;
+    if (!id || !url.includes("/track/")) return null;
 
-    // For demo purposes, create mock track data
-    // In a real implementation, you'd fetch from Spotify API
-    const mockTrack: QueueTrack = {
+    try {
+      // Use Spotify's oEmbed API to get track info
+      const oembedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`;
+      const response = await fetch(oembedUrl);
+      const data = await response.json();
+      
+      if (data.title) {
+        // Parse title which usually comes as "Artist - Song Title"
+        const titleParts = data.title.split(' - ');
+        const artist = titleParts[0] || "Artista Desconhecido";
+        const name = titleParts.slice(1).join(' - ') || data.title;
+        
+        return {
+          id: id,
+          name: name,
+          artist: artist,
+          spotifyUrl: url,
+          imageUrl: data.thumbnail_url,
+          addedBy: "aleeessia"
+        };
+      }
+    } catch (error) {
+      console.error('Erro ao buscar dados do Spotify:', error);
+    }
+
+    // Fallback para dados básicos se a API falhar
+    return {
       id: id,
-      name: "Nova Música",
-      artist: "Artista Desconhecido",
+      name: "Música do Spotify",
+      artist: "Artista Desconhecido", 
       spotifyUrl: url,
       imageUrl: undefined,
       addedBy: "aleeessia"
     };
-
-    return mockTrack;
   };
 
   const handleAddTrack = async () => {
