@@ -58,57 +58,92 @@ export default function ListenTogether() {
         console.log('User left:', leftPresences);
       })
       .on('broadcast', { event: 'track-change' }, ({ payload }) => {
+        console.log('Received track change:', payload);
         setCurrentTrack(payload.track);
       })
       .on('broadcast', { event: 'queue-update' }, ({ payload }) => {
+        console.log('Received queue update:', payload);
         setQueue(payload.queue);
       })
       .on('broadcast', { event: 'play-pause' }, ({ payload }) => {
+        console.log('Received play/pause:', payload);
         setCurrentTrack(prev => prev ? { ...prev, isPlaying: payload.isPlaying, startedAt: payload.startedAt } : null);
       })
+      .on('broadcast', { event: 'sync-state' }, ({ payload }) => {
+        console.log('Received sync state:', payload);
+        if (payload.currentTrack) setCurrentTrack(payload.currentTrack);
+        if (payload.queue) setQueue(payload.queue);
+      })
       .subscribe(async (status) => {
+        console.log('Channel status:', status);
         if (status === 'SUBSCRIBED') {
           // Track user presence
           await musicChannel.track({
             user_id: user.id,
             online_at: new Date().toISOString(),
           });
+          
+          // Request current state when joining
+          setTimeout(() => {
+            musicChannel.send({
+              type: 'broadcast',
+              event: 'request-sync'
+            });
+          }, 1000);
         }
       });
+
+    // Handle sync requests (admin only)
+    if (user.id === ALEEESSIA_ID) {
+      musicChannel.on('broadcast', { event: 'request-sync' }, () => {
+        console.log('Sync requested, sending current state');
+        musicChannel.send({
+          type: 'broadcast',
+          event: 'sync-state',
+          payload: {
+            currentTrack,
+            queue
+          }
+        });
+      });
+    }
 
     return () => {
       supabase.removeChannel(musicChannel);
     };
-  }, [user]);
+  }, [user, currentTrack, queue]);
 
   const broadcastTrackChange = async (track: CurrentTrack) => {
-    await supabase
-      .channel('music-room')
-      .send({
-        type: 'broadcast',
-        event: 'track-change',
-        payload: { track }
-      });
+    console.log('Broadcasting track change:', track);
+    const channel = supabase.channel('music-room');
+    const result = await channel.send({
+      type: 'broadcast',
+      event: 'track-change',
+      payload: { track }
+    });
+    console.log('Broadcast result:', result);
   };
 
   const broadcastQueueUpdate = async (newQueue: QueueTrack[]) => {
-    await supabase
-      .channel('music-room')
-      .send({
-        type: 'broadcast',
-        event: 'queue-update',
-        payload: { queue: newQueue }
-      });
+    console.log('Broadcasting queue update:', newQueue);
+    const channel = supabase.channel('music-room');
+    const result = await channel.send({
+      type: 'broadcast',
+      event: 'queue-update',
+      payload: { queue: newQueue }
+    });
+    console.log('Queue broadcast result:', result);
   };
 
   const broadcastPlayPause = async (isPlaying: boolean, startedAt: number) => {
-    await supabase
-      .channel('music-room')
-      .send({
-        type: 'broadcast',
-        event: 'play-pause',
-        payload: { isPlaying, startedAt }
-      });
+    console.log('Broadcasting play/pause:', { isPlaying, startedAt });
+    const channel = supabase.channel('music-room');
+    const result = await channel.send({
+      type: 'broadcast',
+      event: 'play-pause',
+      payload: { isPlaying, startedAt }
+    });
+    console.log('Play/pause broadcast result:', result);
   };
 
   if (!user) {
