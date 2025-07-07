@@ -188,9 +188,17 @@ export const MusicPlayer = ({ currentTrack, isAdmin, onPlayPause }: MusicPlayerP
           </div>
 
           {/* Spotify Embed */}
-          <div className="w-full">
+          <div className="w-full space-y-3">
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 text-center">
+              <p className="text-blue-300 text-sm mb-2">
+                🎵 Para ouvir a música, clique no botão ▶️ do Spotify abaixo
+              </p>
+              <p className="text-blue-200/70 text-xs">
+                (Devido às políticas do navegador, é necessário interação manual)
+              </p>
+            </div>
             <iframe 
-              src={`https://open.spotify.com/embed/track/${currentTrack.id}?utm_source=generator&theme=0`}
+              src={`https://open.spotify.com/embed/track/${currentTrack.id}?utm_source=generator&theme=0&autoplay=1`}
               width="100%" 
               height="152" 
               frameBorder="0" 
@@ -202,7 +210,8 @@ export const MusicPlayer = ({ currentTrack, isAdmin, onPlayPause }: MusicPlayerP
 
           {/* Sync Info */}
           <div className="text-xs text-white/50 text-center space-y-1">
-            <p>🎵 Use os controles acima ou o player do Spotify abaixo</p>
+            <p>🎵 Use os controles acima para pausar/tocar (sincronizado)</p>
+            <p>▶️ Use o player do Spotify acima para ouvir o áudio</p>
             <p>⚡ Mudanças {isAdmin ? 'suas' : 'da aleeessia'} são sincronizadas para todos</p>
           </div>
         </div>
