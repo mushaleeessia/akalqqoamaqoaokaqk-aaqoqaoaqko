@@ -38,6 +38,7 @@ export default function ListenTogether() {
   const [queue, setQueue] = useState<QueueTrack[]>([]);
   const [listeners, setListeners] = useState<number>(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [musicChannel, setMusicChannel] = useState<any>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -45,10 +46,10 @@ export default function ListenTogether() {
     setIsAdmin(user.id === ALEEESSIA_ID);
     
     // Subscribe to music state channel
-    const musicChannel = supabase
+    const channel = supabase
       .channel('music-room')
       .on('presence', { event: 'sync' }, () => {
-        const state = musicChannel.presenceState();
+        const state = channel.presenceState();
         setListeners(Object.keys(state).length);
       })
       .on('presence', { event: 'join' }, ({ newPresences }) => {
@@ -74,49 +75,51 @@ export default function ListenTogether() {
         if (payload.currentTrack) setCurrentTrack(payload.currentTrack);
         if (payload.queue) setQueue(payload.queue);
       })
+      .on('broadcast', { event: 'request-sync' }, () => {
+        if (user.id === ALEEESSIA_ID) {
+          console.log('Sync requested, sending current state');
+          channel.send({
+            type: 'broadcast',
+            event: 'sync-state',
+            payload: {
+              currentTrack,
+              queue
+            }
+          });
+        }
+      })
       .subscribe(async (status) => {
         console.log('Channel status:', status);
         if (status === 'SUBSCRIBED') {
           // Track user presence
-          await musicChannel.track({
+          await channel.track({
             user_id: user.id,
             online_at: new Date().toISOString(),
           });
           
-          // Request current state when joining
-          setTimeout(() => {
-            musicChannel.send({
-              type: 'broadcast',
-              event: 'request-sync'
-            });
-          }, 1000);
+          // Request current state when joining (non-admin users)
+          if (user.id !== ALEEESSIA_ID) {
+            setTimeout(() => {
+              channel.send({
+                type: 'broadcast',
+                event: 'request-sync'
+              });
+            }, 1000);
+          }
         }
       });
 
-    // Handle sync requests (admin only)
-    if (user.id === ALEEESSIA_ID) {
-      musicChannel.on('broadcast', { event: 'request-sync' }, () => {
-        console.log('Sync requested, sending current state');
-        musicChannel.send({
-          type: 'broadcast',
-          event: 'sync-state',
-          payload: {
-            currentTrack,
-            queue
-          }
-        });
-      });
-    }
+    setMusicChannel(channel);
 
     return () => {
-      supabase.removeChannel(musicChannel);
+      supabase.removeChannel(channel);
     };
-  }, [user, currentTrack, queue]);
+  }, [user]);
 
   const broadcastTrackChange = async (track: CurrentTrack) => {
+    if (!musicChannel) return;
     console.log('Broadcasting track change:', track);
-    const channel = supabase.channel('music-room');
-    const result = await channel.send({
+    const result = await musicChannel.send({
       type: 'broadcast',
       event: 'track-change',
       payload: { track }
@@ -125,9 +128,9 @@ export default function ListenTogether() {
   };
 
   const broadcastQueueUpdate = async (newQueue: QueueTrack[]) => {
+    if (!musicChannel) return;
     console.log('Broadcasting queue update:', newQueue);
-    const channel = supabase.channel('music-room');
-    const result = await channel.send({
+    const result = await musicChannel.send({
       type: 'broadcast',
       event: 'queue-update',
       payload: { queue: newQueue }
@@ -136,15 +139,63 @@ export default function ListenTogether() {
   };
 
   const broadcastPlayPause = async (isPlaying: boolean, startedAt: number) => {
+    if (!musicChannel) return;
     console.log('Broadcasting play/pause:', { isPlaying, startedAt });
-    const channel = supabase.channel('music-room');
-    const result = await channel.send({
+    const result = await musicChannel.send({
       type: 'broadcast',
       event: 'play-pause',
       payload: { isPlaying, startedAt }
     });
     console.log('Play/pause broadcast result:', result);
   };
+
+  const playNextFromQueue = () => {
+    if (queue.length === 0) {
+      setCurrentTrack(null);
+      return;
+    }
+
+    const nextTrack = queue[0];
+    const newQueue = queue.slice(1);
+    
+    const currentTrack: CurrentTrack = {
+      ...nextTrack,
+      duration: 180, // 3 minutes default
+      startedAt: Date.now(),
+      isPlaying: true,
+    };
+
+    setCurrentTrack(currentTrack);
+    setQueue(newQueue);
+    
+    if (isAdmin) {
+      broadcastTrackChange(currentTrack);
+      broadcastQueueUpdate(newQueue);
+    }
+  };
+
+  // Check if current track has ended
+  useEffect(() => {
+    if (!currentTrack || !currentTrack.isPlaying) return;
+
+    const timeRemaining = currentTrack.duration - ((Date.now() - currentTrack.startedAt) / 1000);
+    
+    if (timeRemaining <= 0) {
+      // Track has ended, play next
+      if (isAdmin) {
+        playNextFromQueue();
+      }
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      if (isAdmin) {
+        playNextFromQueue();
+      }
+    }, timeRemaining * 1000);
+
+    return () => clearTimeout(timeout);
+  }, [currentTrack, queue, isAdmin]);
 
   if (!user) {
     return (
@@ -226,6 +277,22 @@ export default function ListenTogether() {
                 if (isAdmin) {
                   const newQueue = queue.filter(track => track.id !== trackId);
                   setQueue(newQueue);
+                  broadcastQueueUpdate(newQueue);
+                }
+              }}
+              onPlayTrack={(track) => {
+                if (isAdmin) {
+                  // Remove track from queue and play it
+                  const newQueue = queue.filter(t => t.id !== track.id);
+                  const currentTrack: CurrentTrack = {
+                    ...track,
+                    duration: 180,
+                    startedAt: Date.now(),
+                    isPlaying: true,
+                  };
+                  setCurrentTrack(currentTrack);
+                  setQueue(newQueue);
+                  broadcastTrackChange(currentTrack);
                   broadcastQueueUpdate(newQueue);
                 }
               }}

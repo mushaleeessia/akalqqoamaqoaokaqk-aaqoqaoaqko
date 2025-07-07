@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Music, Trash2, Clock, User } from "lucide-react";
+import { Music, Trash2, Clock, User, Play } from "lucide-react";
 
 interface QueueTrack {
   id: string;
@@ -16,9 +16,10 @@ interface MusicQueueProps {
   queue: QueueTrack[];
   isAdmin: boolean;
   onRemoveTrack: (trackId: string) => void;
+  onPlayTrack?: (track: QueueTrack) => void;
 }
 
-export const MusicQueue = ({ queue, isAdmin, onRemoveTrack }: MusicQueueProps) => {
+export const MusicQueue = ({ queue, isAdmin, onRemoveTrack, onPlayTrack }: MusicQueueProps) => {
   if (queue.length === 0) {
     return (
       <Card className="bg-black/20 backdrop-blur border-white/10">
@@ -92,11 +93,24 @@ export const MusicQueue = ({ queue, isAdmin, onRemoveTrack }: MusicQueueProps) =
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 flex-shrink-0">
+                  {isAdmin && onPlayTrack && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onPlayTrack(track)}
+                      className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                      title="Tocar agora"
+                    >
+                      <Play className="w-4 h-4" />
+                    </Button>
+                  )}
+                  
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => window.open(track.spotifyUrl, '_blank')}
                     className="text-white/70 hover:text-white hover:bg-white/10"
+                    title="Abrir no Spotify"
                   >
                     <Music className="w-4 h-4" />
                   </Button>
@@ -107,6 +121,7 @@ export const MusicQueue = ({ queue, isAdmin, onRemoveTrack }: MusicQueueProps) =
                       variant="ghost"
                       onClick={() => onRemoveTrack(track.id)}
                       className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      title="Remover da fila"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
