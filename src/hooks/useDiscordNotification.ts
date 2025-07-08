@@ -213,7 +213,17 @@ export const useDiscordNotification = (gameState: { gameStatus: string; guesses?
           }
         }
 
-        await sendGameResultToDiscord(shareText, isGuest, discordGameState as GameState, userInfo);
+        // Para modo infinity, extrair a palavra do shareText
+        let targetWord;
+        if (mode === 'infinity' && shareText) {
+          const lines = shareText.split('\n');
+          const wordLine = lines.find(line => line.includes('Palavra:'));
+          if (wordLine) {
+            targetWord = wordLine.split('Palavra: ')[1]?.trim();
+          }
+        }
+
+        await sendGameResultToDiscord(shareText, isGuest, discordGameState as GameState, userInfo, mode, targetWord);
         
         // Marcar como enviado em todos os caches
         processedSessions.current.add(sessionHash);

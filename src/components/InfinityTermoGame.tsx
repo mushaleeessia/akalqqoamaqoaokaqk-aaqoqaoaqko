@@ -5,6 +5,8 @@ import { WinstreakWidget } from "./WinstreakWidget";
 import { Button } from "@/components/ui/button";
 import { useInfinityMode } from "@/hooks/useInfinityMode";
 import { useInfinityGameState } from "@/hooks/useInfinityGameState";
+import { useDiscordNotification } from "@/hooks/useDiscordNotification";
+import { generateShareText } from "@/utils/shareUtils";
 import { GameState } from "./TermoGame";
 
 interface InfinityTermoGameProps {
@@ -18,6 +20,20 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
   const [showingGameOver, setShowingGameOver] = useState(false);
   const [showingNewGameCountdown, setShowingNewGameCountdown] = useState(false);
   const [countdown, setCountdown] = useState(5);
+
+  // Gerar texto de compartilhamento quando o jogo termina
+  const shareText = (infinityGameState.gameState.gameStatus === 'won' || infinityGameState.gameState.gameStatus === 'lost') 
+    ? generateShareText(
+        infinityGameState.gameState, 
+        'infinity', 
+        infinityGameState.gameState.gameStatus === 'won',
+        infinityGameState.gameState.currentRow,
+        currentWord ? [currentWord] : []
+      )
+    : '';
+
+  // Hook para enviar resultado automaticamente para Discord
+  useDiscordNotification(infinityGameState.gameState, shareText, 'infinity');
 
   useEffect(() => {
     if (!currentWord) {

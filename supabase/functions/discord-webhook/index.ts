@@ -92,7 +92,13 @@ serve(async (req) => {
 
       if (!isGuest && userInfo) {
         const displayName = userInfo.nickname || "Usuário";
-        embedTitle = `🎮 ${displayName} jogou Termo!`;
+        const mode = data.mode || 'solo';
+        
+        if (mode === 'infinity') {
+          embedTitle = `♾️ ${displayName} jogou Termo Infinity!`;
+        } else {
+          embedTitle = `🎮 ${displayName} jogou Termo!`;
+        }
         
         if (userInfo.discordUsername) {
           authorConfig = {
@@ -101,21 +107,39 @@ serve(async (req) => {
           };
         }
       } else {
-        footerText = "Convidado • aleeessia.com/termo";
+        const mode = data.mode || 'solo';
+        if (mode === 'infinity') {
+          embedTitle = "♾️ Alguém jogou Termo Infinity!";
+          footerText = "Convidado • aleeessia.com/termo";
+        } else {
+          footerText = "Convidado • aleeessia.com/termo";
+        }
       }
+
+      const mode = data.mode || 'solo';
+      const fields = [];
+      
+      // Para modo infinity, adicionar campo da palavra
+      if (mode === 'infinity' && data.word) {
+        fields.push({
+          name: "📝 Palavra",
+          value: `**${data.word.toUpperCase()}**`,
+          inline: false
+        });
+      }
+      
+      fields.push({
+        name: "📊 Resultado",
+        value: gridText ? `\`\`\`\n${gridText}\n\`\`\`` : "Grid não disponível",
+        inline: false
+      });
 
       const embed: DiscordEmbed = {
         title: embedTitle,
         description: `**${titleLine}**\n**${resultLine}**`,
         color: color,
         author: authorConfig,
-        fields: [
-          {
-            name: "📊 Resultado",
-            value: gridText ? `\`\`\`\n${gridText}\n\`\`\`` : "Grid não disponível",
-            inline: false
-          }
-        ],
+        fields: fields,
         footer: {
           text: footerText
         },

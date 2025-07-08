@@ -16,7 +16,7 @@ const getClientIP = async (): Promise<string> => {
   }
 };
 
-export const sendGameResultToDiscord = async (shareText: string, isGuest: boolean, gameState: GameState, userInfo?: { nickname?: string; discordUsername?: string; discordAvatar?: string }) => {
+export const sendGameResultToDiscord = async (shareText: string, isGuest: boolean, gameState: GameState, userInfo?: { nickname?: string; discordUsername?: string; discordAvatar?: string }, mode?: string, targetWord?: string) => {
   try {
     // Só enviar webhook se o jogo terminou (win ou lose)
     if (gameState !== 'win' && gameState !== 'lose') {
@@ -107,7 +107,9 @@ export const sendGameResultToDiscord = async (shareText: string, isGuest: boolea
           shareText,
           isGuest,
           gameState,
-          userInfo
+          userInfo,
+          mode,
+          word: targetWord
         }
       }
     });
