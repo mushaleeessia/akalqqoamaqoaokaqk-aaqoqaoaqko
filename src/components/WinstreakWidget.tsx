@@ -37,14 +37,14 @@ export const WinstreakWidget = ({
     } else if (winstreak <= 99) {
       return {
         icon: Star,
-        color: "bg-red-500/80 text-red-100 border-red-400/50",
-        bgGlow: "shadow-red-500/30"
+        color: "bg-yellow-500/80 text-yellow-100 border-yellow-400/50",
+        bgGlow: "shadow-red-500/40"
       };
     } else {
       return {
         icon: Heart,
-        color: "bg-yellow-500/80 text-yellow-100 border-yellow-400/50",
-        bgGlow: "shadow-yellow-500/40"
+        color: "bg-red-500/80 text-red-100 border-red-400/50",
+        bgGlow: "shadow-red-500/30"
       };
     }
   };
