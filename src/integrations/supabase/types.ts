@@ -159,6 +159,33 @@ export type Database = {
         }
         Relationships: []
       }
+      portuguese_words: {
+        Row: {
+          created_at: string
+          id: string
+          is_valid: boolean
+          updated_at: string
+          word: string
+          word_normalized: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_valid?: boolean
+          updated_at?: string
+          word: string
+          word_normalized: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_valid?: boolean
+          updated_at?: string
+          word?: string
+          word_normalized?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -206,6 +233,18 @@ export type Database = {
       is_crossword_complete: {
         Args: { grid_data: Json; target_words: Json }
         Returns: boolean
+      }
+      normalize_word: {
+        Args: { input_word: string }
+        Returns: string
+      }
+      unaccent: {
+        Args: { "": string }
+        Returns: string
+      }
+      unaccent_init: {
+        Args: { "": unknown }
+        Returns: unknown
       }
     }
     Enums: {

@@ -72,6 +72,9 @@ const Index = () => {
       {/* Twitch Embed */}
       <TwitchEmbed isEnglish={isEnglish} />
 
+      {/* Music Player - só aparece na página principal */}
+      <MusicPlayer />
+
       {/* Dark red ambient background elements - distributed across the screen */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Top area - distributed across width */}
@@ -295,8 +298,6 @@ const Index = () => {
       {/* Help Assistant */}
       <HelpAssistant isEnglish={isEnglish} />
 
-      {/* Music Player */}
-      <MusicPlayer hidden={mobileMenuOpen} />
     </div>
   );
 };

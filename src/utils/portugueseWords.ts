@@ -1,5 +1,6 @@
 
 import { validateWithMultipleAPIs } from './wordValidationAPIs';
+import { validatePortugueseWordDatabase } from './databaseWordValidation';
 
 // Cache para evitar múltiplas consultas da mesma palavra
 const wordCache = new Map<string, { isValid: boolean; correctForm?: string }>();
@@ -75,8 +76,19 @@ const generateWordVariations = (word: string): string[] => {
   return [...new Set([...variations, ...accentVariations, ...pluralVariations])];
 };
 
-// Função principal de validação usando múltiplas fontes
+// Função principal de validação - agora usa o banco de dados primeiro
 export const validatePortugueseWord = async (word: string): Promise<{ isValid: boolean; correctForm: string }> => {
+  // Primeiro, tentar validação via banco de dados
+  try {
+    const databaseResult = await validatePortugueseWordDatabase(word);
+    if (databaseResult.isValid) {
+      return databaseResult;
+    }
+  } catch (error) {
+    console.log('Fallback para validação via APIs devido a erro no banco:', error);
+  }
+
+  // Fallback para o sistema antigo se não encontrar no banco
   const originalWord = word.toLowerCase().trim();
   const normalizedWord = normalizeWord(originalWord);
   
