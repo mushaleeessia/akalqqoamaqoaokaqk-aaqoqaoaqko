@@ -27,7 +27,7 @@ export const useInfinityMode = () => {
 	    'falou', 'ouviu', 'vendo', 'olhou', 'tocou', 'pegou', 'abriu', 'ligou',
 	    'parou', 'perdeu', 'jogou', 'lendo', 'cantou', 'rindo', 'chorou',
 	    'escola', 'amigo', 'sonho', 'espaco', 'musica', 'dentes', 'cabeca',
-	    'cabelo', 'rosto', 'smile', 'feliz', 'triste', 'bravo', 'calmo', 'doce',
+	    'cabelo', 'rosto', 'feliz', 'triste', 'bravo', 'calmo', 'doce',
 	    'salgado', 'quente', 'gelado', 'areia', 'canto', 'meios', 'salto', 'ruido',
         'brisa', 'fases', 'janela', 'cidade', 'sabado', 'viagem', 'noivos', 'flores', 'folhas',
 	    'familia', 'memoria', 'sorriso', 'amizade', 'alegria', 'crianca',
