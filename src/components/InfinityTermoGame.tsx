@@ -19,7 +19,7 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [showingGameOver, setShowingGameOver] = useState(false);
   const [showingNewGameCountdown, setShowingNewGameCountdown] = useState(false);
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(3);
 
   // Gerar texto de compartilhamento quando o jogo termina
   const shareText = (infinityGameState.gameState.gameStatus === 'won' || infinityGameState.gameState.gameStatus === 'lost') 
@@ -61,7 +61,7 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
   const handlePlayAgain = () => {
     setShowingGameOver(false);
     setShowingNewGameCountdown(true);
-    setCountdown(5);
+    setCountdown(3);
   };
 
   const startNewGame = async () => {
@@ -71,7 +71,7 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
     setGameState(null);
     setShowingGameOver(false);
     setShowingNewGameCountdown(false);
-    setCountdown(5);
+    setCountdown(3);
   };
 
   if (loading) {
