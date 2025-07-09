@@ -159,6 +159,48 @@ export type Database = {
         }
         Relationships: []
       }
+      music_tracks: {
+        Row: {
+          artist_name: string
+          audio_url: string | null
+          created_at: string
+          duration: number | null
+          expires_at: string
+          id: string
+          spotify_url: string
+          thumbnail_url: string | null
+          track_name: string
+          updated_at: string
+          youtube_url: string | null
+        }
+        Insert: {
+          artist_name: string
+          audio_url?: string | null
+          created_at?: string
+          duration?: number | null
+          expires_at?: string
+          id?: string
+          spotify_url: string
+          thumbnail_url?: string | null
+          track_name: string
+          updated_at?: string
+          youtube_url?: string | null
+        }
+        Update: {
+          artist_name?: string
+          audio_url?: string | null
+          created_at?: string
+          duration?: number | null
+          expires_at?: string
+          id?: string
+          spotify_url?: string
+          thumbnail_url?: string | null
+          track_name?: string
+          updated_at?: string
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
       portuguese_words: {
         Row: {
           created_at: string
@@ -212,6 +254,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_tracks: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_old_webhook_records: {
         Args: Record<PropertyKey, never>
         Returns: undefined

@@ -26,11 +26,42 @@ export const MusicPlayer = ({ currentTrack, isAdmin, onPlayPause }: MusicPlayerP
   const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string>("");
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Load audio URL when track changes
+  useEffect(() => {
+    const loadAudioUrl = async () => {
+      if (!currentTrack) {
+        setAudioUrl("");
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        
+        // If track has a direct audio URL (from our processing), use it
+        if ((currentTrack as any).audioUrl) {
+          setAudioUrl((currentTrack as any).audioUrl);
+          return;
+        }
+        
+        // Use fallback demo audio for now
+        setAudioUrl("https://www.soundjay.com/misc/sounds/bell-ringing-05.wav");
+      } catch (error) {
+        console.error('Error loading audio URL:', error);
+        setAudioUrl("https://www.soundjay.com/misc/sounds/bell-ringing-05.wav");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadAudioUrl();
+  }, [currentTrack?.id]);
 
   // Sync audio with track state
   useEffect(() => {
-    if (!audioRef.current || !currentTrack) return;
+    if (!audioRef.current || !currentTrack || !audioUrl) return;
 
     const audio = audioRef.current;
     
@@ -50,7 +81,7 @@ export const MusicPlayer = ({ currentTrack, isAdmin, onPlayPause }: MusicPlayerP
     } else if (!currentTrack.isPlaying && !audio.paused) {
       audio.pause();
     }
-  }, [currentTrack]);
+  }, [currentTrack, audioUrl]);
 
   // Update current time from audio element
   useEffect(() => {
@@ -106,12 +137,6 @@ export const MusicPlayer = ({ currentTrack, isAdmin, onPlayPause }: MusicPlayerP
     onPlayPause(currentTrack.isPlaying, newStartedAt);
   };
 
-  // Get audio URL (using a demo track for now - this would integrate with music APIs)
-  const getAudioUrl = (track: CurrentTrack) => {
-    // For demo purposes, using a publicly available audio file
-    // In production, this would fetch audio from Spotify API, Apple Music, etc.
-    return "https://audio.jukehost.co.uk/EXzFHioULCtIF5HR7d0RfubcQmAV1nl9";
-  };
 
   if (!currentTrack) {
     return (
@@ -136,7 +161,7 @@ export const MusicPlayer = ({ currentTrack, isAdmin, onPlayPause }: MusicPlayerP
           {/* Hidden Audio Element */}
           <audio
             ref={audioRef}
-            src={getAudioUrl(currentTrack)}
+            src={audioUrl}
             preload="auto"
             crossOrigin="anonymous"
           />

@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Music, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useMusicCleanup } from "@/hooks/useMusicCleanup";
 
 interface CurrentTrack {
   id: string;
@@ -39,6 +40,9 @@ export default function ListenTogether() {
   const [listeners, setListeners] = useState<number>(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [musicChannel, setMusicChannel] = useState<any>(null);
+  
+  // Clean up expired music tracks periodically
+  useMusicCleanup();
 
   useEffect(() => {
     if (!user) return;
@@ -149,7 +153,7 @@ export default function ListenTogether() {
     console.log('Play/pause broadcast result:', result);
   };
 
-  const playNextFromQueue = () => {
+  const playNextFromQueue = async () => {
     if (queue.length === 0) {
       setCurrentTrack(null);
       return;
@@ -158,11 +162,31 @@ export default function ListenTogether() {
     const nextTrack = queue[0];
     const newQueue = queue.slice(1);
     
+    // Get audio URL for the track if it's a processed track
+    let audioUrl = undefined;
+    try {
+      if (nextTrack.id) {
+        // Try to get audio URL from our database
+        const { data } = await supabase
+          .from('music_tracks')
+          .select('audio_url, duration')
+          .eq('id', nextTrack.id)
+          .single();
+        
+        if (data) {
+          audioUrl = data.audio_url;
+        }
+      }
+    } catch (error) {
+      console.error('Error getting audio URL:', error);
+    }
+    
     const currentTrack: CurrentTrack = {
       ...nextTrack,
       duration: 180, // 3 minutes default
       startedAt: Date.now(),
       isPlaying: true,
+      ...(audioUrl && { audioUrl })
     };
 
     setCurrentTrack(currentTrack);
@@ -280,15 +304,33 @@ export default function ListenTogether() {
                   broadcastQueueUpdate(newQueue);
                 }
               }}
-              onPlayTrack={(track) => {
+              onPlayTrack={async (track) => {
                 if (isAdmin) {
                   // Remove track from queue and play it
                   const newQueue = queue.filter(t => t.id !== track.id);
+                  
+                  // Get audio URL for the track if available
+                  let audioUrl = undefined;
+                  try {
+                    const { data } = await supabase
+                      .from('music_tracks')
+                      .select('audio_url, duration')
+                      .eq('id', track.id)
+                      .single();
+                    
+                    if (data) {
+                      audioUrl = data.audio_url;
+                    }
+                  } catch (error) {
+                    console.error('Error getting audio URL:', error);
+                  }
+                  
                   const currentTrack: CurrentTrack = {
                     ...track,
                     duration: 180,
                     startedAt: Date.now(),
                     isPlaying: true,
+                    ...(audioUrl && { audioUrl })
                   };
                   setCurrentTrack(currentTrack);
                   setQueue(newQueue);

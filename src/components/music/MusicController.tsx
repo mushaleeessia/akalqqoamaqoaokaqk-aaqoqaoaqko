@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { MusicService } from "@/services/musicService";
 
 interface CurrentTrack {
   id: string;
@@ -56,44 +57,41 @@ export const MusicController = ({ onTrackSelect, onQueueUpdate, currentQueue }: 
     return "";
   };
 
-  const parseSpotifyUrl = async (url: string): Promise<QueueTrack | null> => {
-    const id = extractSpotifyId(url);
-    if (!id || !url.includes("/track/")) return null;
-
-    try {
-      // Use Spotify's oEmbed API to get track info
-      const oembedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`;
-      const response = await fetch(oembedUrl);
-      const data = await response.json();
-      
-      if (data.title) {
-        // Parse title which usually comes as "Artist - Song Title"
-        const titleParts = data.title.split(' - ');
-        const artist = titleParts[0] || "Artista Desconhecido";
-        const name = titleParts.slice(1).join(' - ') || data.title;
-        
-        return {
-          id: id,
-          name: name,
-          artist: artist,
-          spotifyUrl: url,
-          imageUrl: data.thumbnail_url,
-          addedBy: "aleeessia"
-        };
-      }
-    } catch (error) {
-      console.error('Erro ao buscar dados do Spotify:', error);
+  const processSpotifyTrack = async (url: string): Promise<QueueTrack | null> => {
+    if (!url.includes("/track/")) {
+      toast({
+        title: "Erro",
+        description: "Apenas links de músicas são suportados no momento",
+        variant: "destructive",
+      });
+      return null;
     }
 
-    // Fallback para dados básicos se a API falhar
-    return {
-      id: id,
-      name: "Música do Spotify",
-      artist: "Artista Desconhecido", 
-      spotifyUrl: url,
-      imageUrl: undefined,
-      addedBy: "aleeessia"
-    };
+    try {
+      toast({
+        title: "Processando...",
+        description: "Preparando a música para reprodução",
+      });
+
+      const processedTrack = await MusicService.processSpotifyTrack(url);
+      
+      return {
+        id: processedTrack.id,
+        name: processedTrack.name,
+        artist: processedTrack.artist,
+        spotifyUrl: processedTrack.spotifyUrl,
+        imageUrl: processedTrack.imageUrl,
+        addedBy: "aleeessia"
+      };
+    } catch (error) {
+      console.error('Erro ao processar música:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível processar a música",
+        variant: "destructive",
+      });
+      return null;
+    }
   };
 
   const handleAddTrack = async () => {
@@ -116,7 +114,7 @@ export const MusicController = ({ onTrackSelect, onQueueUpdate, currentQueue }: 
     }
 
     try {
-      const track = await parseSpotifyUrl(spotifyUrl);
+      const track = await processSpotifyTrack(spotifyUrl);
       
       if (!track) {
         toast({
@@ -150,7 +148,7 @@ export const MusicController = ({ onTrackSelect, onQueueUpdate, currentQueue }: 
     if (!spotifyUrl.trim()) return;
 
     try {
-      const track = await parseSpotifyUrl(spotifyUrl);
+      const track = await processSpotifyTrack(spotifyUrl);
       
       if (!track) {
         toast({
