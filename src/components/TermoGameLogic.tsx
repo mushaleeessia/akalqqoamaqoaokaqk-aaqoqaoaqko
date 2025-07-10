@@ -40,6 +40,7 @@ export const TermoGameLogic = ({
   const showingFreshGameOver = soloGameState.showingFreshGameOver;
   const canPlay = soloGameState.canPlay;
   const sessionInfo = soloGameState.sessionInfo;
+  const revealState = soloGameState.revealState;
 
   useTermoKeyboardHandler(handleKeyPress);
 
@@ -146,6 +147,7 @@ export const TermoGameLogic = ({
         currentRow={gameState.currentRow}
         maxGuesses={maxGuesses}
         isDarkMode={isDarkMode}
+        revealState={!isInfinityMode ? revealState : undefined}
       />
       
       <TermoKeyboard

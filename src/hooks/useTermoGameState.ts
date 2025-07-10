@@ -4,6 +4,7 @@ import { usePlayerSession } from "@/hooks/usePlayerSession";
 import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
 import { useGameStateManager } from "./useGameStateManager";
 import { useGameKeyboardHandler } from "./useGameKeyboardHandler";
+import { useRevealAnimation } from "./useRevealAnimation";
 import { evaluateGuess, updateKeyStatesForGuess } from "@/utils/gameEvaluation";
 
 export type LetterState = 'correct' | 'present' | 'absent' | 'empty';
@@ -21,6 +22,8 @@ export const useTermoGameState = (targetWord: string) => {
   
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
+
+  const { revealState, startReveal } = useRevealAnimation();
 
   const {
     gameState,
@@ -42,7 +45,9 @@ export const useTermoGameState = (targetWord: string) => {
     saveGameProgress,
     saveGameSession,
     setIsValidating,
-    setShowingFreshGameOver
+    setShowingFreshGameOver,
+    startReveal,
+    isRevealing: revealState.isRevealing
   });
 
   return {
@@ -57,6 +62,7 @@ export const useTermoGameState = (targetWord: string) => {
     sessionInfo,
     handleKeyPress,
     evaluateGuess: (guess: string) => evaluateGuess(guess, targetWord),
-    updateKeyStatesForGuess
+    updateKeyStatesForGuess,
+    revealState
   };
 };

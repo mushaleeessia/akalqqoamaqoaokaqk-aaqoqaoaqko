@@ -1,5 +1,6 @@
 import { TermoRow } from "./TermoRow";
 import { LetterState } from "@/hooks/useTermoGameState";
+import { RevealState } from "@/hooks/useRevealAnimation";
 
 interface TermoGridProps {
   guesses: string[];
@@ -9,6 +10,7 @@ interface TermoGridProps {
   maxGuesses: number;
   isDarkMode: boolean;
   isWordCompleted?: boolean;
+  revealState?: RevealState;
 }
 
 export const TermoGrid = ({ 
@@ -18,7 +20,8 @@ export const TermoGrid = ({
   currentRow, 
   maxGuesses,
   isDarkMode,
-  isWordCompleted = false
+  isWordCompleted = false,
+  revealState
 }: TermoGridProps) => {
   
   const wordLength = targetWord.length;
@@ -109,6 +112,8 @@ export const TermoGrid = ({
       {Array.from({ length: maxGuesses }, (_, rowIndex) => {
         const { letters, states } = getRowData(rowIndex);
         
+        const isRevealingThisRow = revealState?.isRevealing && revealState.revealingRowIndex === rowIndex;
+        
         return (
           <TermoRow
             key={rowIndex}
@@ -117,6 +122,8 @@ export const TermoGrid = ({
             isDarkMode={isDarkMode}
             rowIndex={rowIndex}
             isCurrentRow={rowIndex === currentRow && !isWordCompleted}
+            isRevealing={isRevealingThisRow}
+            revealedCells={isRevealingThisRow ? revealState.revealedCells : []}
           />
         );
       })}
