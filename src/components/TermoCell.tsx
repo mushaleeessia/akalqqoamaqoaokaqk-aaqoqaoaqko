@@ -24,11 +24,6 @@ export const TermoCell = ({
   const getLetterClass = (): string => {
     let baseClass = "w-14 h-14 border-2 flex items-center justify-center text-xl font-bold rounded transition-all duration-200";
     
-    // Adicionar classe de animação se estiver revelando
-    if (isRevealing && isRevealed) {
-      baseClass += ` card-flip card-flip-delay-${revealDelay}`;
-    }
-    
     // Se estiver revelando mas ainda não foi revelado, mostrar estado neutro
     if (isRevealing && !isRevealed) {
       if (isDarkMode) {
@@ -36,6 +31,11 @@ export const TermoCell = ({
       } else {
         return `${baseClass} bg-white border-gray-300 text-gray-800`;
       }
+    }
+    
+    // Adicionar classe de animação se estiver revelando (já com a cor final)
+    if (isRevealing && isRevealed) {
+      baseClass += ` card-flip card-flip-delay-${revealDelay}`;
     }
     
     if (isDarkMode) {

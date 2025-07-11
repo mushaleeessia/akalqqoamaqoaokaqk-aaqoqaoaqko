@@ -4,6 +4,7 @@ import { validatePortugueseWord } from "@/utils/portugueseWords";
 import { useMultiModePlayerSession } from "@/hooks/useMultiModePlayerSession";
 import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
 import { toast } from "@/hooks/use-toast";
+import { useRevealAnimation, RevealState } from "@/hooks/useRevealAnimation";
 
 export type LetterState = 'correct' | 'present' | 'absent' | 'empty';
 
@@ -12,17 +13,24 @@ export interface MultiModeGameState {
   currentGuess: string;
   gameStatus: 'playing' | 'won' | 'lost';
   currentRow: number;
+  revealState: RevealState;
 }
 
 export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => {
   const { canPlay, sessionInfo, saveGameProgress } = useMultiModePlayerSession(mode);
   const { sessionExists, saveGameSession } = useSupabaseGameSession(mode, targetWords);
+  const { revealState, startReveal } = useRevealAnimation();
   
   const [gameState, setGameState] = useState<MultiModeGameState>({
     guesses: [],
     currentGuess: '',
     gameStatus: 'playing',
-    currentRow: 0
+    currentRow: 0,
+    revealState: {
+      isRevealing: false,
+      revealingRowIndex: -1,
+      revealedCells: []
+    }
   });
 
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
@@ -110,7 +118,9 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   };
 
   const submitGuess = useCallback(async () => {
-    if (gameState.currentGuess.length !== 5) {
+    if (gameState.currentGuess.length !== 5 || revealState.isRevealing) {
+      if (revealState.isRevealing) return; // Bloquear input durante animação
+      
       toast({
         title: "Palavra incompleta",
         description: "Digite uma palavra de 5 letras",
@@ -145,21 +155,28 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
       
       const newGameStatus = isWin ? 'won' : (isGameOver ? 'lost' : 'playing');
       
-      const newGameState = {
-        guesses: newGuesses,
-        currentGuess: '',
-        gameStatus: newGameStatus as 'playing' | 'won' | 'lost',
-        currentRow: newGuesses.length
-      };
+      // Iniciar animação de revelação
+      startReveal(gameState.currentRow, 5);
       
-      setGameState(newGameState);
+      setTimeout(() => {
+        const newGameState = {
+          guesses: newGuesses,
+          currentGuess: '',
+          gameStatus: newGameStatus as 'playing' | 'won' | 'lost',
+          currentRow: newGuesses.length,
+          revealState: revealState
+        };
+        
+        setGameState(prev => ({...newGameState, revealState}));
 
-      if (isGameOver) {
-        setShowingFreshGameOver(true);
-        await saveGameSession(newGuesses, isWin);
-      }
+        if (isGameOver) {
+          setShowingFreshGameOver(true);
+          saveGameSession(newGuesses, isWin);
+        }
+      }, 5 * 150 + 800); // Aguardar animação terminar
 
-      saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameStatus);
+
+      saveGameProgress(newGuesses, '', newGameStatus);
       
     } catch (error) {
       toast({
@@ -173,7 +190,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   }, [gameState.currentGuess, gameState.guesses, targetWords, saveGameProgress, maxGuesses, saveGameSession]);
 
   const handleKeyPress = useCallback((key: string) => {
-    if (gameState.gameStatus !== 'playing' || isValidating) return;
+    if (gameState.gameStatus !== 'playing' || isValidating || revealState.isRevealing) return;
 
     if (key === 'ENTER') {
       submitGuess();
@@ -200,7 +217,11 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
         saveGameProgress(newGameState.guesses, newGameState.currentGuess, newGameState.gameStatus);
       }
     }
-  }, [gameState, isValidating, submitGuess, saveGameProgress]);
+  }, [gameState, isValidating, revealState.isRevealing, submitGuess, saveGameProgress]);
+
+  useEffect(() => {
+    setGameState(prev => ({...prev, revealState}));
+  }, [revealState]);
 
   useEffect(() => {
     if (sessionInfo && sessionInfo.mode === mode && !isSessionLoaded) {
@@ -208,7 +229,8 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
         guesses: sessionInfo.guesses || [],
         currentGuess: sessionInfo.currentGuess || '',
         gameStatus: sessionInfo.gameStatus || 'playing',
-        currentRow: (sessionInfo.guesses || []).length
+        currentRow: (sessionInfo.guesses || []).length,
+        revealState: revealState
       };
 
       if (sessionInfo.guesses && sessionInfo.guesses.length > 0) {
