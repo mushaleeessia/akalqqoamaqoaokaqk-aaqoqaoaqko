@@ -6,7 +6,7 @@ interface MusicPlayerProps {
   hidden?: boolean;
 }
 
-const HIDDEN_ROUTES = ['/listentogether'];
+const VISIBLE_ROUTES = ['/'];
 
 export const MusicPlayer = ({ hidden = false }: MusicPlayerProps) => {
   const location = useLocation();
@@ -14,8 +14,8 @@ export const MusicPlayer = ({ hidden = false }: MusicPlayerProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Ocultar automaticamente em páginas específicas
-  const shouldHide = hidden || HIDDEN_ROUTES.includes(location.pathname);
+  // Só mostrar na página principal
+  const shouldHide = hidden || !VISIBLE_ROUTES.includes(location.pathname);
 
   const audioUrl = "https://audio.jukehost.co.uk/CtlkY10vzGjBSZx7vxgDiodDCWsokOVS";
 
