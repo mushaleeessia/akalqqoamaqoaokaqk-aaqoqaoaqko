@@ -6,37 +6,17 @@ interface TermoCellProps {
   state: LetterState;
   isDarkMode: boolean;
   isCurrentRow?: boolean;
-  isRevealing?: boolean;
-  isRevealed?: boolean;
-  revealDelay?: number;
 }
 
 export const TermoCell = ({ 
   letter, 
   state, 
   isDarkMode, 
-  isCurrentRow = false,
-  isRevealing = false,
-  isRevealed = false,
-  revealDelay = 0
+  isCurrentRow = false
 }: TermoCellProps) => {
   
   const getLetterClass = (): string => {
-    let baseClass = "w-14 h-14 border-2 flex items-center justify-center text-xl font-bold rounded transition-all duration-200";
-    
-    // Se estiver revelando mas ainda não foi revelado, mostrar estado neutro
-    if (isRevealing && !isRevealed) {
-      if (isDarkMode) {
-        return `${baseClass} bg-gray-800 border-gray-600 text-white`;
-      } else {
-        return `${baseClass} bg-white border-gray-300 text-gray-800`;
-      }
-    }
-    
-    // Adicionar classe de animação se estiver revelando (já com a cor final)
-    if (isRevealing && isRevealed) {
-      baseClass += ` card-flip card-flip-delay-${revealDelay}`;
-    }
+    const baseClass = "w-14 h-14 border-2 flex items-center justify-center text-xl font-bold rounded transition-all duration-200";
     
     if (isDarkMode) {
       switch (state) {

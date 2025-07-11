@@ -96,9 +96,7 @@ export const useInfinityGameState = (targetWord: string) => {
     saveGameProgress: () => {}, // Infinity não precisa salvar progresso
     saveGameSession,
     setIsValidating,
-    setShowingFreshGameOver,
-    startReveal: () => {}, // Infinity não usa animação de revelação por enquanto
-    isRevealing: false
+    setShowingFreshGameOver
   });
 
   const updateWinstreak = useCallback((won: boolean) => {

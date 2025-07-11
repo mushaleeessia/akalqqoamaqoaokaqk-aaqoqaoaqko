@@ -10,7 +10,7 @@ export const MusicPlayer = ({ hidden = false }: MusicPlayerProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const audioUrl = "https://audio.jukehost.co.uk/CtlkY10vzGjBSZx7vxgDiodDCWsokOVS";
+  const audioUrl = "https://audio.jukehost.co.uk/EXzFHioULCtIF5HR7d0RfubcQmAV1nl9";
 
   const handlePlayPause = () => {
     if (!audioRef.current) return;

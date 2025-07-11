@@ -8,8 +8,6 @@ interface TermoRowProps {
   isDarkMode: boolean;
   rowIndex: number;
   isCurrentRow?: boolean;
-  isRevealing?: boolean;
-  revealedCells?: boolean[];
 }
 
 export const TermoRow = ({ 
@@ -17,9 +15,7 @@ export const TermoRow = ({
   states, 
   isDarkMode, 
   rowIndex,
-  isCurrentRow = false,
-  isRevealing = false,
-  revealedCells = []
+  isCurrentRow = false
 }: TermoRowProps) => {
   
   const wordLength = letters.length;
@@ -33,9 +29,6 @@ export const TermoRow = ({
           state={states[colIndex] || 'empty'}
           isDarkMode={isDarkMode}
           isCurrentRow={isCurrentRow}
-          isRevealing={isRevealing}
-          isRevealed={revealedCells[colIndex] || false}
-          revealDelay={colIndex}
         />
       ))}
     </div>

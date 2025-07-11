@@ -81,7 +81,6 @@ export const MultiModeGameGrid = ({
                 maxGuesses={maxGuesses}
                 isDarkMode={isDarkMode}
                 isWordCompleted={isWordCompleted(targetWord)}
-                revealState={gameState.revealState}
               />
             </div>
           </div>
