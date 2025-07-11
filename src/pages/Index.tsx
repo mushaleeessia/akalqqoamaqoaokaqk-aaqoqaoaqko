@@ -7,7 +7,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { HelpAssistant } from "@/components/HelpAssistant";
 import { TwitchEmbed } from "@/components/TwitchEmbed";
-import { MusicPlayer } from "@/components/MusicPlayer";
+
 import { StatsUpdater } from "@/components/StatsUpdater";
 import { Globe, MessageSquare, Video, Gamepad2, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -72,8 +72,6 @@ const Index = () => {
       {/* Twitch Embed */}
       <TwitchEmbed isEnglish={isEnglish} />
 
-      {/* Music Player - só aparece na página principal */}
-      <MusicPlayer />
 
       {/* Dark red ambient background elements - distributed across the screen */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">

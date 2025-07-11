@@ -1,14 +1,21 @@
 import { useState, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { Music } from "lucide-react";
 
 interface MusicPlayerProps {
   hidden?: boolean;
 }
 
+const HIDDEN_ROUTES = ['/listentogether'];
+
 export const MusicPlayer = ({ hidden = false }: MusicPlayerProps) => {
+  const location = useLocation();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Ocultar automaticamente em páginas específicas
+  const shouldHide = hidden || HIDDEN_ROUTES.includes(location.pathname);
 
   const audioUrl = "https://audio.jukehost.co.uk/CtlkY10vzGjBSZx7vxgDiodDCWsokOVS";
 
@@ -60,7 +67,7 @@ export const MusicPlayer = ({ hidden = false }: MusicPlayerProps) => {
           ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
           border-2 border-pink-300/50
           relative
-          ${hidden ? "hidden" : ""}
+          ${shouldHide ? "hidden" : ""}
         `}
         aria-label={isPlaying ? "Pausar música" : "Tocar música"}
       >

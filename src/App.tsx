@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { MusicPlayer } from "@/components/MusicPlayer";
 import Index from "./pages/Index";
 import Termo from "./pages/Termo";
 import Cruzadas from "./pages/Cruzadas";
@@ -20,6 +21,8 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          {/* Music Player Global - persiste entre páginas */}
+          <MusicPlayer />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/termo" element={<Termo />} />
