@@ -134,7 +134,7 @@ async function getSpotifyTrackInfo(url: string) {
 async function searchYouTube(trackName: string, artist: string) {
   // For demo purposes, we'll use a working audio URL
   // In production, you'd integrate with YouTube API and yt-dlp
-  const demoAudioUrl = "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav";
+  const demoAudioUrl = "https://audio.jukehost.co.uk/CtlkY10vzGjBSZx7vxgDiodDCWsokOVS";
   
   // Mock YouTube search result
   return {
