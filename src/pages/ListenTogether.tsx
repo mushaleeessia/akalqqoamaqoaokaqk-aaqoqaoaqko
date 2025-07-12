@@ -79,7 +79,32 @@ export default function ListenTogether() {
       })
       .on('broadcast', { event: 'session-update' }, ({ payload }) => {
         console.log('Session update received:', payload);
-        setSessionState(payload.sessionState);
+        const newState = payload.sessionState;
+        setSessionState(newState);
+        
+        // Force audio sync for received updates
+        if (audioRef.current && newState.currentTrack) {
+          setTimeout(() => {
+            const audio = audioRef.current;
+            if (!audio) return;
+            
+            if (newState.isPlaying && newState.startedAt > 0) {
+              const now = Date.now();
+              const expectedTime = (now - newState.startedAt) / 1000;
+              const timeDiff = Math.abs(expectedTime - audio.currentTime);
+              
+              if (timeDiff > 0.5) {
+                audio.currentTime = Math.max(0, expectedTime);
+              }
+              
+              if (audio.paused) {
+                audio.play().catch(console.error);
+              }
+            } else if (!newState.isPlaying && !audio.paused) {
+              audio.pause();
+            }
+          }, 100);
+        }
       })
       .on('broadcast', { event: 'sync-request' }, () => {
         if (isAdmin) {
@@ -119,27 +144,54 @@ export default function ListenTogether() {
     };
   }, [user, isAdmin]);
 
-  // Sync audio with session state
+  // Sync audio with session state and update progress
   useEffect(() => {
     if (!audioRef.current || !sessionState.currentTrack) return;
 
     const audio = audioRef.current;
-    const now = Date.now();
-    const expectedTime = (now - sessionState.startedAt) / 1000;
-    const actualTime = audio.currentTime;
-    const timeDiff = Math.abs(expectedTime - actualTime);
-
-    // Sync if difference is more than 1 second
-    if (timeDiff > 1 && sessionState.isPlaying) {
-      audio.currentTime = Math.max(0, expectedTime);
+    
+    // Update current time for UI display (non-admin users)
+    if (!isAdmin && sessionState.isPlaying && sessionState.startedAt > 0) {
+      const now = Date.now();
+      const expectedTime = (now - sessionState.startedAt) / 1000;
+      setSessionState(prev => ({ ...prev, currentTime: Math.max(0, expectedTime) }));
     }
 
-    if (sessionState.isPlaying && audio.paused) {
-      audio.play().catch(console.error);
+    // Sync audio playback
+    if (sessionState.isPlaying && sessionState.startedAt > 0) {
+      const now = Date.now();
+      const expectedTime = (now - sessionState.startedAt) / 1000;
+      const actualTime = audio.currentTime;
+      const timeDiff = Math.abs(expectedTime - actualTime);
+
+      // Sync if difference is more than 1 second
+      if (timeDiff > 1) {
+        audio.currentTime = Math.max(0, expectedTime);
+      }
+
+      if (audio.paused) {
+        audio.play().catch(console.error);
+      }
     } else if (!sessionState.isPlaying && !audio.paused) {
       audio.pause();
     }
-  }, [sessionState]);
+  }, [sessionState, isAdmin]);
+
+  // Real-time progress update for non-admin users
+  useEffect(() => {
+    if (!sessionState.isPlaying || isAdmin || sessionState.startedAt === 0) return;
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const expectedTime = (now - sessionState.startedAt) / 1000;
+      setSessionState(prev => ({ 
+        ...prev, 
+        currentTime: Math.max(0, Math.min(expectedTime, sessionState.currentTrack?.duration || 0))
+      }));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [sessionState.isPlaying, sessionState.startedAt, sessionState.currentTrack?.duration, isAdmin]);
 
   // Update volume
   useEffect(() => {
@@ -204,10 +256,14 @@ export default function ListenTogether() {
   const handlePlayPause = () => {
     if (!isAdmin || !sessionState.currentTrack) return;
 
+    const audio = audioRef.current;
+    if (!audio) return;
+
     const newState = {
       ...sessionState,
       isPlaying: !sessionState.isPlaying,
-      startedAt: sessionState.isPlaying ? 0 : Date.now() - (sessionState.currentTime * 1000)
+      startedAt: sessionState.isPlaying ? 0 : Date.now() - (audio.currentTime * 1000),
+      currentTime: audio.currentTime
     };
 
     setSessionState(newState);
@@ -319,7 +375,7 @@ export default function ListenTogether() {
             <Radio className="w-10 h-10 text-black" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Listen Together</h1>
-          <p className="text-green-400 font-semibold mb-4">Spotify-style Sync</p>
+          <p className="text-green-400 font-semibold mb-4">Sincronização em Tempo Real</p>
           <p className="text-gray-300 mb-6 text-sm">
             Entre para ouvir música sincronizada com todos os usuários em tempo real
           </p>
