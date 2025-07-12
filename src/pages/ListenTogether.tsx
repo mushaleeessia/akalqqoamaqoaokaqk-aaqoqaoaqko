@@ -1,225 +1,111 @@
-import { useEffect, useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { MusicPlayer } from "@/components/music/MusicPlayer";
-import { MusicController } from "@/components/music/MusicController";
-import { MusicQueue } from "@/components/music/MusicQueue";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Music, Users } from "lucide-react";
+import { Music, Users, Play, Pause, SkipForward, Volume2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useMusicCleanup } from "@/hooks/useMusicCleanup";
-
-interface CurrentTrack {
-  id: string;
-  name: string;
-  artist: string;
-  spotifyUrl: string;
-  imageUrl?: string;
-  duration: number;
-  startedAt: number;
-  isPlaying: boolean;
-}
-
-interface QueueTrack {
-  id: string;
-  name: string;
-  artist: string;
-  spotifyUrl: string;
-  imageUrl?: string;
-  addedBy: string;
-}
-
-const ALEEESSIA_ID = "bedf5a3e-ea52-4ba1-bcb4-5e748f4d9654";
+import { Slider } from "@/components/ui/slider";
 
 export default function ListenTogether() {
   const { user, signInWithDiscord } = useAuth();
   const { toast } = useToast();
-  const [currentTrack, setCurrentTrack] = useState<CurrentTrack | null>(null);
-  const [queue, setQueue] = useState<QueueTrack[]>([]);
-  const [listeners, setListeners] = useState<number>(0);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [musicChannel, setMusicChannel] = useState<any>(null);
-  
-  // Clean up expired music tracks periodically
-  useMusicCleanup();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(50);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const ALEEESSIA_ID = "bedf5a3e-ea52-4ba1-bcb4-5e748f4d9654";
+  const isAdmin = user?.id === ALEEESSIA_ID;
+
+  // Demo track
+  const demoTrack = {
+    name: "The place where it rained",
+    artist: "DelTarune",
+    audioUrl: "https://audio.jukehost.co.uk/CtlkY10vzGjBSZx7vxgDiodDCWsokOVS",
+    imageUrl: "/lovable-uploads/71211bb9-eabf-4f43-9ff4-1fc3091d6f28.png"
+  };
 
   useEffect(() => {
-    if (!user) return;
-    
-    setIsAdmin(user.id === ALEEESSIA_ID);
-    
-    // Subscribe to music state channel
-    const channel = supabase
-      .channel('music-room')
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        setListeners(Object.keys(state).length);
-      })
-      .on('presence', { event: 'join' }, ({ newPresences }) => {
-        console.log('User joined:', newPresences);
-      })
-      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        console.log('User left:', leftPresences);
-      })
-      .on('broadcast', { event: 'track-change' }, ({ payload }) => {
-        console.log('Received track change:', payload);
-        setCurrentTrack(payload.track);
-      })
-      .on('broadcast', { event: 'queue-update' }, ({ payload }) => {
-        console.log('Received queue update:', payload);
-        setQueue(payload.queue);
-      })
-      .on('broadcast', { event: 'play-pause' }, ({ payload }) => {
-        console.log('Received play/pause:', payload);
-        setCurrentTrack(prev => prev ? { ...prev, isPlaying: payload.isPlaying, startedAt: payload.startedAt } : null);
-      })
-      .on('broadcast', { event: 'sync-state' }, ({ payload }) => {
-        console.log('Received sync state:', payload);
-        if (payload.currentTrack) setCurrentTrack(payload.currentTrack);
-        if (payload.queue) setQueue(payload.queue);
-      })
-      .on('broadcast', { event: 'request-sync' }, () => {
-        if (user.id === ALEEESSIA_ID) {
-          console.log('Sync requested, sending current state');
-          channel.send({
-            type: 'broadcast',
-            event: 'sync-state',
-            payload: {
-              currentTrack,
-              queue
-            }
-          });
-        }
-      })
-      .subscribe(async (status) => {
-        console.log('Channel status:', status);
-        if (status === 'SUBSCRIBED') {
-          // Track user presence
-          await channel.track({
-            user_id: user.id,
-            online_at: new Date().toISOString(),
-          });
-          
-          // Request current state when joining (non-admin users)
-          if (user.id !== ALEEESSIA_ID) {
-            setTimeout(() => {
-              channel.send({
-                type: 'broadcast',
-                event: 'request-sync'
-              });
-            }, 1000);
-          }
-        }
-      });
+    const audio = audioRef.current;
+    if (!audio) return;
 
-    setMusicChannel(channel);
+    const updateTime = () => setCurrentTime(audio.currentTime);
+    const updateDuration = () => setDuration(audio.duration);
+    const handleEnded = () => setIsPlaying(false);
+    const handleLoadStart = () => setIsLoading(true);
+    const handleCanPlay = () => setIsLoading(false);
+    const handleError = () => {
+      setIsLoading(false);
+      setIsPlaying(false);
+      toast({
+        title: "Erro no áudio",
+        description: "Não foi possível carregar o áudio",
+        variant: "destructive",
+      });
+    };
+
+    audio.addEventListener('timeupdate', updateTime);
+    audio.addEventListener('loadedmetadata', updateDuration);
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('loadstart', handleLoadStart);
+    audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('error', handleError);
 
     return () => {
-      supabase.removeChannel(channel);
+      audio.removeEventListener('timeupdate', updateTime);
+      audio.removeEventListener('loadedmetadata', updateDuration);
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('loadstart', handleLoadStart);
+      audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('error', handleError);
     };
-  }, [user]);
+  }, [toast]);
 
-  const broadcastTrackChange = async (track: CurrentTrack) => {
-    if (!musicChannel) return;
-    console.log('Broadcasting track change:', track);
-    const result = await musicChannel.send({
-      type: 'broadcast',
-      event: 'track-change',
-      payload: { track }
-    });
-    console.log('Broadcast result:', result);
-  };
-
-  const broadcastQueueUpdate = async (newQueue: QueueTrack[]) => {
-    if (!musicChannel) return;
-    console.log('Broadcasting queue update:', newQueue);
-    const result = await musicChannel.send({
-      type: 'broadcast',
-      event: 'queue-update',
-      payload: { queue: newQueue }
-    });
-    console.log('Queue broadcast result:', result);
-  };
-
-  const broadcastPlayPause = async (isPlaying: boolean, startedAt: number) => {
-    if (!musicChannel) return;
-    console.log('Broadcasting play/pause:', { isPlaying, startedAt });
-    const result = await musicChannel.send({
-      type: 'broadcast',
-      event: 'play-pause',
-      payload: { isPlaying, startedAt }
-    });
-    console.log('Play/pause broadcast result:', result);
-  };
-
-  const playNextFromQueue = async () => {
-    if (queue.length === 0) {
-      setCurrentTrack(null);
-      return;
-    }
-
-    const nextTrack = queue[0];
-    const newQueue = queue.slice(1);
-    
-    // Get audio URL for the track if it's a processed track
-    let audioUrl = undefined;
-    try {
-      if (nextTrack.id) {
-        // Try to get audio URL from our database
-        const { data } = await supabase
-          .from('music_tracks')
-          .select('audio_url, duration')
-          .eq('id', nextTrack.id)
-          .single();
-        
-        if (data) {
-          audioUrl = data.audio_url;
-        }
-      }
-    } catch (error) {
-      console.error('Error getting audio URL:', error);
-    }
-    
-    const currentTrack: CurrentTrack = {
-      ...nextTrack,
-      duration: 180, // 3 minutes default
-      startedAt: Date.now(),
-      isPlaying: true,
-      ...(audioUrl && { audioUrl })
-    };
-
-    setCurrentTrack(currentTrack);
-    setQueue(newQueue);
-    
-    if (isAdmin) {
-      broadcastTrackChange(currentTrack);
-      broadcastQueueUpdate(newQueue);
-    }
-  };
-
-  // Check if current track has ended
   useEffect(() => {
-    if (!currentTrack || !currentTrack.isPlaying) return;
-
-    const timeRemaining = currentTrack.duration - ((Date.now() - currentTrack.startedAt) / 1000);
-    
-    if (timeRemaining <= 0) {
-      // Track has ended, play next
-      if (isAdmin) {
-        playNextFromQueue();
-      }
-      return;
+    if (audioRef.current) {
+      audioRef.current.volume = volume / 100;
     }
+  }, [volume]);
 
-    const timeout = setTimeout(() => {
-      if (isAdmin) {
-        playNextFromQueue();
-      }
-    }, timeRemaining * 1000);
+  const handlePlayPause = () => {
+    if (!audioRef.current) return;
 
-    return () => clearTimeout(timeout);
-  }, [currentTrack, queue, isAdmin]);
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      setIsLoading(true);
+      audioRef.current.play()
+        .then(() => {
+          setIsPlaying(true);
+          setIsLoading(false);
+        })
+        .catch(() => {
+          setIsPlaying(false);
+          setIsLoading(false);
+          toast({
+            title: "Erro de reprodução",
+            description: "Não foi possível reproduzir o áudio",
+            variant: "destructive",
+          });
+        });
+    }
+  };
+
+  const handleSeek = (newTime: number[]) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = newTime[0];
+      setCurrentTime(newTime[0]);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   if (!user) {
     return (
@@ -248,7 +134,7 @@ export default function ListenTogether() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
@@ -262,84 +148,105 @@ export default function ListenTogether() {
           </div>
           <div className="flex items-center gap-2 text-white/70">
             <Users className="w-5 h-5" />
-            <span>{listeners} ouvintes</span>
+            <span>1 ouvinte</span>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Player */}
-          <div className="lg:col-span-2">
-            <MusicPlayer 
-              currentTrack={currentTrack}
-              isAdmin={isAdmin}
-              onPlayPause={(isPlaying, startedAt) => broadcastPlayPause(isPlaying, startedAt)}
-            />
-            
-            {isAdmin && (
-              <div className="mt-6">
-                <MusicController 
-                  onTrackSelect={(track) => {
-                    setCurrentTrack(track);
-                    broadcastTrackChange(track);
-                  }}
-                  onQueueUpdate={(newQueue) => {
-                    setQueue(newQueue);
-                    broadcastQueueUpdate(newQueue);
-                  }}
-                  currentQueue={queue}
+        {/* Music Player */}
+        <Card className="bg-black/40 backdrop-blur border-white/20 p-6">
+          <div className="flex items-center gap-6">
+            {/* Album Art */}
+            <div className="w-24 h-24 rounded-lg overflow-hidden bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+              {demoTrack.imageUrl ? (
+                <img 
+                  src={demoTrack.imageUrl} 
+                  alt="Album Art" 
+                  className="w-full h-full object-cover"
                 />
+              ) : (
+                <Music className="w-8 h-8 text-white" />
+              )}
+            </div>
+
+            {/* Track Info & Controls */}
+            <div className="flex-1">
+              <div className="mb-4">
+                <h3 className="text-xl font-bold text-white">{demoTrack.name}</h3>
+                <p className="text-white/70">{demoTrack.artist}</p>
               </div>
-            )}
+
+              {/* Progress Bar */}
+              <div className="mb-4">
+                <Slider
+                  value={[currentTime]}
+                  max={duration || 100}
+                  step={1}
+                  onValueChange={handleSeek}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-sm text-white/60 mt-1">
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{formatTime(duration)}</span>
+                </div>
+              </div>
+
+              {/* Controls */}
+              <div className="flex items-center gap-4">
+                <Button
+                  onClick={handlePlayPause}
+                  disabled={isLoading}
+                  size="lg"
+                  className="bg-primary hover:bg-primary/80 text-white rounded-full w-12 h-12 p-0"
+                >
+                  {isLoading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : isPlaying ? (
+                    <Pause className="w-6 h-6" />
+                  ) : (
+                    <Play className="w-6 h-6 ml-1" />
+                  )}
+                </Button>
+
+                {/* Volume Control */}
+                <div className="flex items-center gap-2 flex-1 max-w-32">
+                  <Volume2 className="w-5 h-5 text-white/70" />
+                  <Slider
+                    value={[volume]}
+                    max={100}
+                    step={1}
+                    onValueChange={(value) => setVolume(value[0])}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Queue */}
-          <div>
-            <MusicQueue 
-              queue={queue}
-              isAdmin={isAdmin}
-              onRemoveTrack={(trackId) => {
-                if (isAdmin) {
-                  const newQueue = queue.filter(track => track.id !== trackId);
-                  setQueue(newQueue);
-                  broadcastQueueUpdate(newQueue);
-                }
-              }}
-              onPlayTrack={async (track) => {
-                if (isAdmin) {
-                  // Remove track from queue and play it
-                  const newQueue = queue.filter(t => t.id !== track.id);
-                  
-                  // Get audio URL for the track if available
-                  let audioUrl = undefined;
-                  try {
-                    const { data } = await supabase
-                      .from('music_tracks')
-                      .select('audio_url, duration')
-                      .eq('id', track.id)
-                      .single();
-                    
-                    if (data) {
-                      audioUrl = data.audio_url;
-                    }
-                  } catch (error) {
-                    console.error('Error getting audio URL:', error);
-                  }
-                  
-                  const currentTrack: CurrentTrack = {
-                    ...track,
-                    duration: 180,
-                    startedAt: Date.now(),
-                    isPlaying: true,
-                    ...(audioUrl && { audioUrl })
-                  };
-                  setCurrentTrack(currentTrack);
-                  setQueue(newQueue);
-                  broadcastTrackChange(currentTrack);
-                  broadcastQueueUpdate(newQueue);
-                }
-              }}
-            />
+          {/* Status */}
+          <div className="mt-4 p-3 bg-green-500/20 rounded-lg">
+            <div className="flex items-center gap-2 text-green-400">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium">ÁUDIO SINCRONIZADO ATIVO</span>
+            </div>
+            <p className="text-xs text-green-300/80 mt-1">
+              Todos os usuários ouvem exatamente no mesmo momento
+            </p>
           </div>
+        </Card>
+
+        {/* Hidden Audio Element */}
+        <audio
+          ref={audioRef}
+          src={demoTrack.audioUrl}
+          preload="metadata"
+          style={{ display: 'none' }}
+        />
+
+        {/* Demo Message */}
+        <div className="mt-6 text-center">
+          <p className="text-white/60 text-sm">
+            Esta é uma versão de demonstração do Listen Together
+          </p>
         </div>
       </div>
     </div>
