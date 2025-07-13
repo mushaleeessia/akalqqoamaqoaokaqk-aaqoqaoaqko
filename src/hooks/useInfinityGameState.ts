@@ -91,7 +91,6 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
   // Sincronizar localStorage com database quando database winstreak muda
   useEffect(() => {
     if (!statsLoading && dbWinstreak !== undefined) {
-      console.log('🔄 Syncing local winstreak from', localWinstreak, 'to DB value', dbWinstreak);
       setLocalWinstreak(dbWinstreak);
       localStorage.setItem('termo-infinity-winstreak', dbWinstreak.toString());
     }
@@ -111,17 +110,10 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
   });
 
   const updateWinstreak = useCallback((won: boolean) => {
-    console.log('🎯 Game finished:', won ? 'WON' : 'LOST', '- Current winstreak:', winstreak);
-    
     // Always update local winstreak for immediate UI feedback
     if (won) {
-      setLocalWinstreak(prev => {
-        const newValue = prev + 1;
-        console.log('✅ Local winstreak updated to:', newValue);
-        return newValue;
-      });
+      setLocalWinstreak(prev => prev + 1);
     } else {
-      console.log('💥 Resetting winstreak to 0');
       setLocalWinstreak(0);
     }
     

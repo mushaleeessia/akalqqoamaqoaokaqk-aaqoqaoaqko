@@ -60,7 +60,6 @@ export const useHardModeEvent = () => {
 
   // Ativar o hard mode
   const triggerHardMode = useCallback(() => {
-    console.log('🔥 HARD MODE TRIGGERED! 🔥');
     saveState({
       isTriggering: true,
       lastEventGame: eventState.gamesPlayed

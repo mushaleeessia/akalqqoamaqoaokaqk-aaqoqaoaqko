@@ -66,12 +66,9 @@ export const useSupabaseGameStats = (gameMode: string) => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('📊 Stats updated via real-time:', payload);
-          
           if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
             const newStats = payload.new as any;
             if (newStats.game_mode === gameMode) {
-              console.log('🔄 Updating winstreak from', stats?.win_streak, 'to', newStats.win_streak);
               setStats(newStats);
             }
           }
