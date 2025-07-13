@@ -130,3 +130,73 @@ body::-webkit-scrollbar {
 *::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+
+/* Hard Mode Visual Effects */
+.hard-mode-container {
+  position: relative;
+}
+
+.hard-mode-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.5rem;
+  background: linear-gradient(45deg, 
+    rgba(220, 38, 38, 0.1) 0%, 
+    rgba(248, 113, 113, 0.05) 50%, 
+    rgba(220, 38, 38, 0.1) 100%
+  );
+  animation: hard-mode-pulse 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hard-mode-intensity-1::before {
+  background: linear-gradient(45deg, 
+    rgba(220, 38, 38, 0.15) 0%, 
+    rgba(248, 113, 113, 0.08) 50%, 
+    rgba(220, 38, 38, 0.15) 100%
+  );
+  animation: hard-mode-pulse 1.8s ease-in-out infinite;
+}
+
+.hard-mode-intensity-2::before {
+  background: linear-gradient(45deg, 
+    rgba(220, 38, 38, 0.25) 0%, 
+    rgba(248, 113, 113, 0.12) 50%, 
+    rgba(220, 38, 38, 0.25) 100%
+  );
+  animation: hard-mode-pulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
+}
+
+.hard-mode-intensity-3::before {
+  background: linear-gradient(45deg, 
+    rgba(220, 38, 38, 0.35) 0%, 
+    rgba(248, 113, 113, 0.18) 50%, 
+    rgba(220, 38, 38, 0.35) 100%
+  );
+  animation: hard-mode-pulse 1.2s ease-in-out infinite;
+  box-shadow: 0 0 30px rgba(220, 38, 38, 0.4);
+}
+
+.hard-mode-intensity-4::before {
+  background: linear-gradient(45deg, 
+    rgba(220, 38, 38, 0.45) 0%, 
+    rgba(248, 113, 113, 0.25) 50%, 
+    rgba(220, 38, 38, 0.45) 100%
+  );
+  animation: hard-mode-pulse 1s ease-in-out infinite;
+  box-shadow: 0 0 40px rgba(220, 38, 38, 0.5);
+}
+
+@keyframes hard-mode-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.02);
+  }
+}

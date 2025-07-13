@@ -167,6 +167,7 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
         isValidating={infinityGameState.isValidating}
         maxAttempts={maxAttempts}
         isHardMode={isHardMode}
+        winstreak={infinityGameState.winstreak}
       />
     </>
   );

@@ -9,6 +9,8 @@ interface TermoGridProps {
   maxGuesses: number;
   isDarkMode: boolean;
   isWordCompleted?: boolean;
+  isHardMode?: boolean;
+  winstreak?: number;
 }
 
 export const TermoGrid = ({ 
@@ -18,7 +20,9 @@ export const TermoGrid = ({
   currentRow, 
   maxGuesses,
   isDarkMode,
-  isWordCompleted = false
+  isWordCompleted = false,
+  isHardMode = false,
+  winstreak = 0
 }: TermoGridProps) => {
   
   const wordLength = targetWord.length;
@@ -104,8 +108,24 @@ export const TermoGrid = ({
     return { letters, states };
   };
 
+  // Calcular intensidade do efeito hard mode baseado nas tentativas usadas
+  const getHardModeIntensity = () => {
+    if (!isHardMode || winstreak === 0 || isWordCompleted) return '';
+    
+    const attemptsUsed = guesses.length;
+    const remainingAttempts = maxGuesses - attemptsUsed;
+    
+    if (remainingAttempts <= 1) return 'hard-mode-intensity-4';
+    if (remainingAttempts <= 2) return 'hard-mode-intensity-3';
+    if (remainingAttempts <= 3) return 'hard-mode-intensity-2';
+    if (remainingAttempts <= 4) return 'hard-mode-intensity-1';
+    return 'hard-mode-container';
+  };
+
+  const hardModeClass = isHardMode && winstreak > 0 ? getHardModeIntensity() : '';
+
   return (
-    <div className="flex flex-col space-y-2">
+    <div className={`flex flex-col space-y-2 ${hardModeClass}`}>
       {Array.from({ length: maxGuesses }, (_, rowIndex) => {
         const { letters, states } = getRowData(rowIndex);
         

@@ -20,6 +20,7 @@ interface TermoGameLogicProps {
   isValidating?: boolean;
   maxAttempts?: number;
   isHardMode?: boolean;
+  winstreak?: number;
 }
 
 export const TermoGameLogic = ({ 
@@ -32,7 +33,8 @@ export const TermoGameLogic = ({
   handleKeyPress: externalHandleKeyPress,
   isValidating: externalIsValidating,
   maxAttempts = 6,
-  isHardMode = false
+  isHardMode = false,
+  winstreak = 0
 }: TermoGameLogicProps) => {
   // Use external state for Infinity mode, internal for Solo
   const soloGameState = useTermoGameState(targetWord);
@@ -161,6 +163,9 @@ export const TermoGameLogic = ({
         currentRow={gameState.currentRow}
         maxGuesses={maxGuesses}
         isDarkMode={isDarkMode}
+        isWordCompleted={gameState.gameStatus !== 'playing'}
+        isHardMode={isHardMode}
+        winstreak={winstreak}
       />
       
       <TermoKeyboard
