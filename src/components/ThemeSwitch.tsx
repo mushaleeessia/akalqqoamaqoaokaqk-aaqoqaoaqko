@@ -7,13 +7,11 @@ import {
   themeStorageKey,
 } from "./theme-utils";
 
-import { Language } from "@/contexts/LanguageContext";
-
 interface ThemeSwitchProps {
-  language: Language;
+  isEnglish?: boolean;
 }
 
-export const ThemeSwitch = ({ language }: ThemeSwitchProps) => {
+export const ThemeSwitch = ({ isEnglish = false }: ThemeSwitchProps) => {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
@@ -57,15 +55,28 @@ export const ThemeSwitch = ({ language }: ThemeSwitchProps) => {
   };
 
   const getCurrentLabel = () => {
-    switch (theme) {
-      case "light":
-        return language === 'en' ? "Light" : language === 'it' ? "Chiaro" : "Claro";
-      case "dark":
-        return language === 'en' ? "Dark" : language === 'it' ? "Scuro" : "Escuro";
-      case "system":
-        return "Auto";
-      default:
-        return language === 'en' ? "Light" : language === 'it' ? "Chiaro" : "Claro";
+    if (isEnglish) {
+      switch (theme) {
+        case "light":
+          return "Light";
+        case "dark":
+          return "Dark";
+        case "system":
+          return "Auto";
+        default:
+          return "Light";
+      }
+    } else {
+      switch (theme) {
+        case "light":
+          return "Claro";
+        case "dark":
+          return "Escuro";
+        case "system":
+          return "Auto";
+        default:
+          return "Claro";
+      }
     }
   };
 

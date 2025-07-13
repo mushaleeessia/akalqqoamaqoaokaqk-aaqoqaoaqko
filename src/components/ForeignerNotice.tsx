@@ -1,28 +1,35 @@
 
 import { useEffect, useState } from 'react';
 
-import { Language } from "@/contexts/LanguageContext";
-
 interface ForeignerNoticeProps {
-  language: Language;
+  isVisible: boolean;
 }
 
-export const ForeignerNotice = ({ language }: ForeignerNoticeProps) => {
-  if (language === 'pt') return null;
-  
-  const getMessage = () => {
-    switch (language) {
-      case 'en':
-        return "⚠️ You are viewing this website in English. Translations may not be 100% accurate.";
-      case 'it':
-        return "⚠️ Stai visualizzando questo sito web in italiano. Le traduzioni potrebbero non essere accurate al 100%.";
-      default:
-        return "⚠️ Você está visualizando este site traduzido. As traduções podem não estar 100% precisas.";
-    }
-  };
+export const ForeignerNotice = ({ isVisible }: ForeignerNoticeProps) => {
+  const [shouldRender, setShouldRender] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  const [shouldRender, setShouldRender] = useState(true);
-  const [isAnimating, setIsAnimating] = useState(true);
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    if (isVisible) {
+      setShouldRender(true);
+      // Small delay to ensure element is in DOM before animation
+      timeoutId = setTimeout(() => {
+        setIsAnimating(true);
+      }, 10);
+    } else {
+      setIsAnimating(false);
+      // Wait for fade-out animation to complete before removing from DOM
+      timeoutId = setTimeout(() => {
+        setShouldRender(false);
+      }, 500);
+    }
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isVisible]);
 
   if (!shouldRender) return null;
 
@@ -33,7 +40,13 @@ export const ForeignerNotice = ({ language }: ForeignerNoticeProps) => {
       }`}
     >
       <div className="text-red-800 text-xs leading-relaxed">
-        {getMessage()}
+        <p className="font-bold mb-2">Are you a foreigner and want to play in MushMC? Read below.</p>
+        <p className="mb-2">
+          <strong>For Premium Accounts:</strong> Send an e-mail to contas@mush.com.br with your IGN and explain that you cannot login due to country restrictions;
+        </p>
+        <p>
+          <strong>For Cracked Accounts:</strong> Send an e-mail to contas@mush.com.br with the desired IGN and explain that you are unable to create accounts due to country restrictions.
+        </p>
       </div>
     </div>
   );

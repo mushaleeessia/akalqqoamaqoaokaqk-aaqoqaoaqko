@@ -12,44 +12,46 @@ import { StatsUpdater } from "@/components/StatsUpdater";
 import { Globe, MessageSquare, Video, Gamepad2, HelpCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLinkClickLogger } from "@/hooks/useLinkClickLogger";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 const Index = () => {
+  const [isEnglish, setIsEnglish] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { logClick } = useLinkClickLogger();
-  const { language, t } = useLanguage();
 
   const links = [
     {
-      title: t('ban_question'),
-      description: t('check_truth'),
+      title: isEnglish ? "Does Alessia ban wrongly or without reason?" : "A Alessia bane errado ou sem motivo?",
+      description: isEnglish ? "Check out the whole truth here" : "Confira aqui toda a verdade",
       url: "https://forum.mush.com.br/topic/275986/denuncia-adm-aleeesia",
       icon: HelpCircle,
       color: "from-purple-900 to-purple-700"
     },
     {
-      title: t('my_tiktok'),
-      description: "@aleeessia_",
+      title: isEnglish ? "My TikTok" : "Meu TikTok",
+      description: isEnglish ? "@aleeessia_" : "@aleeessia_",
       url: "https://tiktok.com/@aleeessia_",
       icon: Video,
       color: "from-red-900 to-red-700"
     },
     {
-      title: t('mush_website'),
-      description: t('official_server_website'),
+      title: isEnglish ? "Mush's Website" : "Site Mush",
+      description: isEnglish ? "Official server website" : "Site oficial do servidor",
       url: "https://mush.com.br",
       icon: Globe,
       color: "from-amber-900 to-red-800"
     },
     {
-      title: t('mush_discord'),
-      description: t('join_discord'),
+      title: isEnglish ? "Mush's Discord" : "Discord Mush",
+      description: isEnglish ? "Join our Discord community" : "Entre no nosso Discord",
       url: "https://discord.gg/mush",
       icon: MessageSquare,
       color: "from-red-800 to-amber-900"
     }
   ];
 
+  const handleLanguageChange = (newIsEnglish: boolean) => {
+    setIsEnglish(newIsEnglish);
+  };
 
   const handleDiscordClick = async () => {
     await logClick("Discord do clan [ITALIAN]", "https://discord.gg/nqCKwVYtbr");
@@ -63,11 +65,12 @@ const Index = () => {
       
       {/* Header do Mush */}
       <Header 
+        onLanguageChange={handleLanguageChange}
         onMobileMenuChange={setMobileMenuOpen}
       />
 
       {/* Twitch Embed */}
-      <TwitchEmbed language={language} />
+      <TwitchEmbed isEnglish={isEnglish} />
 
 
       {/* Dark red ambient background elements - distributed across the screen */}
@@ -160,7 +163,7 @@ const Index = () => {
 
       {/* Main content */}
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-md">
-        <ProfileSection language={language} />
+        <ProfileSection isEnglish={isEnglish} />
         
         {/* Botão especial do jogo Termo */}
         <div className="mt-8 mb-4">
@@ -170,7 +173,7 @@ const Index = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-400/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
               
               <Gamepad2 className="w-6 h-6 relative z-10 text-green-300" />
-              <span className="relative z-10 text-green-100">{t('teeermo')}</span>
+              <span className="relative z-10 text-green-100">TEEERMO</span>
               
               {/* Partículas de fundo */}
               <div className="absolute top-1 right-2 w-1 h-1 bg-green-400 rounded-full animate-pulse opacity-70" />
@@ -187,7 +190,7 @@ const Index = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
               
               <Gamepad2 className="w-6 h-6 relative z-10 text-purple-300" />
-              <span className="relative z-10 text-purple-100">{t('crosswords')}</span>
+              <span className="relative z-10 text-purple-100">PALAVRAS CRUZADAS</span>
               
               {/* Partículas de fundo */}
               <div className="absolute top-1 right-2 w-1 h-1 bg-purple-400 rounded-full animate-pulse opacity-70" />
@@ -232,23 +235,23 @@ const Index = () => {
               {/* Efeito de brilho adicional */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               
-                <div className="relative p-6 flex items-center space-x-4">
-                  {/* Ícone customizado com imagem cobrindo toda a área */}
-                  <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-gradient-to-br from-red-600 via-white to-red-600 flex items-center justify-center shadow-lg relative overflow-hidden">
-                    <img 
-                      src="https://cdn.discordapp.com/icons/1321583518081355837/fb0af693fd6c5e2c6790138903c67423.png?size=2048" 
-                      alt="Discord Icon" 
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                    {/* Brilho no ícone */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                  </div>
-                  
-                  {/* Conteúdo */}
-                  <div className="flex-grow min-w-0">
-                    <h3 className="text-white font-bold text-lg group-hover:text-red-200 transition-colors duration-300">
-                      {t('italian_clan_discord')}
-                    </h3>
+              <div className="relative p-6 flex items-center space-x-4">
+                {/* Ícone customizado com imagem cobrindo toda a área */}
+                <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-gradient-to-br from-red-600 via-white to-red-600 flex items-center justify-center shadow-lg relative overflow-hidden">
+                  <img 
+                    src="https://cdn.discordapp.com/icons/1321583518081355837/fb0af693fd6c5e2c6790138903c67423.png?size=2048" 
+                    alt="Discord Icon" 
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                  {/* Brilho no ícone */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                </div>
+                
+                {/* Conteúdo */}
+                <div className="flex-grow min-w-0">
+                  <h3 className="text-white font-bold text-lg group-hover:text-red-200 transition-colors duration-300">
+                    Discord do clan <span className="text-purple-400 font-extrabold">[ITALIAN]</span>
+                  </h3>
                   <p className="text-gray-300 text-sm group-hover:text-gray-200 transition-colors duration-300">
                     Discord do clan e vendas de VIPS baratos
                   </p>
@@ -286,12 +289,12 @@ const Index = () => {
           ))}
         </div>
 
-        <BlogSection language={language} />
-        <Footer language={language} />
+        <BlogSection isEnglish={isEnglish} />
+        <Footer isVisible={isEnglish} />
       </div>
 
       {/* Help Assistant */}
-      <HelpAssistant language={language} />
+      <HelpAssistant isEnglish={isEnglish} />
 
     </div>
   );
