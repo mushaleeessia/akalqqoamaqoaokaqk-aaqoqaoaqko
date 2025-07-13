@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
+import { useSupabaseGameStats } from "@/hooks/useSupabaseGameStats";
 import { useGameStateManager } from "./useGameStateManager";
 import { useGameKeyboardHandler } from "./useGameKeyboardHandler";
 import { evaluateGuess, updateKeyStatesForGuess } from "@/utils/gameEvaluation";
@@ -16,13 +17,18 @@ export interface GameState {
 // Hook específico para modo Infinity que NÃO interfere com Solo
 export const useInfinityGameState = (targetWord: string) => {
   const { saveGameSession } = useSupabaseGameSession('infinity', [targetWord]);
+  const { winstreak: dbWinstreak, loading: statsLoading } = useSupabaseGameStats('infinity');
   
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
-  const [winstreak, setWinstreak] = useState(() => {
+  
+  // Use database winstreak if available, fallback to localStorage
+  const [localWinstreak, setLocalWinstreak] = useState(() => {
     const saved = localStorage.getItem('termo-infinity-winstreak');
     return saved ? parseInt(saved, 10) : 0;
   });
+
+  const winstreak = !statsLoading && dbWinstreak !== undefined ? dbWinstreak : localWinstreak;
 
   // Estado específico para infinity, carrega do localStorage se disponível
   const [gameState, setGameState] = useState<GameState>(() => {
@@ -82,10 +88,12 @@ export const useInfinityGameState = (targetWord: string) => {
     localStorage.setItem('termo-infinity-key-states', JSON.stringify(keyStates));
   }, [keyStates]);
 
-  // Salvar winstreak automaticamente
+  // Salvar winstreak automaticamente apenas se estiver usando localStorage
   useEffect(() => {
-    localStorage.setItem('termo-infinity-winstreak', winstreak.toString());
-  }, [winstreak]);
+    if (statsLoading || dbWinstreak === undefined) {
+      localStorage.setItem('termo-infinity-winstreak', localWinstreak.toString());
+    }
+  }, [localWinstreak, statsLoading, dbWinstreak]);
 
   const { handleKeyPress } = useGameKeyboardHandler({
     gameState,
@@ -100,12 +108,16 @@ export const useInfinityGameState = (targetWord: string) => {
   });
 
   const updateWinstreak = useCallback((won: boolean) => {
-    if (won) {
-      setWinstreak(prev => prev + 1);
-    } else {
-      setWinstreak(0);
+    // Only update local winstreak if not using database
+    if (statsLoading || dbWinstreak === undefined) {
+      if (won) {
+        setLocalWinstreak(prev => prev + 1);
+      } else {
+        setLocalWinstreak(0);
+      }
     }
-  }, []);
+    // Database winstreak is updated automatically via useSupabaseGameSession
+  }, [statsLoading, dbWinstreak]);
 
   const resetGame = useCallback(() => {
     setGameState({
