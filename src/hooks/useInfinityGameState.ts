@@ -27,20 +27,17 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
   
   const winstreak = !statsLoading && dbWinstreak !== undefined ? dbWinstreak : 0;
 
-  // Criar chave única para a palavra atual
-  const getWordKey = () => `infinity_${targetWord.toLowerCase()}`;
 
-  // Verificar se já existe uma sessão para esta palavra
-  const checkWordSession = useCallback(async () => {
+  // Verificar se já existe progresso para esta palavra
+  const checkWordProgress = useCallback(async () => {
     if (!user) return;
     
     try {
       const { data, error } = await supabase
-        .from('game_sessions')
+        .from('infinity_progress')
         .select('*')
         .eq('user_id', user.id)
-        .eq('game_mode', 'infinity')
-        .contains('target_words', [targetWord])
+        .eq('target_word', targetWord)
         .maybeSingle();
 
       if (data) {
@@ -48,9 +45,9 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
         // Carregar progresso da sessão existente
         setGameState({
           guesses: data.guesses,
-          currentGuess: '',
-          gameStatus: data.won ? 'won' : (data.guesses.length >= maxAttempts ? 'lost' : 'playing'),
-          currentRow: data.guesses.length
+          currentGuess: data.current_guess,
+          gameStatus: data.game_status as 'playing' | 'won' | 'lost',
+          currentRow: data.current_row
         });
 
         // Reconstruir keyStates baseado nas tentativas
@@ -66,7 +63,7 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
     } catch (error) {
       setGameSessionExists(false);
     }
-  }, [user, targetWord, maxAttempts]);
+  }, [user, targetWord]);
 
   // Estado do jogo - inicializa vazio e carrega do Supabase
   const [gameState, setGameState] = useState<GameState>({
@@ -78,51 +75,32 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
 
   const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
 
-  // Verificar sessão existente quando a palavra muda
+  // Verificar progresso existente quando a palavra muda
   useEffect(() => {
     if (user && targetWord) {
-      checkWordSession();
+      checkWordProgress();
     }
-  }, [user, targetWord, checkWordSession]);
+  }, [user, targetWord, checkWordProgress]);
 
-  // Salvar progresso no Supabase a cada mudança
+  // Salvar progresso na nova tabela infinity_progress
   const saveProgress = useCallback(async (newGameState: GameState) => {
-    if (!user || newGameState.gameStatus === 'won' || newGameState.gameStatus === 'lost') return;
+    if (!user) return;
 
     try {
-      // Buscar sessão existente
-      const { data: existingSession } = await supabase
-        .from('game_sessions')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('game_mode', 'infinity')
-        .contains('target_words', [targetWord])
-        .maybeSingle();
+      const progressData = {
+        user_id: user.id,
+        target_word: targetWord,
+        guesses: newGameState.guesses,
+        current_guess: newGameState.currentGuess,
+        game_status: newGameState.gameStatus,
+        current_row: newGameState.currentRow
+      };
 
-      if (existingSession) {
-        // Atualizar sessão existente
-        await supabase
-          .from('game_sessions')
-          .update({
-            guesses: newGameState.guesses,
-            attempts: newGameState.guesses.length,
-            completed_at: new Date().toISOString()
-          })
-          .eq('id', existingSession.id);
-      } else {
-        // Criar nova sessão
-        await supabase
-          .from('game_sessions')
-          .insert({
-            user_id: user.id,
-            game_mode: 'infinity',
-            target_words: [targetWord],
-            guesses: newGameState.guesses,
-            attempts: newGameState.guesses.length,
-            won: false,
-            completed_at: new Date().toISOString()
-          });
-      }
+      await supabase
+        .from('infinity_progress')
+        .upsert(progressData, {
+          onConflict: 'user_id,target_word'
+        });
     } catch (error) {
       // Silent error
     }
@@ -160,15 +138,14 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
     setShowingFreshGameOver(false);
     setGameSessionExists(false);
 
-    // Limpar sessão do Supabase para esta palavra específica
+    // Limpar progresso da palavra específica
     if (user) {
       try {
         await supabase
-          .from('game_sessions')
+          .from('infinity_progress')
           .delete()
           .eq('user_id', user.id)
-          .eq('game_mode', 'infinity')
-          .contains('target_words', [targetWord]);
+          .eq('target_word', targetWord);
       } catch (error) {
         // Silent error
       }

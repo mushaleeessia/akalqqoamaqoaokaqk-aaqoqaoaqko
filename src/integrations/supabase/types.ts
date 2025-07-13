@@ -132,6 +132,42 @@ export type Database = {
           },
         ]
       }
+      infinity_progress: {
+        Row: {
+          created_at: string
+          current_guess: string
+          current_row: number
+          game_status: string
+          guesses: string[]
+          id: string
+          target_word: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_guess?: string
+          current_row?: number
+          game_status?: string
+          guesses?: string[]
+          id?: string
+          target_word: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_guess?: string
+          current_row?: number
+          game_status?: string
+          guesses?: string[]
+          id?: string
+          target_word?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       link_clicks: {
         Row: {
           clicked_at: string
