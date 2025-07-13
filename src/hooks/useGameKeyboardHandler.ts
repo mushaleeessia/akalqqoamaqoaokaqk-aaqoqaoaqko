@@ -15,6 +15,7 @@ interface UseGameKeyboardHandlerProps {
   saveGameSession: (guesses: string[], won: boolean) => Promise<void>;
   setIsValidating: (validating: boolean) => void;
   setShowingFreshGameOver: (showing: boolean) => void;
+  maxAttempts?: number;
 }
 
 export const useGameKeyboardHandler = ({
@@ -26,7 +27,8 @@ export const useGameKeyboardHandler = ({
   saveGameProgress,
   saveGameSession,
   setIsValidating,
-  setShowingFreshGameOver
+  setShowingFreshGameOver,
+  maxAttempts = 6
 }: UseGameKeyboardHandlerProps) => {
 
   const updateKeyStates = (guess: string, evaluation: LetterState[]) => {
@@ -65,7 +67,7 @@ export const useGameKeyboardHandler = ({
       
       const newGuesses = [...gameState.guesses, gameState.currentGuess];
       const isWin = gameState.currentGuess.toLowerCase() === targetWord.toLowerCase();
-      const isGameOver = isWin || newGuesses.length >= 6;
+      const isGameOver = isWin || newGuesses.length >= maxAttempts;
       
       const newGameStatus = isWin ? 'won' : (isGameOver ? 'lost' : 'playing');
       

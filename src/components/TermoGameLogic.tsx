@@ -18,6 +18,8 @@ interface TermoGameLogicProps {
   keyStates?: Record<string, any>;
   handleKeyPress?: (key: string) => void;
   isValidating?: boolean;
+  maxAttempts?: number;
+  isHardMode?: boolean;
 }
 
 export const TermoGameLogic = ({ 
@@ -28,7 +30,9 @@ export const TermoGameLogic = ({
   gameState: externalGameState,
   keyStates: externalKeyStates,
   handleKeyPress: externalHandleKeyPress,
-  isValidating: externalIsValidating
+  isValidating: externalIsValidating,
+  maxAttempts = 6,
+  isHardMode = false
 }: TermoGameLogicProps) => {
   // Use external state for Infinity mode, internal for Solo
   const soloGameState = useTermoGameState(targetWord);
@@ -57,7 +61,7 @@ export const TermoGameLogic = ({
   // Hook para enviar resultado automaticamente para Discord (apenas para Solo)
   useDiscordNotification(isInfinityMode ? { gameStatus: 'playing', guesses: [] } : gameState, shareText, 'solo');
 
-  const maxGuesses = 6;
+  const maxGuesses = maxAttempts;
 
   // Carregar progresso salvo ao inicializar (apenas para Solo)
   useEffect(() => {
@@ -133,6 +137,17 @@ export const TermoGameLogic = ({
 
   return (
     <div className="flex flex-col items-center space-y-6">
+      {isHardMode && (
+        <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-3 mb-4 text-center">
+          <div className="text-red-200 font-bold text-sm flex items-center justify-center gap-2">
+            🔥 MODO DIFÍCIL ATIVO 🔥
+          </div>
+          <div className="text-red-300 text-xs mt-1">
+            Apenas {maxAttempts} tentativas disponíveis!
+          </div>
+        </div>
+      )}
+      
       {isValidating && (
         <div className="text-white text-sm opacity-70">
           Validando palavra...

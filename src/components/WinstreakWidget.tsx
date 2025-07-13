@@ -11,13 +11,15 @@ interface WinstreakWidgetProps {
   currentAttempt?: number;
   maxAttempts?: number;
   isGameActive?: boolean;
+  isHardMode?: boolean;
 }
 
 export const WinstreakWidget = ({ 
   winstreak, 
   currentAttempt = 0, 
   maxAttempts = 6, 
-  isGameActive = false 
+  isGameActive = false,
+  isHardMode = false
 }: WinstreakWidgetProps) => {
   // Determinar ícone e cor baseado na winstreak
   const getWinstreakDisplay = () => {
@@ -189,17 +191,33 @@ export const WinstreakWidget = ({
   const rippleClass = getRippleIntensity();
 
   const badgeContent = (
-    <Badge 
-      className={`
-        flex items-center gap-2 px-4 py-2 text-sm font-semibold 
-        border backdrop-blur-sm transition-all duration-300
-        ${color} ${bgGlow} shadow-lg
-        hover:scale-105 transform relative z-10
-      `}
-    >
-      <IconComponent className="w-4 h-4" />
-      <span>Sequência: {winstreak}</span>
-    </Badge>
+    <div className="flex flex-col items-center gap-2">
+      <Badge 
+        className={`
+          flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+          border backdrop-blur-sm transition-all duration-300
+          ${isHardMode ? 'bg-red-600/80 text-red-100 border-red-400/50 shadow-red-500/40' : color} 
+          ${isHardMode ? 'shadow-red-500/40' : bgGlow} shadow-lg
+          hover:scale-105 transform relative z-10
+        `}
+      >
+        <IconComponent className="w-4 h-4" />
+        <span>Sequência: {winstreak}</span>
+      </Badge>
+      
+      {isHardMode && (
+        <Badge 
+          className="
+            flex items-center gap-1 px-3 py-1 text-xs font-bold 
+            bg-red-900/90 text-red-100 border border-red-500/50 
+            shadow-lg shadow-red-600/30 backdrop-blur-sm
+            animate-pulse
+          "
+        >
+          🔥 HARD MODE 🔥
+        </Badge>
+      )}
+    </div>
   );
 
   return (

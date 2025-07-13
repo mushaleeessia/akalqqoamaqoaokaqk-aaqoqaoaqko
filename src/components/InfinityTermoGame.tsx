@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { TermoGameLogic } from "./TermoGameLogic";
 import { GameOverDisplay } from "./GameOverDisplay";
 import { WinstreakWidget } from "./WinstreakWidget";
+import { HardModeOverlay } from "./HardModeOverlay";
 import { Button } from "@/components/ui/button";
 import { useInfinityMode } from "@/hooks/useInfinityMode";
 import { useInfinityGameState } from "@/hooks/useInfinityGameState";
+import { useHardModeEvent } from "@/hooks/useHardModeEvent";
 import { useDiscordNotification } from "@/hooks/useDiscordNotification";
 import { generateShareText } from "@/utils/shareUtils";
 import { GameState } from "./TermoGame";
@@ -15,7 +17,9 @@ interface InfinityTermoGameProps {
 
 export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
   const { currentWord, loading, generateRandomWord, getCurrentWord, clearInfinityData } = useInfinityMode();
-  const infinityGameState = useInfinityGameState(currentWord);
+  const { isHardMode, isTriggering, incrementGames, resetHardMode } = useHardModeEvent();
+  const maxAttempts = isHardMode ? 4 : 6;
+  const infinityGameState = useInfinityGameState(currentWord, maxAttempts);
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [showingGameOver, setShowingGameOver] = useState(false);
   const [showingNewGameCountdown, setShowingNewGameCountdown] = useState(false);
@@ -55,6 +59,7 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
   const handleGameComplete = (finalGameState: GameState) => {
     setGameState(finalGameState);
     infinityGameState.updateWinstreak(finalGameState.gameStatus === 'won');
+    incrementGames(); // Incrementar contador de jogos para hard mode event
     setShowingGameOver(true);
   };
 
@@ -67,6 +72,7 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
   const startNewGame = async () => {
     clearInfinityData();
     infinityGameState.resetGame();
+    resetHardMode(); // Reset hard mode for new game
     await generateRandomWord();
     setGameState(null);
     setShowingGameOver(false);
@@ -140,11 +146,14 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
 
   return (
     <>
+      <HardModeOverlay isTriggering={isTriggering} />
+      
       <WinstreakWidget 
         winstreak={infinityGameState.winstreak}
         currentAttempt={infinityGameState.gameState.currentRow}
-        maxAttempts={6}
+        maxAttempts={maxAttempts}
         isGameActive={infinityGameState.gameState.gameStatus === 'playing'}
+        isHardMode={isHardMode}
       />
       
       <TermoGameLogic 
@@ -156,6 +165,8 @@ export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
         keyStates={infinityGameState.keyStates}
         handleKeyPress={infinityGameState.handleKeyPress}
         isValidating={infinityGameState.isValidating}
+        maxAttempts={maxAttempts}
+        isHardMode={isHardMode}
       />
     </>
   );

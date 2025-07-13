@@ -15,7 +15,7 @@ export interface GameState {
 }
 
 // Hook específico para modo Infinity que NÃO interfere com Solo
-export const useInfinityGameState = (targetWord: string) => {
+export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6) => {
   const { saveGameSession } = useSupabaseGameSession('infinity', [targetWord]);
   const { winstreak: dbWinstreak, loading: statsLoading } = useSupabaseGameStats('infinity');
   
@@ -104,7 +104,8 @@ export const useInfinityGameState = (targetWord: string) => {
     saveGameProgress: () => {}, // Infinity não precisa salvar progresso
     saveGameSession,
     setIsValidating,
-    setShowingFreshGameOver
+    setShowingFreshGameOver,
+    maxAttempts
   });
 
   const updateWinstreak = useCallback((won: boolean) => {
