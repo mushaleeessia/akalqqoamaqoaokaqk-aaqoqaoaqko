@@ -159,6 +159,104 @@ export type Database = {
         }
         Relationships: []
       }
+      listen_together_queue: {
+        Row: {
+          created_at: string
+          id: string
+          position: number
+          session_id: string | null
+          track_artist: string
+          track_audio_url: string
+          track_duration: number | null
+          track_id: string
+          track_image_url: string | null
+          track_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          position?: number
+          session_id?: string | null
+          track_artist: string
+          track_audio_url: string
+          track_duration?: number | null
+          track_id: string
+          track_image_url?: string | null
+          track_name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          position?: number
+          session_id?: string | null
+          track_artist?: string
+          track_audio_url?: string
+          track_duration?: number | null
+          track_id?: string
+          track_image_url?: string | null
+          track_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listen_together_queue_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "listen_together_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      listen_together_sessions: {
+        Row: {
+          admin_id: string
+          created_at: string
+          current_track_artist: string | null
+          current_track_audio_url: string | null
+          current_track_duration: number | null
+          current_track_id: string | null
+          current_track_image_url: string | null
+          current_track_name: string | null
+          id: string
+          is_playing: boolean
+          queue: Json | null
+          started_at: number
+          track_current_time: number
+          updated_at: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          current_track_artist?: string | null
+          current_track_audio_url?: string | null
+          current_track_duration?: number | null
+          current_track_id?: string | null
+          current_track_image_url?: string | null
+          current_track_name?: string | null
+          id?: string
+          is_playing?: boolean
+          queue?: Json | null
+          started_at?: number
+          track_current_time?: number
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          current_track_artist?: string | null
+          current_track_audio_url?: string | null
+          current_track_duration?: number | null
+          current_track_id?: string | null
+          current_track_image_url?: string | null
+          current_track_name?: string | null
+          id?: string
+          is_playing?: boolean
+          queue?: Json | null
+          started_at?: number
+          track_current_time?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       music_tracks: {
         Row: {
           artist_name: string
@@ -255,6 +353,10 @@ export type Database = {
     }
     Functions: {
       cleanup_expired_tracks: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_old_listen_together_sessions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }

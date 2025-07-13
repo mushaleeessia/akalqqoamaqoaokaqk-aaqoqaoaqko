@@ -18,6 +18,7 @@ import {
   Radio,
   Headphones
 } from "lucide-react";
+import type { Json } from "@/integrations/supabase/types";
 
 interface Track {
   id: string;
@@ -28,12 +29,21 @@ interface Track {
   imageUrl?: string;
 }
 
-interface SessionState {
-  currentTrack: Track | null;
-  isPlaying: boolean;
-  currentTime: number;
-  startedAt: number;
-  queue: Track[];
+interface SessionData {
+  id: string;
+  admin_id: string;
+  current_track_id: string | null;
+  current_track_name: string | null;
+  current_track_artist: string | null;
+  current_track_audio_url: string | null;
+  current_track_duration: number;
+  current_track_image_url: string | null;
+  is_playing: boolean;
+  track_current_time: number;
+  started_at: number;
+  queue: Json;
+  created_at: string;
+  updated_at: string;
 }
 
 const ALEEESSIA_ID = "bedf5a3e-ea52-4ba1-bcb4-5e748f4d9654";
@@ -43,14 +53,7 @@ export default function ListenTogether() {
   const { toast } = useToast();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
-  const [sessionState, setSessionState] = useState<SessionState>({
-    currentTrack: null,
-    isPlaying: false,
-    currentTime: 0,
-    startedAt: 0,
-    queue: []
-  });
-  
+  const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [listeners, setListeners] = useState(0);
   const [volume, setVolume] = useState(50);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,15 +61,32 @@ export default function ListenTogether() {
   const [newTrackName, setNewTrackName] = useState("");
   const [newTrackArtist, setNewTrackArtist] = useState("");
   const [channel, setChannel] = useState<any>(null);
+  const [currentTime, setCurrentTime] = useState(0);
 
   const isAdmin = user?.id === ALEEESSIA_ID;
 
-  // Initialize Supabase channel
+  // Parse queue from JSON
+  const getQueue = (): Track[] => {
+    if (!sessionData?.queue) return [];
+    try {
+      return Array.isArray(sessionData.queue) ? (sessionData.queue as unknown as Track[]) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  // Load or create session
   useEffect(() => {
     if (!user) return;
+    loadSession();
+  }, [user]);
+
+  // Initialize Supabase channel and real-time updates
+  useEffect(() => {
+    if (!user || !sessionData) return;
 
     const musicChannel = supabase
-      .channel('spotify-listen-together')
+      .channel('listen-together-session')
       .on('presence', { event: 'sync' }, () => {
         const state = musicChannel.presenceState();
         setListeners(Object.keys(state).length);
@@ -77,45 +97,21 @@ export default function ListenTogether() {
       .on('presence', { event: 'leave' }, ({ leftPresences }) => {
         console.log('User left:', leftPresences);
       })
-      .on('broadcast', { event: 'session-update' }, ({ payload }) => {
-        console.log('Session update received:', payload);
-        const newState = payload.sessionState;
-        setSessionState(newState);
-        
-        // Force audio sync for received updates
-        if (audioRef.current && newState.currentTrack) {
-          setTimeout(() => {
-            const audio = audioRef.current;
-            if (!audio) return;
-            
-            if (newState.isPlaying && newState.startedAt > 0) {
-              const now = Date.now();
-              const expectedTime = (now - newState.startedAt) / 1000;
-              const timeDiff = Math.abs(expectedTime - audio.currentTime);
-              
-              if (timeDiff > 0.5) {
-                audio.currentTime = Math.max(0, expectedTime);
-              }
-              
-              if (audio.paused) {
-                audio.play().catch(console.error);
-              }
-            } else if (!newState.isPlaying && !audio.paused) {
-              audio.pause();
-            }
-          }, 100);
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'listen_together_sessions',
+          filter: `id=eq.${sessionData.id}`
+        },
+        (payload) => {
+          console.log('Session updated in DB:', payload);
+          if (payload.new && payload.eventType !== 'DELETE') {
+            updateSessionFromDB(payload.new as SessionData);
+          }
         }
-      })
-      .on('broadcast', { event: 'sync-request' }, () => {
-        if (isAdmin) {
-          console.log('Sync requested, sending current state');
-          musicChannel.send({
-            type: 'broadcast',
-            event: 'session-update',
-            payload: { sessionState }
-          });
-        }
-      })
+      )
       .subscribe(async (status) => {
         console.log('Channel status:', status);
         if (status === 'SUBSCRIBED') {
@@ -124,16 +120,6 @@ export default function ListenTogether() {
             nickname: user.user_metadata?.nickname || 'Anonymous',
             online_at: new Date().toISOString(),
           });
-          
-          // Request sync when joining (non-admin users)
-          if (!isAdmin) {
-            setTimeout(() => {
-              musicChannel.send({
-                type: 'broadcast',
-                event: 'sync-request'
-              });
-            }, 1000);
-          }
         }
       });
 
@@ -142,56 +128,94 @@ export default function ListenTogether() {
     return () => {
       supabase.removeChannel(musicChannel);
     };
-  }, [user, isAdmin]);
+  }, [user, sessionData]);
 
-  // Sync audio with session state and update progress
-  useEffect(() => {
-    if (!audioRef.current || !sessionState.currentTrack) return;
+  const loadSession = async () => {
+    try {
+      // Tentar encontrar sessão existente do admin
+      let { data: session } = await supabase
+        .from('listen_together_sessions')
+        .select('*')
+        .eq('admin_id', ALEEESSIA_ID)
+        .single();
 
-    const audio = audioRef.current;
+      if (!session && isAdmin) {
+        // Criar nova sessão se for admin e não existir
+        const { data: newSession, error } = await supabase
+          .from('listen_together_sessions')
+          .insert([{ admin_id: ALEEESSIA_ID }])
+          .select()
+          .single();
+
+        if (error) throw error;
+        session = newSession;
+      }
+
+      if (session) {
+        setSessionData(session);
+        updateSessionFromDB(session);
+      }
+    } catch (error) {
+      console.error('Error loading session:', error);
+      toast({
+        title: "Erro",
+        description: "Falha ao carregar sessão de música",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateSessionFromDB = (dbSession: SessionData) => {
+    setSessionData(dbSession);
     
-    // Update current time for UI display (non-admin users)
-    if (!isAdmin && sessionState.isPlaying && sessionState.startedAt > 0) {
-      const now = Date.now();
-      const expectedTime = (now - sessionState.startedAt) / 1000;
-      setSessionState(prev => ({ ...prev, currentTime: Math.max(0, expectedTime) }));
-    }
-
-    // Sync audio playback
-    if (sessionState.isPlaying && sessionState.startedAt > 0) {
-      const now = Date.now();
-      const expectedTime = (now - sessionState.startedAt) / 1000;
-      const actualTime = audio.currentTime;
-      const timeDiff = Math.abs(expectedTime - actualTime);
-
-      // Sync if difference is more than 1 second
-      if (timeDiff > 1) {
-        audio.currentTime = Math.max(0, expectedTime);
+    // Sync audio element
+    if (audioRef.current && dbSession.current_track_audio_url) {
+      const audio = audioRef.current;
+      
+      // Change track if needed
+      if (audio.src !== dbSession.current_track_audio_url) {
+        audio.src = dbSession.current_track_audio_url;
+        audio.load();
       }
-
-      if (audio.paused) {
-        audio.play().catch(console.error);
+      
+      // Sync playback state
+      if (dbSession.is_playing && dbSession.started_at > 0) {
+        const now = Date.now();
+        const expectedTime = (now - dbSession.started_at) / 1000;
+        const timeDiff = Math.abs(expectedTime - audio.currentTime);
+        
+        if (timeDiff > 1) {
+          audio.currentTime = Math.max(0, expectedTime);
+        }
+        
+        if (audio.paused) {
+          audio.play().catch(console.error);
+        }
+      } else if (!dbSession.is_playing && !audio.paused) {
+        audio.pause();
       }
-    } else if (!sessionState.isPlaying && !audio.paused) {
-      audio.pause();
     }
-  }, [sessionState, isAdmin]);
+  };
 
-  // Real-time progress update for non-admin users
+  // Real-time progress update
   useEffect(() => {
-    if (!sessionState.isPlaying || isAdmin || sessionState.startedAt === 0) return;
+    if (!sessionData?.is_playing || !sessionData.started_at) return;
 
     const interval = setInterval(() => {
       const now = Date.now();
-      const expectedTime = (now - sessionState.startedAt) / 1000;
-      setSessionState(prev => ({ 
-        ...prev, 
-        currentTime: Math.max(0, Math.min(expectedTime, sessionState.currentTrack?.duration || 0))
-      }));
+      const expectedTime = (now - sessionData.started_at) / 1000;
+      setCurrentTime(Math.max(0, Math.min(expectedTime, sessionData.current_track_duration || 0)));
+      
+      // Update database for admin every 5 seconds
+      if (isAdmin && audioRef.current && Math.floor(expectedTime) % 5 === 0) {
+        updateSessionInDB({
+          track_current_time: audioRef.current.currentTime
+        });
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [sessionState.isPlaying, sessionState.startedAt, sessionState.currentTrack?.duration, isAdmin]);
+  }, [sessionData?.is_playing, sessionData?.started_at, sessionData?.current_track_duration, isAdmin]);
 
   // Update volume
   useEffect(() => {
@@ -207,7 +231,7 @@ export default function ListenTogether() {
 
     const handleTimeUpdate = () => {
       if (isAdmin) {
-        setSessionState(prev => ({ ...prev, currentTime: audio.currentTime }));
+        setCurrentTime(audio.currentTime);
       }
     };
 
@@ -243,50 +267,65 @@ export default function ListenTogether() {
     };
   }, [isAdmin, toast]);
 
-  const broadcastSessionUpdate = (newState: SessionState) => {
-    if (!channel) return;
+  const updateSessionInDB = async (updates: Partial<Omit<SessionData, 'queue'>> & { queue?: Track[] }) => {
+    if (!sessionData || !isAdmin) return;
     
-    channel.send({
-      type: 'broadcast',
-      event: 'session-update',
-      payload: { sessionState: newState }
-    });
+    try {
+      const dbUpdates: any = { ...updates };
+      if (updates.queue) {
+        dbUpdates.queue = updates.queue as unknown as Json;
+      }
+      
+      const { error } = await supabase
+        .from('listen_together_sessions')
+        .update(dbUpdates)
+        .eq('id', sessionData.id);
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error updating session:', error);
+    }
   };
 
-  const handlePlayPause = () => {
-    if (!isAdmin || !sessionState.currentTrack) return;
+  const handlePlayPause = async () => {
+    if (!isAdmin || !sessionData?.current_track_audio_url) return;
 
     const audio = audioRef.current;
     if (!audio) return;
 
-    const newState = {
-      ...sessionState,
-      isPlaying: !sessionState.isPlaying,
-      startedAt: sessionState.isPlaying ? 0 : Date.now() - (audio.currentTime * 1000),
-      currentTime: audio.currentTime
+    const newIsPlaying = !sessionData.is_playing;
+    const updates = {
+      is_playing: newIsPlaying,
+      started_at: newIsPlaying ? Date.now() - (audio.currentTime * 1000) : 0,
+      track_current_time: audio.currentTime
     };
 
-    setSessionState(newState);
-    broadcastSessionUpdate(newState);
+    await updateSessionInDB(updates);
   };
 
-  const playNextTrack = () => {
-    if (!isAdmin || sessionState.queue.length === 0) return;
-
-    const nextTrack = sessionState.queue[0];
-    const newQueue = sessionState.queue.slice(1);
+  const playNextTrack = async () => {
+    if (!isAdmin || !sessionData) return;
     
-    const newState = {
-      ...sessionState,
-      currentTrack: nextTrack,
+    const queue = getQueue();
+    if (queue.length === 0) return;
+
+    const nextTrack = queue[0];
+    const newQueue = queue.slice(1);
+    
+    const updates = {
+      current_track_id: nextTrack.id,
+      current_track_name: nextTrack.name,
+      current_track_artist: nextTrack.artist,
+      current_track_audio_url: nextTrack.audioUrl,
+      current_track_duration: nextTrack.duration,
+      current_track_image_url: nextTrack.imageUrl || null,
       queue: newQueue,
-      isPlaying: true,
-      currentTime: 0,
-      startedAt: Date.now()
+      is_playing: true,
+      track_current_time: 0,
+      started_at: Date.now()
     };
 
-    setSessionState(newState);
-    broadcastSessionUpdate(newState);
+    await updateSessionInDB(updates);
   };
 
   const skipToNext = () => {
@@ -294,22 +333,20 @@ export default function ListenTogether() {
     playNextTrack();
   };
 
-  const skipToPrevious = () => {
-    if (!isAdmin || !sessionState.currentTrack) return;
+  const skipToPrevious = async () => {
+    if (!isAdmin || !sessionData?.current_track_audio_url) return;
 
     // Just restart current track
-    const newState = {
-      ...sessionState,
-      currentTime: 0,
-      startedAt: Date.now()
+    const updates = {
+      track_current_time: 0,
+      started_at: Date.now()
     };
 
-    setSessionState(newState);
-    broadcastSessionUpdate(newState);
+    await updateSessionInDB(updates);
   };
 
-  const addTrackToQueue = () => {
-    if (!isAdmin || !newTrackUrl || !newTrackName || !newTrackArtist) {
+  const addTrackToQueue = async () => {
+    if (!isAdmin || !newTrackUrl || !newTrackName || !newTrackArtist || !sessionData) {
       toast({
         title: "Erro",
         description: "Preencha todos os campos",
@@ -326,13 +363,9 @@ export default function ListenTogether() {
       duration: 180, // Default 3 minutes
     };
 
-    const newState = {
-      ...sessionState,
-      queue: [...sessionState.queue, newTrack]
-    };
-
-    setSessionState(newState);
-    broadcastSessionUpdate(newState);
+    const currentQueue = getQueue();
+    const newQueue = [...currentQueue, newTrack];
+    await updateSessionInDB({ queue: newQueue });
 
     // Clear form
     setNewTrackUrl("");
@@ -345,20 +378,25 @@ export default function ListenTogether() {
     });
   };
 
-  const playTrackNow = (track: Track) => {
-    if (!isAdmin) return;
+  const playTrackNow = async (track: Track) => {
+    if (!isAdmin || !sessionData) return;
 
-    const newState = {
-      ...sessionState,
-      currentTrack: track,
-      queue: sessionState.queue.filter(t => t.id !== track.id),
-      isPlaying: true,
-      currentTime: 0,
-      startedAt: Date.now()
+    const currentQueue = getQueue();
+    const newQueue = currentQueue.filter(t => t.id !== track.id);
+    const updates = {
+      current_track_id: track.id,
+      current_track_name: track.name,
+      current_track_artist: track.artist,
+      current_track_audio_url: track.audioUrl,
+      current_track_duration: track.duration,
+      current_track_image_url: track.imageUrl || null,
+      queue: newQueue,
+      is_playing: true,
+      track_current_time: 0,
+      started_at: Date.now()
     };
 
-    setSessionState(newState);
-    broadcastSessionUpdate(newState);
+    await updateSessionInDB(updates);
   };
 
   const formatTime = (seconds: number) => {
@@ -392,6 +430,8 @@ export default function ListenTogether() {
       </div>
     );
   }
+
+  const queue = getQueue();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-black text-white">
@@ -427,14 +467,14 @@ export default function ListenTogether() {
           {/* Main Player */}
           <div className="lg:col-span-2">
             <Card className="bg-gradient-to-br from-gray-800/80 to-black/80 backdrop-blur border-green-500/20 p-6">
-              {sessionState.currentTrack ? (
+              {sessionData?.current_track_audio_url ? (
                 <>
                   {/* Track Info */}
                   <div className="flex items-center gap-6 mb-6">
                     <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center">
-                      {sessionState.currentTrack.imageUrl ? (
+                      {sessionData.current_track_image_url ? (
                         <img 
-                          src={sessionState.currentTrack.imageUrl} 
+                          src={sessionData.current_track_image_url} 
                           alt="Album Art" 
                           className="w-full h-full object-cover rounded-lg"
                         />
@@ -443,8 +483,8 @@ export default function ListenTogether() {
                       )}
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-2xl font-bold mb-1">{sessionState.currentTrack.name}</h2>
-                      <p className="text-green-400 text-lg">{sessionState.currentTrack.artist}</p>
+                      <h2 className="text-2xl font-bold mb-1">{sessionData.current_track_name}</h2>
+                      <p className="text-green-400 text-lg">{sessionData.current_track_artist}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                         <span className="text-xs text-green-400 font-medium">SINCRONIZADO</span>
@@ -455,15 +495,15 @@ export default function ListenTogether() {
                   {/* Progress Bar */}
                   <div className="mb-6">
                     <Slider
-                      value={[sessionState.currentTime]}
-                      max={sessionState.currentTrack.duration}
+                      value={[currentTime]}
+                      max={sessionData.current_track_duration}
                       step={1}
                       className="w-full mb-2"
                       disabled={!isAdmin}
                     />
                     <div className="flex justify-between text-sm text-gray-400">
-                      <span>{formatTime(sessionState.currentTime)}</span>
-                      <span>{formatTime(sessionState.currentTrack.duration)}</span>
+                      <span>{formatTime(currentTime)}</span>
+                      <span>{formatTime(sessionData.current_track_duration)}</span>
                     </div>
                   </div>
 
@@ -488,7 +528,7 @@ export default function ListenTogether() {
                           >
                             {isLoading ? (
                               <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                            ) : sessionState.isPlaying ? (
+                            ) : sessionData.is_playing ? (
                               <Pause className="w-6 h-6" />
                             ) : (
                               <Play className="w-6 h-6 ml-1" />
@@ -576,9 +616,9 @@ export default function ListenTogether() {
           <div>
             <Card className="bg-gradient-to-br from-gray-800/80 to-black/80 backdrop-blur border-green-500/20 p-6">
               <h3 className="text-lg font-semibold mb-4 text-green-400">Fila de Reprodução</h3>
-              {sessionState.queue.length > 0 ? (
+              {queue.length > 0 ? (
                 <div className="space-y-3">
-                  {sessionState.queue.map((track, index) => (
+                  {queue.map((track, index) => (
                     <div
                       key={track.id}
                       className="flex items-center gap-3 p-3 bg-gray-900/50 rounded-lg hover:bg-gray-900/70 transition-colors"
@@ -613,10 +653,10 @@ export default function ListenTogether() {
       </div>
 
       {/* Hidden Audio Element */}
-      {sessionState.currentTrack && (
+      {sessionData?.current_track_audio_url && (
         <audio
           ref={audioRef}
-          src={sessionState.currentTrack.audioUrl}
+          src={sessionData.current_track_audio_url}
           preload="metadata"
           style={{ display: 'none' }}
         />
