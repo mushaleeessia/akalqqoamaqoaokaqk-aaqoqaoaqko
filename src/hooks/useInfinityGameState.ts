@@ -90,20 +90,39 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
     if (!user || newGameState.gameStatus === 'won' || newGameState.gameStatus === 'lost') return;
 
     try {
-      // Upsert progress
-      await supabase
+      // Buscar sessão existente
+      const { data: existingSession } = await supabase
         .from('game_sessions')
-        .upsert({
-          user_id: user.id,
-          game_mode: 'infinity',
-          target_words: [targetWord],
-          guesses: newGameState.guesses,
-          attempts: newGameState.guesses.length,
-          won: false,
-          completed_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,game_mode,target_words'
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('game_mode', 'infinity')
+        .contains('target_words', [targetWord])
+        .maybeSingle();
+
+      if (existingSession) {
+        // Atualizar sessão existente
+        await supabase
+          .from('game_sessions')
+          .update({
+            guesses: newGameState.guesses,
+            attempts: newGameState.guesses.length,
+            completed_at: new Date().toISOString()
+          })
+          .eq('id', existingSession.id);
+      } else {
+        // Criar nova sessão
+        await supabase
+          .from('game_sessions')
+          .insert({
+            user_id: user.id,
+            game_mode: 'infinity',
+            target_words: [targetWord],
+            guesses: newGameState.guesses,
+            attempts: newGameState.guesses.length,
+            won: false,
+            completed_at: new Date().toISOString()
+          });
+      }
     } catch (error) {
       // Silent error
     }
