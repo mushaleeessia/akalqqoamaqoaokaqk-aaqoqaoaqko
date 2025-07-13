@@ -9,16 +9,16 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { ForeignerNotice } from "@/components/ForeignerNotice";
 import { ThemeSwitch } from "@/components/ThemeSwitch";
+import { useLanguage, Language } from "@/contexts/LanguageContext";
 
 interface HeaderProps {
-  onLanguageChange?: (isEnglish: boolean) => void;
   onMobileMenuChange?: (open: boolean) => void;
 }
 
-export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) => {
+export const Header = ({ onMobileMenuChange }: HeaderProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isEnglish, setIsEnglish] = useState(false);
   const [clickingItem, setClickingItem] = useState<string | null>(null);
+  const { language, setLanguage, t } = useLanguage();
 
   useEffect(() => {
     if (onMobileMenuChange) onMobileMenuChange(mobileMenuOpen);
@@ -26,27 +26,27 @@ export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) =>
 
   const navItems = [
     { 
-      title: isEnglish ? "Store" : "Loja", 
+      title: t('store'), 
       url: "https://mush.com.br/loja", 
       icon: ShoppingCart 
     },
     { 
-      title: isEnglish ? "Forum" : "Fórum", 
+      title: t('forum'), 
       url: "https://forum.mush.com.br", 
       icon: MessageSquare 
     },
     { 
-      title: isEnglish ? "Staff" : "Equipe", 
+      title: t('staff'), 
       url: "https://mush.com.br/staff", 
       icon: Users 
     },
     { 
-      title: "Leaderboard", 
+      title: t('leaderboard'), 
       url: "https://mush.com.br/leaderboard/bedwars", 
       icon: Trophy 
     },
     { 
-      title: isEnglish ? "Punishments" : "Punições", 
+      title: t('punishments'), 
       url: "https://mush.com.br/punicoes", 
       icon: Shield 
     },
@@ -54,15 +54,15 @@ export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) =>
 
   const helpItems = [
     { 
-      title: isEnglish ? "Support Area" : "Área de atendimento", 
+      title: t('support_area'), 
       url: "https://forum.mush.com.br/category/69/%C3%A1rea-de-atendimento" 
     },
     { 
-      title: isEnglish ? "Sales Support" : "Suporte de vendas", 
+      title: t('sales_support'), 
       url: "https://forum.mush.com.br/topic/145928/atendimento-email-de-vendas" 
     },
     { 
-      title: isEnglish ? "Connection Issues" : "Problemas de conexão", 
+      title: t('connection_issues'), 
       url: "https://mush.com.br/blog/problemas-de-conexao" 
     },
   ];
@@ -77,10 +77,22 @@ export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) =>
     }, 600);
   };
 
-  const toggleLanguage = () => {
-    const newLanguageState = !isEnglish;
-    setIsEnglish(newLanguageState);
-    onLanguageChange?.(newLanguageState);
+  const getLanguageFlag = () => {
+    switch (language) {
+      case 'pt': return '🇧🇷';
+      case 'en': return '🇺🇸';
+      case 'it': return '🇮🇹';
+      default: return '🇧🇷';
+    }
+  };
+
+  const getLanguageName = () => {
+    switch (language) {
+      case 'pt': return 'Português';
+      case 'en': return 'English';
+      case 'it': return 'Italiano';
+      default: return 'Português';
+    }
   };
 
   const getButtonClasses = (itemTitle: string) => {
@@ -138,7 +150,7 @@ export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) =>
                     {/* Ícone principal */}
                     <HelpCircle className="w-4 h-4 relative z-10" />
                   </div>
-                  <span className="relative z-10">{isEnglish ? "Help" : "Ajuda"}</span>
+                  <span className="relative z-10">{t('help')}</span>
                   <ChevronDown className="w-3 h-3 relative z-10" />
                 </button>
               </DropdownMenuTrigger>
@@ -157,20 +169,47 @@ export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) =>
             </DropdownMenu>
           </nav>
 
-          {/* Switch de idiomas + Toggle de tema - desktop */}
+          {/* Seletor de idiomas + Toggle de tema - desktop */}
           <div className="hidden md:flex items-center space-x-6">
-            <ThemeSwitch isEnglish={isEnglish} />
-            <div className="flex items-center space-x-3">
-              <span className="text-lg">{isEnglish ? "🇺🇸" : "🇧🇷"}</span>
-              <span className="text-white text-sm font-medium">
-                {isEnglish ? "English" : "Português"}
-              </span>
-            </div>
-            <Switch
-              checked={isEnglish}
-              onCheckedChange={toggleLanguage}
-              className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-red-600"
-            />
+            <ThemeSwitch language={language} />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center space-x-2 px-3 py-2 bg-red-800/50 hover:bg-red-700 text-white rounded-lg border border-red-600/30 hover:border-red-500 transition-all duration-200">
+                  <span className="text-lg">{getLanguageFlag()}</span>
+                  <span className="text-sm font-medium">{getLanguageName()}</span>
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="z-50 bg-red-900 border-red-700" align="end">
+                <DropdownMenuItem asChild>
+                  <button 
+                    onClick={() => setLanguage('pt')}
+                    className={`w-full text-left px-3 py-2 text-white hover:bg-red-700 cursor-pointer flex items-center space-x-2 ${language === 'pt' ? 'bg-red-700' : ''}`}
+                  >
+                    <span>🇧🇷</span>
+                    <span>Português</span>
+                  </button>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <button 
+                    onClick={() => setLanguage('en')}
+                    className={`w-full text-left px-3 py-2 text-white hover:bg-red-700 cursor-pointer flex items-center space-x-2 ${language === 'en' ? 'bg-red-700' : ''}`}
+                  >
+                    <span>🇺🇸</span>
+                    <span>English</span>
+                  </button>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <button 
+                    onClick={() => setLanguage('it')}
+                    className={`w-full text-left px-3 py-2 text-white hover:bg-red-700 cursor-pointer flex items-center space-x-2 ${language === 'it' ? 'bg-red-700' : ''}`}
+                  >
+                    <span>🇮🇹</span>
+                    <span>Italiano</span>
+                  </button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Menu mobile - botão */}
@@ -185,9 +224,9 @@ export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) =>
         </div>
 
         {/* Aviso para estrangeiros - desktop */}
-        {isEnglish && (
+        {language !== 'pt' && (
           <div className="hidden md:block absolute top-16 right-4 z-50">
-            <ForeignerNotice isVisible={isEnglish} />
+            <ForeignerNotice language={language} />
           </div>
         )}
 
@@ -197,25 +236,39 @@ export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) =>
             <nav className="flex flex-col space-y-2 pt-4">
               {/* Toggle de tema (mobile) */}
               <div className="flex items-center justify-between px-4 py-3 bg-red-800/30 rounded-lg border border-red-600/30">
-                <ThemeSwitch isEnglish={isEnglish} />
+                <ThemeSwitch language={language} />
               </div>
-              {/* Switch de idiomas */}
-              <div className="flex items-center justify-between px-4 py-3 bg-red-800/30 rounded-lg border border-red-600/30">
-                <div className="flex items-center space-x-3">
-                  <span className="text-lg">{isEnglish ? "🇺🇸" : "🇧🇷"}</span>
-                  <span className="text-white text-sm font-medium">
-                    {isEnglish ? "English" : "Português"}
-                  </span>
+              
+              {/* Seletor de idiomas (mobile) */}
+              <div className="px-4 py-3 bg-red-800/30 rounded-lg border border-red-600/30">
+                <div className="text-white text-sm font-medium mb-3">{t('language')}</div>
+                <div className="space-y-2">
+                  <button 
+                    onClick={() => setLanguage('pt')}
+                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 ${language === 'pt' ? 'bg-red-700 text-white' : 'hover:bg-red-700/50 text-gray-300'}`}
+                  >
+                    <span>🇧🇷</span>
+                    <span>Português</span>
+                  </button>
+                  <button 
+                    onClick={() => setLanguage('en')}
+                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 ${language === 'en' ? 'bg-red-700 text-white' : 'hover:bg-red-700/50 text-gray-300'}`}
+                  >
+                    <span>🇺🇸</span>
+                    <span>English</span>
+                  </button>
+                  <button 
+                    onClick={() => setLanguage('it')}
+                    className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 ${language === 'it' ? 'bg-red-700 text-white' : 'hover:bg-red-700/50 text-gray-300'}`}
+                  >
+                    <span>🇮🇹</span>
+                    <span>Italiano</span>
+                  </button>
                 </div>
-                <Switch
-                  checked={isEnglish}
-                  onCheckedChange={toggleLanguage}
-                  className="data-[state=checked]:bg-green-600 data-[state=unchecked]:bg-red-600"
-                />
               </div>
 
               {/* Aviso para estrangeiros - mobile */}
-              <ForeignerNotice isVisible={isEnglish} />
+              <ForeignerNotice language={language} />
 
               {navItems.map((item) => {
                 const IconComponent = item.icon;
@@ -245,7 +298,7 @@ export const Header = ({ onLanguageChange, onMobileMenuChange }: HeaderProps) =>
                     {/* Ícone principal */}
                     <HelpCircle className="w-4 h-4" />
                   </div>
-                  <span>{isEnglish ? "Help" : "Ajuda"}</span>
+                  <span>{t('help')}</span>
                 </div>
                 {helpItems.map((item) => (
                   <button
