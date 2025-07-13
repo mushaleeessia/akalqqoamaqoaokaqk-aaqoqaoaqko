@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
 import { useSupabaseGameStats } from "@/hooks/useSupabaseGameStats";
-import { useGameStateManager } from "./useGameStateManager";
 import { useGameKeyboardHandler } from "./useGameKeyboardHandler";
 import { evaluateGuess, updateKeyStatesForGuess } from "@/utils/gameEvaluation";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export type LetterState = 'correct' | 'present' | 'absent' | 'empty';
 
@@ -14,95 +15,110 @@ export interface GameState {
   currentRow: number;
 }
 
-// Hook específico para modo Infinity que NÃO interfere com Solo
+// Hook específico para modo Infinity com persistência por palavra
 export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6) => {
+  const { user } = useAuth();
   const { saveGameSession } = useSupabaseGameSession('infinity', [targetWord]);
   const { winstreak: dbWinstreak, loading: statsLoading } = useSupabaseGameStats('infinity');
   
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
+  const [gameSessionExists, setGameSessionExists] = useState(false);
   
-  // Use database winstreak if available, fallback to localStorage
-  const [localWinstreak, setLocalWinstreak] = useState(() => {
-    const saved = localStorage.getItem('termo-infinity-winstreak');
-    return saved ? parseInt(saved, 10) : 0;
-  });
+  const winstreak = !statsLoading && dbWinstreak !== undefined ? dbWinstreak : 0;
 
-  const winstreak = !statsLoading && dbWinstreak !== undefined ? dbWinstreak : localWinstreak;
+  // Criar chave única para a palavra atual
+  const getWordKey = () => `infinity_${targetWord.toLowerCase()}`;
 
-  // Estado específico para infinity, carrega do localStorage se disponível
-  const [gameState, setGameState] = useState<GameState>(() => {
-    const savedState = localStorage.getItem('termo-infinity-game-state');
-    const savedWord = localStorage.getItem('termo-infinity-word');
+  // Verificar se já existe uma sessão para esta palavra
+  const checkWordSession = useCallback(async () => {
+    if (!user) return;
     
-    if (savedState && savedWord) {
-      try {
-        const parsedState = JSON.parse(savedState);
-        const parsedWordData = JSON.parse(savedWord);
-        
-        // Só restaura se for a mesma palavra
-        if (parsedWordData.word === targetWord) {
-          return parsedState;
-        }
-      } catch (error) {
-        console.error('Erro ao carregar estado do infinity:', error);
+    try {
+      const { data, error } = await supabase
+        .from('game_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('game_mode', 'infinity')
+        .contains('target_words', [targetWord])
+        .maybeSingle();
+
+      if (data) {
+        setGameSessionExists(true);
+        // Carregar progresso da sessão existente
+        setGameState({
+          guesses: data.guesses,
+          currentGuess: '',
+          gameStatus: data.won ? 'won' : (data.guesses.length >= maxAttempts ? 'lost' : 'playing'),
+          currentRow: data.guesses.length
+        });
+
+        // Reconstruir keyStates baseado nas tentativas
+        const newKeyStates: Record<string, LetterState> = {};
+        data.guesses.forEach((guess: string) => {
+          const evaluation = evaluateGuess(guess, targetWord);
+          updateKeyStatesForGuess(guess, evaluation, newKeyStates);
+        });
+        setKeyStates(newKeyStates);
+      } else {
+        setGameSessionExists(false);
       }
+    } catch (error) {
+      setGameSessionExists(false);
     }
-    
-    return {
-      guesses: [],
-      currentGuess: '',
-      gameStatus: 'playing',
-      currentRow: 0
-    };
+  }, [user, targetWord, maxAttempts]);
+
+  // Estado do jogo - inicializa vazio e carrega do Supabase
+  const [gameState, setGameState] = useState<GameState>({
+    guesses: [],
+    currentGuess: '',
+    gameStatus: 'playing',
+    currentRow: 0
   });
 
-  const [keyStates, setKeyStates] = useState<Record<string, LetterState>>(() => {
-    const savedKeys = localStorage.getItem('termo-infinity-key-states');
-    const savedWord = localStorage.getItem('termo-infinity-word');
-    
-    if (savedKeys && savedWord) {
-      try {
-        const parsedKeys = JSON.parse(savedKeys);
-        const parsedWordData = JSON.parse(savedWord);
-        
-        // Só restaura se for a mesma palavra
-        if (parsedWordData.word === targetWord) {
-          return parsedKeys;
-        }
-      } catch (error) {
-        console.error('Erro ao carregar estados das teclas do infinity:', error);
-      }
+  const [keyStates, setKeyStates] = useState<Record<string, LetterState>>({});
+
+  // Verificar sessão existente quando a palavra muda
+  useEffect(() => {
+    if (user && targetWord) {
+      checkWordSession();
     }
-    
-    return {};
-  });
+  }, [user, targetWord, checkWordSession]);
 
-  // Salvar estado do jogo automaticamente
-  useEffect(() => {
-    localStorage.setItem('termo-infinity-game-state', JSON.stringify(gameState));
-  }, [gameState]);
+  // Salvar progresso no Supabase a cada mudança
+  const saveProgress = useCallback(async (newGameState: GameState) => {
+    if (!user || newGameState.gameStatus === 'won' || newGameState.gameStatus === 'lost') return;
 
-  // Salvar estados das teclas automaticamente
-  useEffect(() => {
-    localStorage.setItem('termo-infinity-key-states', JSON.stringify(keyStates));
-  }, [keyStates]);
-
-  // Sincronizar localStorage com database quando database winstreak muda
-  useEffect(() => {
-    if (!statsLoading && dbWinstreak !== undefined) {
-      setLocalWinstreak(dbWinstreak);
-      localStorage.setItem('termo-infinity-winstreak', dbWinstreak.toString());
+    try {
+      // Upsert progress
+      await supabase
+        .from('game_sessions')
+        .upsert({
+          user_id: user.id,
+          game_mode: 'infinity',
+          target_words: [targetWord],
+          guesses: newGameState.guesses,
+          attempts: newGameState.guesses.length,
+          won: false,
+          completed_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,game_mode,target_words'
+        });
+    } catch (error) {
+      // Silent error
     }
-  }, [dbWinstreak, statsLoading, localWinstreak]);
+  }, [user, targetWord]);
 
   const { handleKeyPress } = useGameKeyboardHandler({
     gameState,
-    setGameState,
+    setGameState: (newState: GameState) => {
+      setGameState(newState);
+      saveProgress(newState);
+    },
     keyStates,
     setKeyStates,
     targetWord,
-    saveGameProgress: () => {}, // Infinity não precisa salvar progresso
+    saveGameProgress: () => {}, // Não usado no infinity
     saveGameSession,
     setIsValidating,
     setShowingFreshGameOver,
@@ -110,18 +126,11 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
   });
 
   const updateWinstreak = useCallback((won: boolean) => {
-    // Always update local winstreak for immediate UI feedback
-    if (won) {
-      setLocalWinstreak(prev => prev + 1);
-    } else {
-      setLocalWinstreak(0);
-    }
-    
     // Database winstreak is updated automatically via useSupabaseGameSession
-    // and will override local value via real-time updates
-  }, [winstreak]);
+    // when saveGameSession is called
+  }, []);
 
-  const resetGame = useCallback(() => {
+  const resetGame = useCallback(async () => {
     setGameState({
       guesses: [],
       currentGuess: '',
@@ -130,7 +139,22 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
     });
     setKeyStates({});
     setShowingFreshGameOver(false);
-  }, []);
+    setGameSessionExists(false);
+
+    // Limpar sessão do Supabase para esta palavra específica
+    if (user) {
+      try {
+        await supabase
+          .from('game_sessions')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('game_mode', 'infinity')
+          .contains('target_words', [targetWord]);
+      } catch (error) {
+        // Silent error
+      }
+    }
+  }, [user, targetWord]);
 
   return {
     gameState,
