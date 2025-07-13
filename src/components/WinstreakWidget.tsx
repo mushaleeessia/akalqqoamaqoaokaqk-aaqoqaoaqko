@@ -200,9 +200,10 @@ export const WinstreakWidget = ({
           ${isHardMode ? 'shadow-red-500/40' : bgGlow} shadow-lg
           hover:scale-105 transform relative z-10
         `}
+        key={winstreak} // Force re-render when winstreak changes
       >
         <IconComponent className="w-4 h-4" />
-        <span>Sequência: {winstreak}</span>
+        <span className="transition-all duration-200">Sequência: {winstreak}</span>
       </Badge>
       
       {isHardMode && (

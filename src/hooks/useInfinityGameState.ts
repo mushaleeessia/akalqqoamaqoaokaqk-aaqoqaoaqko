@@ -88,12 +88,14 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
     localStorage.setItem('termo-infinity-key-states', JSON.stringify(keyStates));
   }, [keyStates]);
 
-  // Salvar winstreak automaticamente apenas se estiver usando localStorage
+  // Sincronizar localStorage com database quando database winstreak muda
   useEffect(() => {
-    if (statsLoading || dbWinstreak === undefined) {
-      localStorage.setItem('termo-infinity-winstreak', localWinstreak.toString());
+    if (!statsLoading && dbWinstreak !== undefined) {
+      console.log('🔄 Syncing local winstreak from', localWinstreak, 'to DB value', dbWinstreak);
+      setLocalWinstreak(dbWinstreak);
+      localStorage.setItem('termo-infinity-winstreak', dbWinstreak.toString());
     }
-  }, [localWinstreak, statsLoading, dbWinstreak]);
+  }, [dbWinstreak, statsLoading, localWinstreak]);
 
   const { handleKeyPress } = useGameKeyboardHandler({
     gameState,
@@ -109,16 +111,23 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
   });
 
   const updateWinstreak = useCallback((won: boolean) => {
-    // Only update local winstreak if not using database
-    if (statsLoading || dbWinstreak === undefined) {
-      if (won) {
-        setLocalWinstreak(prev => prev + 1);
-      } else {
-        setLocalWinstreak(0);
-      }
+    console.log('🎯 Game finished:', won ? 'WON' : 'LOST', '- Current winstreak:', winstreak);
+    
+    // Always update local winstreak for immediate UI feedback
+    if (won) {
+      setLocalWinstreak(prev => {
+        const newValue = prev + 1;
+        console.log('✅ Local winstreak updated to:', newValue);
+        return newValue;
+      });
+    } else {
+      console.log('💥 Resetting winstreak to 0');
+      setLocalWinstreak(0);
     }
+    
     // Database winstreak is updated automatically via useSupabaseGameSession
-  }, [statsLoading, dbWinstreak]);
+    // and will override local value via real-time updates
+  }, [winstreak]);
 
   const resetGame = useCallback(() => {
     setGameState({
