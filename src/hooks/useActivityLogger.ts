@@ -4,7 +4,6 @@ import { useGuestMode } from '@/hooks/useGuestMode';
 import { GameMode } from '@/components/GameModeSelector';
 import { 
   logGameStart, 
-  logModeChange, 
   logFirstGame, 
   logHighStreak, 
   logLongGame,
@@ -70,15 +69,6 @@ export const useActivityLogger = () => {
     }
   };
 
-  // Log mode change
-  const logModeChanged = (newMode: GameMode) => {
-    if (lastModeRef.current && lastModeRef.current !== newMode) {
-      const nickname = profileDataRef.current?.nickname;
-      logModeChange(lastModeRef.current, newMode, user?.id, nickname, isGuestMode);
-    }
-    lastModeRef.current = newMode;
-  };
-
   // Log game end (for duration tracking)
   const logGameEnded = (gameMode: GameMode) => {
     if (gameStartTimeRef.current) {
@@ -110,7 +100,6 @@ export const useActivityLogger = () => {
 
   return {
     logGameStarted,
-    logModeChanged,
     logGameEnded,
     logHighStreakAchieved,
     logPageVisited

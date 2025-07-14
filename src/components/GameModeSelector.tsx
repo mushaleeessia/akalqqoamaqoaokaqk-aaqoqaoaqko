@@ -1,7 +1,6 @@
 
 import { Users, User, Users2, UsersRound, Infinity } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useActivityLogger } from "@/hooks/useActivityLogger";
 
 export type GameMode = 'solo' | 'duo' | 'trio' | 'quarteto' | 'infinity';
 
@@ -13,13 +12,6 @@ interface GameModeSelectorProps {
 }
 
 export const GameModeSelector = ({ currentMode, onModeChange, isDarkMode, isGuestMode = false }: GameModeSelectorProps) => {
-  const { logModeChanged } = useActivityLogger();
-  
-  const handleModeChange = (mode: GameMode) => {
-    logModeChanged(mode);
-    onModeChange(mode);
-  };
-  
   const allModes = [
     { id: 'solo' as GameMode, label: 'Solo', icon: User },
     { id: 'duo' as GameMode, label: 'Duo', icon: Users },
@@ -47,7 +39,7 @@ export const GameModeSelector = ({ currentMode, onModeChange, isDarkMode, isGues
               key={mode.id}
               variant="ghost"
               size="sm"
-              onClick={() => handleModeChange(mode.id)}
+              onClick={() => onModeChange(mode.id)}
               className={`flex items-center space-x-2 transition-all duration-200 ${
                 isActive
                   ? isDarkMode

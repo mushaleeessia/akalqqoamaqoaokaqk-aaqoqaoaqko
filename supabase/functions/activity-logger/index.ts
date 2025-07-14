@@ -48,16 +48,6 @@ serve(async (req) => {
         };
         break;
 
-      case 'mode_change':
-        embed = {
-          title: '🔄 Mudança de Modo',
-          color: 0xffaa00,
-          description: `**${userName}** mudou do modo **${metadata.fromMode}** para **${metadata.toMode}**`,
-          timestamp: timestamp,
-          footer: { text: `Termo • ${timeString}` }
-        };
-        break;
-
       case 'first_game':
         embed = {
           title: '🌟 Primeiro Jogo',

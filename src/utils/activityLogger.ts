@@ -3,7 +3,6 @@ import { GameMode } from '@/components/GameModeSelector';
 
 export type ActivityType = 
   | 'game_start'
-  | 'mode_change'
   | 'first_game'
   | 'high_streak'
   | 'long_game'
@@ -65,16 +64,6 @@ export const logGameStart = (gameMode: GameMode, userId?: string, nickname?: str
     nickname,
     isGuest,
     metadata: { gameMode }
-  });
-};
-
-export const logModeChange = (fromMode: GameMode, toMode: GameMode, userId?: string, nickname?: string, isGuest = false) => {
-  logActivity({
-    type: 'mode_change',
-    userId,
-    nickname,
-    isGuest,
-    metadata: { fromMode, toMode }
   });
 };
 
