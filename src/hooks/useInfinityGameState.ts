@@ -1,10 +1,11 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
 import { useSupabaseGameStats } from "@/hooks/useSupabaseGameStats";
 import { useGameKeyboardHandler } from "./useGameKeyboardHandler";
 import { evaluateGuess, updateKeyStatesForGuess } from "@/utils/gameEvaluation";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 
 export type LetterState = 'correct' | 'present' | 'absent' | 'empty';
 
@@ -20,10 +21,12 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
   const { user } = useAuth();
   const { saveGameSession } = useSupabaseGameSession('infinity', [targetWord]);
   const { winstreak: dbWinstreak, loading: statsLoading } = useSupabaseGameStats('infinity');
+  const { logGameStarted, logGameEnded } = useActivityLogger();
   
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
   const [gameSessionExists, setGameSessionExists] = useState(false);
+  const gameStartedRef = useRef(false);
   
   const winstreak = !statsLoading && dbWinstreak !== undefined ? dbWinstreak : 0;
 
@@ -151,6 +154,22 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
       }
     }
   }, [user, targetWord]);
+
+  // Log game start when first guess is made
+  useEffect(() => {
+    if (gameState.gameStatus === 'playing' && gameState.guesses.length > 0 && !gameStartedRef.current) {
+      logGameStarted('infinity');
+      gameStartedRef.current = true;
+    }
+  }, [gameState.guesses.length, gameState.gameStatus, logGameStarted]);
+
+  // Log game end when game finishes
+  useEffect(() => {
+    if ((gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') && gameStartedRef.current) {
+      logGameEnded('infinity');
+      gameStartedRef.current = false;
+    }
+  }, [gameState.gameStatus, logGameEnded]);
 
   return {
     gameState,

@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.music-processor]
 verify_jwt = false
+
+[functions.activity-logger]
+verify_jwt = true

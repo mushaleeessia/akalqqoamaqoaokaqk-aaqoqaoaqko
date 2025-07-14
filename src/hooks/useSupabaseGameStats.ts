@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useGuestMode } from './useGuestMode';
+import { logHighStreak } from '@/utils/activityLogger';
 
 interface GameStats {
   win_streak: number;
@@ -69,6 +70,25 @@ export const useSupabaseGameStats = (gameMode: string) => {
           if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
             const newStats = payload.new as any;
             if (newStats.game_mode === gameMode) {
+              // Check for high streak achievement
+              if (newStats.win_streak >= 5 && (!stats || newStats.win_streak > stats.win_streak)) {
+                // Fetch user nickname for log
+                const fetchNickname = async () => {
+                  try {
+                    const { data: profile } = await supabase
+                      .from('profiles')
+                      .select('nickname')
+                      .eq('id', user.id)
+                      .maybeSingle();
+                    
+                    logHighStreak(newStats.win_streak, gameMode as any, user.id, profile?.nickname);
+                  } catch (error) {
+                    logHighStreak(newStats.win_streak, gameMode as any, user.id);
+                  }
+                };
+                fetchNickname();
+              }
+              
               setStats(newStats);
             }
           }

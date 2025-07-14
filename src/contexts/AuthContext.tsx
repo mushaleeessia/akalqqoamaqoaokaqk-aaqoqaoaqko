@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { logNewUser } from '@/utils/activityLogger';
 
 interface AuthContextType {
   user: User | null;
@@ -34,6 +35,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Log new user registration
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Check if this is actually a new user by checking if profile exists
+          setTimeout(async () => {
+            try {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('nickname, created_at')
+                .eq('id', session.user.id)
+                .maybeSingle();
+              
+              // If profile was just created (within last 10 seconds), it's a new user
+              if (profile && profile.created_at) {
+                const createdAt = new Date(profile.created_at);
+                const now = new Date();
+                const diffInSeconds = (now.getTime() - createdAt.getTime()) / 1000;
+                
+                if (diffInSeconds < 10) {
+                  logNewUser(session.user.id, profile.nickname);
+                }
+              }
+            } catch (error) {
+              // Silently fail
+            }
+          }, 2000);
+        }
       }
     );
 

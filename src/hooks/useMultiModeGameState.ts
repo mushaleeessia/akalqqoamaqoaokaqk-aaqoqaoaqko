@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { GameMode } from "@/components/GameModeSelector";
 import { validatePortugueseWord } from "@/utils/portugueseWords";
 import { useMultiModePlayerSession } from "@/hooks/useMultiModePlayerSession";
 import { useSupabaseGameSession } from "@/hooks/useSupabaseGameSession";
 import { toast } from "@/hooks/use-toast";
+import { useActivityLogger } from "@/hooks/useActivityLogger";
 
 export type LetterState = 'correct' | 'present' | 'absent' | 'empty';
 
@@ -17,6 +18,7 @@ export interface MultiModeGameState {
 export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => {
   const { canPlay, sessionInfo, saveGameProgress } = useMultiModePlayerSession(mode);
   const { sessionExists, saveGameSession } = useSupabaseGameSession(mode, targetWords);
+  const { logGameStarted, logGameEnded } = useActivityLogger();
   
   const [gameState, setGameState] = useState<MultiModeGameState>({
     guesses: [],
@@ -29,6 +31,7 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   const [isValidating, setIsValidating] = useState(false);
   const [showingFreshGameOver, setShowingFreshGameOver] = useState(false);
   const [isSessionLoaded, setIsSessionLoaded] = useState(false);
+  const gameStartedRef = useRef(false);
   
   const maxGuesses = mode === 'solo' ? 6 : mode === 'duo' ? 8 : mode === 'trio' ? 9 : 10;
 
@@ -251,7 +254,24 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
   useEffect(() => {
     setIsSessionLoaded(false);
     setShowingFreshGameOver(false);
+    gameStartedRef.current = false;
   }, [mode]);
+
+  // Log game start when first guess is made
+  useEffect(() => {
+    if (gameState.gameStatus === 'playing' && gameState.guesses.length > 0 && !gameStartedRef.current) {
+      logGameStarted(mode);
+      gameStartedRef.current = true;
+    }
+  }, [gameState.guesses.length, gameState.gameStatus, logGameStarted, mode]);
+
+  // Log game end when game finishes
+  useEffect(() => {
+    if ((gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') && gameStartedRef.current) {
+      logGameEnded(mode);
+      gameStartedRef.current = false;
+    }
+  }, [gameState.gameStatus, logGameEnded, mode]);
 
   return {
     gameState,
