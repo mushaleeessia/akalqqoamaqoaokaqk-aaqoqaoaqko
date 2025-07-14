@@ -13,7 +13,7 @@ export const TwitchEmbed = ({ isEnglish }: TwitchEmbedProps) => {
   const [showingVOD, setShowingVOD] = useState(false);
 
   // Lista de streamers em ordem de prioridade
-  const twitchStreamers = ['mushmc', 'ffeijao', 'satturnni', 'excluikk', 'nobriell'];
+  const twitchStreamers = ['mushmc', 'ffeijao', 'satturnni', 'loiriinha_', 'excluikk', 'nobriell'];
 
   useEffect(() => {
     const checkStreams = async () => {
