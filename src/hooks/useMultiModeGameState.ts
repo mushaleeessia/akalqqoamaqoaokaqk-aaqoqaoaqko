@@ -16,7 +16,7 @@ export interface MultiModeGameState {
 }
 
 export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => {
-  const { canPlay, sessionInfo, saveGameProgress } = useMultiModePlayerSession(mode);
+  const { canPlay, sessionInfo, saveGameProgress, markGameStartLogged } = useMultiModePlayerSession(mode);
   const { sessionExists, saveGameSession } = useSupabaseGameSession(mode, targetWords);
   const { logGameStarted, logGameEnded } = useActivityLogger();
   
@@ -259,11 +259,15 @@ export const useMultiModeGameState = (targetWords: string[], mode: GameMode) => 
 
   // Log game start when first guess is made
   useEffect(() => {
-    if (gameState.gameStatus === 'playing' && gameState.guesses.length > 0 && !gameStartedRef.current) {
+    if (gameState.gameStatus === 'playing' && 
+        gameState.guesses.length > 0 && 
+        !gameStartedRef.current && 
+        !sessionInfo?.gameStartLogged) {
       logGameStarted(mode);
+      markGameStartLogged();
       gameStartedRef.current = true;
     }
-  }, [gameState.guesses.length, gameState.gameStatus, logGameStarted, mode]);
+  }, [gameState.guesses.length, gameState.gameStatus, logGameStarted, mode, sessionInfo?.gameStartLogged, markGameStartLogged]);
 
   // Log game end when game finishes
   useEffect(() => {

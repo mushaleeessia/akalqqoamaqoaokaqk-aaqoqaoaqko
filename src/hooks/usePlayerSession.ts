@@ -10,6 +10,7 @@ interface PlayerSession {
   guesses: string[];
   currentGuess: string;
   gameStatus: 'playing' | 'won' | 'lost';
+  gameStartLogged?: boolean;
 }
 
 export const usePlayerSession = () => {
@@ -125,7 +126,8 @@ export const usePlayerSession = () => {
       ipHash: playerHash,
       guesses: [],
       currentGuess: '',
-      gameStatus: 'playing'
+      gameStatus: 'playing',
+      gameStartLogged: false
     };
     
     saveSession(newSession);
@@ -156,8 +158,19 @@ export const usePlayerSession = () => {
       gameStatus,
       attempts: guesses.length,
       completed: gameStatus === 'won',
-      failed: gameStatus === 'lost'
+      failed: gameStatus === 'lost',
+      gameStartLogged: gameStatus !== 'playing' ? false : sessionInfo?.gameStartLogged // Reset on game end
     });
+  };
+
+  // Mark game start as logged
+  const markGameStartLogged = () => {
+    if (sessionInfo) {
+      updateSession({
+        ...sessionInfo,
+        gameStartLogged: true
+      });
+    }
   };
 
   useEffect(() => {
@@ -168,6 +181,7 @@ export const usePlayerSession = () => {
     canPlay,
     sessionInfo,
     updateSession,
-    saveGameProgress
+    saveGameProgress,
+    markGameStartLogged
   };
 };

@@ -17,7 +17,7 @@ export interface GameState {
 }
 
 export const useTermoGameState = (targetWord: string) => {
-  const { canPlay, sessionInfo, saveGameProgress } = usePlayerSession();
+  const { canPlay, sessionInfo, saveGameProgress, markGameStartLogged } = usePlayerSession();
   const { sessionExists, saveGameSession } = useSupabaseGameSession('solo', [targetWord]);
   const { logGameStarted, logGameEnded } = useActivityLogger();
   
@@ -50,11 +50,15 @@ export const useTermoGameState = (targetWord: string) => {
 
   // Log game start when first guess is made
   useEffect(() => {
-    if (gameState.gameStatus === 'playing' && gameState.guesses.length > 0 && !gameStartedRef.current) {
+    if (gameState.gameStatus === 'playing' && 
+        gameState.guesses.length > 0 && 
+        !gameStartedRef.current && 
+        !sessionInfo?.gameStartLogged) {
       logGameStarted('solo');
+      markGameStartLogged();
       gameStartedRef.current = true;
     }
-  }, [gameState.guesses.length, gameState.gameStatus, logGameStarted]);
+  }, [gameState.guesses.length, gameState.gameStatus, logGameStarted, sessionInfo?.gameStartLogged, markGameStartLogged]);
 
   // Log game end when game finishes
   useEffect(() => {

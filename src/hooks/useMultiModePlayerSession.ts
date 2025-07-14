@@ -12,6 +12,7 @@ interface MultiModePlayerSession {
   currentGuess: string;
   gameStatus: 'playing' | 'won' | 'lost';
   mode: GameMode;
+  gameStartLogged?: boolean;
 }
 
 export const useMultiModePlayerSession = (mode: GameMode) => {
@@ -133,7 +134,8 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
       guesses: [],
       currentGuess: '',
       gameStatus: 'playing',
-      mode: mode
+      mode: mode,
+      gameStartLogged: false
     };
     
     saveSession(newSession);
@@ -165,8 +167,19 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
       gameStatus,
       attempts: guesses.length,
       completed: gameStatus === 'won',
-      failed: gameStatus === 'lost'
+      failed: gameStatus === 'lost',
+      gameStartLogged: gameStatus !== 'playing' ? false : sessionInfo?.gameStartLogged // Reset on game end
     });
+  };
+
+  // Mark game start as logged
+  const markGameStartLogged = () => {
+    if (sessionInfo) {
+      updateSession({
+        ...sessionInfo,
+        gameStartLogged: true
+      });
+    }
   };
 
   useEffect(() => {
@@ -177,6 +190,7 @@ export const useMultiModePlayerSession = (mode: GameMode) => {
     canPlay,
     sessionInfo,
     updateSession,
-    saveGameProgress
+    saveGameProgress,
+    markGameStartLogged
   };
 };

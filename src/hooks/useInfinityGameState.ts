@@ -155,13 +155,36 @@ export const useInfinityGameState = (targetWord: string, maxAttempts: number = 6
     }
   }, [user, targetWord]);
 
-  // Log game start when first guess is made
+  // Log game start when first guess is made (usando flag de sessão do Supabase)
   useEffect(() => {
-    if (gameState.gameStatus === 'playing' && gameState.guesses.length > 0 && !gameStartedRef.current) {
-      logGameStarted('infinity');
-      gameStartedRef.current = true;
+    if (gameState.gameStatus === 'playing' && 
+        gameState.guesses.length > 0 && 
+        !gameStartedRef.current) {
+      // Para infinity mode, verificar se já foi logado no Supabase
+      const checkIfLogged = async () => {
+        if (!user) return;
+        
+        try {
+          const { data } = await supabase
+            .from('infinity_progress')
+            .select('game_status, guesses')
+            .eq('user_id', user.id)
+            .eq('target_word', targetWord)
+            .maybeSingle();
+          
+          // Se é a primeira tentativa na palavra, logar
+          if (data && data.guesses.length === 1) {
+            logGameStarted('infinity');
+            gameStartedRef.current = true;
+          }
+        } catch (error) {
+          // Silently fail
+        }
+      };
+      
+      checkIfLogged();
     }
-  }, [gameState.guesses.length, gameState.gameStatus, logGameStarted]);
+  }, [gameState.guesses.length, gameState.gameStatus, logGameStarted, user, targetWord]);
 
   // Log game end when game finishes
   useEffect(() => {
