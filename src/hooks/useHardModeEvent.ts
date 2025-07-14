@@ -8,7 +8,7 @@ interface HardModeEventState {
   lastEventGame: number;
 }
 
-export const useHardModeEvent = () => {
+export const useHardModeEvent = (currentWinstreak: number = 0) => {
   const [eventState, setEventState] = useState<HardModeEventState>({
     isActive: false,
     isTriggering: false,
@@ -38,6 +38,19 @@ export const useHardModeEvent = () => {
     });
   }, []);
 
+  // Calcular porcentagem baseada no winstreak
+  const calculateHardModeChance = useCallback(() => {
+    if (currentWinstreak < 10) {
+      return 0.02; // 2% padrão
+    }
+    
+    // A partir de 10 ws: 2% + (ws - 10) * 0.5%, máximo 15%
+    const extraChance = (currentWinstreak - 10) * 0.005;
+    const totalChance = 0.02 + extraChance;
+    
+    return Math.min(totalChance, 0.15); // Máximo 15%
+  }, [currentWinstreak]);
+
   // Verificar se deve ativar o evento
   const checkEventTrigger = useCallback(() => {
     const { gamesPlayed, lastEventGame, isTriggering, isActive } = eventState;
@@ -49,14 +62,15 @@ export const useHardModeEvent = () => {
     if (gamesPlayed % 2 === 0 && gamesPlayed > 0) {
       // Evitar triggerar no mesmo jogo duas vezes
       if (lastEventGame !== gamesPlayed) {
-        const shouldTrigger = Math.random() < 0.02; // 2% de chance
+        const hardModeChance = calculateHardModeChance();
+        const shouldTrigger = Math.random() < hardModeChance;
         
         if (shouldTrigger) {
           triggerHardMode();
         }
       }
     }
-  }, [eventState]);
+  }, [eventState, calculateHardModeChance]);
 
   // Ativar o hard mode
   const triggerHardMode = useCallback(() => {

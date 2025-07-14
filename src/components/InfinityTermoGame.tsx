@@ -17,9 +17,14 @@ interface InfinityTermoGameProps {
 
 export const InfinityTermoGame = ({ isDarkMode }: InfinityTermoGameProps) => {
   const { currentWord, loading, generateRandomWord, getCurrentWord, clearInfinityData } = useInfinityMode();
-  const { isHardMode, isTriggering, incrementGames, resetHardMode } = useHardModeEvent();
+  
+  // Primeiro criar o game state com 6 tentativas para obter o winstreak
+  const baseInfinityGameState = useInfinityGameState(currentWord, 6);
+  const { isHardMode, isTriggering, incrementGames, resetHardMode } = useHardModeEvent(baseInfinityGameState.winstreak);
   const maxAttempts = isHardMode ? 4 : 6;
-  const infinityGameState = useInfinityGameState(currentWord, maxAttempts);
+  
+  // Se hard mode mudou o número de tentativas, usar o baseInfinityGameState mesmo
+  const infinityGameState = baseInfinityGameState;
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [showingGameOver, setShowingGameOver] = useState(false);
   const [showingNewGameCountdown, setShowingNewGameCountdown] = useState(false);
