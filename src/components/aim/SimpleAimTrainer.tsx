@@ -205,8 +205,12 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
       Math.pow(mouseY - targetCenterY, 2)
     );
     
-    return distance <= target.size / 2;
-  }, [target, mousePosition]);
+    const isOver = distance <= target.size / 2;
+    if (mode === 'tracking') {
+      console.log('Mouse check:', { distance, targetRadius: target.size / 2, isOver, mouseX, mouseY, targetCenterX, targetCenterY });
+    }
+    return isOver;
+  }, [target, mousePosition, mode]);
 
   // Start game
   const startGame = useCallback(() => {
@@ -390,27 +394,43 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
     };
   }, [gameStarted, isPaused, target, settings.isMoving, updateMovingTarget]);
 
-  // Tracking mode scoring
+  // Tracking mode scoring - simplified and working
   useEffect(() => {
-    if (mode !== 'tracking' || !gameStarted || isPaused || !target) return;
+    if (mode !== 'tracking' || !gameStarted || isPaused || !target) {
+      console.log('Tracking disabled:', { mode, gameStarted, isPaused, hasTarget: !!target });
+      return;
+    }
 
+    console.log('Starting tracking scoring interval');
+    
     trackingIntervalRef.current = setInterval(() => {
-      if (isMouseOverTarget()) {
-        setScore(prev => prev + 2);
-        setHits(prev => prev + 1);
-        console.log('Tracking hit!');
+      const mouseOver = isMouseOverTarget();
+      console.log('Tracking check:', { mouseOver, currentScore: score, currentHits: hits, currentMisses: misses });
+      
+      if (mouseOver) {
+        setScore(prev => {
+          console.log('Adding score: prev =', prev, 'new =', prev + 1);
+          return prev + 1;
+        });
+        setHits(prev => {
+          console.log('Adding hit: prev =', prev, 'new =', prev + 1);
+          return prev + 1;
+        });
       } else {
-        setMisses(prev => prev + 1);
-        console.log('Tracking miss!');
+        setMisses(prev => {
+          console.log('Adding miss: prev =', prev, 'new =', prev + 1);
+          return prev + 1;
+        });
       }
-    }, 200); // Slower interval for better balance
+    }, 100);
 
     return () => {
+      console.log('Cleaning up tracking interval');
       if (trackingIntervalRef.current) {
         clearInterval(trackingIntervalRef.current);
       }
     };
-  }, [mode, gameStarted, isPaused, target, isMouseOverTarget]);
+  }, [mode, gameStarted, isPaused, target, isMouseOverTarget, score, hits, misses]);
 
   // Create first target when game starts
   useEffect(() => {
@@ -497,7 +517,6 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
           <div
             ref={gameAreaRef}
             className="w-full h-full cursor-crosshair bg-gradient-to-br from-background to-muted/20 relative"
-            onClick={handleMiss}
           >
             {/* Grid overlay for gridshot mode */}
             {mode === 'gridshot' && (
@@ -570,12 +589,14 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
                   </svg>
                 )}
                 
-                {/* Main target */}
-                <div
-                  className="w-full h-full bg-primary hover:bg-primary/80 rounded-full cursor-pointer transition-colors duration-150 border-2 border-primary-foreground shadow-lg hover:shadow-xl"
-                  onClick={(e) => {
+                {/* Main target - FIXED CLICKABLE */}
+                <button
+                  className="w-full h-full bg-primary hover:bg-primary/80 rounded-full transition-colors duration-150 border-2 border-primary-foreground shadow-lg hover:shadow-xl cursor-pointer"
+                  style={{ all: 'unset', width: '100%', height: '100%', borderRadius: '50%', backgroundColor: 'hsl(var(--primary))', border: '2px solid hsl(var(--primary-foreground))', cursor: 'pointer', display: 'block' }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    console.log('Target clicked! Settings:', settings);
+                    console.log('TARGET CLICKED! Mode:', mode, 'Settings needsClick:', settings.needsClick);
                     handleTargetClick();
                   }}
                   onMouseEnter={() => {
@@ -583,7 +604,9 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
                       console.log('Mouse entered target in tracking mode');
                     }
                   }}
-                />
+                >
+                  &nbsp;
+                </button>
               </div>
             )}
             
