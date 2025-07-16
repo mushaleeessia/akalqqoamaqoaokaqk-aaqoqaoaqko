@@ -212,10 +212,10 @@ body::-webkit-scrollbar {
 
 /* SVG Circle Timer Animation - Smooth and precise */
 @keyframes circle-deplete {
-  0% {
+  from {
     stroke-dashoffset: 0;
   }
-  100% {
-    stroke-dashoffset: calc(2 * 3.14159 * var(--radius, 32));
+  to {
+    stroke-dashoffset: calc(2 * 3.14159 * var(--radius));
   }
 }

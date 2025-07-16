@@ -466,11 +466,12 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
                       stroke="hsl(var(--muted-foreground))"
                       strokeWidth="2"
                       strokeDasharray={`${2 * Math.PI * (target.size / 2 + 2)}`}
-                      strokeDashoffset={`${2 * Math.PI * (target.size / 2 + 2)}`}
+                      strokeDashoffset="0"
                       transform={`rotate(-90 ${target.size / 2 + 4} ${target.size / 2 + 4})`}
                       style={{
+                        '--radius': `${target.size / 2 + 2}`,
                         animation: `circle-deplete ${settings.targetLifetime}ms linear forwards`
-                      }}
+                      } as React.CSSProperties & { '--radius': string }}
                     />
                   </svg>
                 )}
