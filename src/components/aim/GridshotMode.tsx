@@ -158,7 +158,7 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
   return (
     <>
       {/* Targets */}
-      {targets.map((target) => (
+      {isPlaying && targets.map((target) => (
         <div
           key={target.id}
           data-target="true"
@@ -174,12 +174,14 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
         />
       ))}
       
-      {/* Container click handler */}
-      <div
-        className="absolute inset-0 w-full h-full"
-        onClick={handleContainerClick}
-        style={{ zIndex: 1 }}
-      />
+      {/* Miss detector */}
+      {isPlaying && (
+        <div
+          className="absolute inset-0 w-full h-full"
+          onClick={handleContainerClick}
+          style={{ zIndex: 1 }}
+        />
+      )}
     </>
   );
 };

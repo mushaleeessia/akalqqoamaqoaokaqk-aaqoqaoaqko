@@ -82,14 +82,17 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
   }, [trackingTarget, isPlaying, getContainerBounds, speed, speedDirection]);
 
   const checkMousePosition = useCallback((mouseX: number, mouseY: number) => {
-    if (!trackingTarget || !isPlaying) return;
+    if (!trackingTarget || !isPlaying) {
+      console.log('TrackingMode - Não pode checar posição:', 'target:', !!trackingTarget, 'isPlaying:', isPlaying);
+      return;
+    }
 
     const distance = Math.sqrt(
       Math.pow(mouseX - trackingTarget.x, 2) + Math.pow(mouseY - trackingTarget.y, 2)
     );
 
     const nowOnTarget = distance <= TARGET_SIZE / 2;
-    console.log('Tracking - Mouse:', mouseX, mouseY, 'Target:', trackingTarget.x, trackingTarget.y, 'Distance:', distance, 'OnTarget:', nowOnTarget);
+    console.log('TrackingMode - Mouse:', mouseX, mouseY, 'Target:', trackingTarget.x, trackingTarget.y, 'Distance:', distance, 'SIZE/2:', TARGET_SIZE/2, 'OnTarget:', nowOnTarget);
     setIsOnTarget(nowOnTarget);
   }, [trackingTarget, isPlaying]);
 
@@ -100,7 +103,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
     
-    console.log('TrackingMode - Mouse move:', mouseX, mouseY, 'isPlaying:', isPlaying, 'trackingTarget:', trackingTarget);
+    console.log('TrackingMode - Mouse move detectado:', mouseX, mouseY, 'Target existe:', !!trackingTarget);
     checkMousePosition(mouseX, mouseY);
   }, [checkMousePosition, containerRef, isPlaying, trackingTarget]);
 
@@ -223,7 +226,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
   return (
     <>
       {/* Tracking Target */}
-      {trackingTarget && (
+      {isPlaying && trackingTarget && (
         <div
           className={`absolute rounded-full border-4 border-white shadow-lg transition-all duration-150 ${
             isOnTarget 
@@ -241,11 +244,13 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
       )}
       
       {/* Mouse move handler */}
+      {isPlaying && (
       <div
         className="absolute inset-0 w-full h-full pointer-events-auto"
         onMouseMove={handleMouseMove}
         style={{ zIndex: 1 }}
       />
+      )}
     </>
   );
 };
