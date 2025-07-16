@@ -54,8 +54,27 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
     const rect = gameAreaRef.current.getBoundingClientRect();
     const margin = settings.size / 2;
     
-    const x = Math.random() * (rect.width - settings.size - margin * 2) + margin;
-    const y = Math.random() * (rect.height - settings.size - margin * 2) + margin;
+    let x, y;
+    
+    if (mode === 'gridshot') {
+      // Grid positions for gridshot mode
+      const cols = 6;
+      const rows = 4;
+      const gridWidth = rect.width - margin * 2;
+      const gridHeight = rect.height - margin * 2;
+      const cellWidth = gridWidth / cols;
+      const cellHeight = gridHeight / rows;
+      
+      const col = Math.floor(Math.random() * cols);
+      const row = Math.floor(Math.random() * rows);
+      
+      x = margin + col * cellWidth + cellWidth / 2 - settings.size / 2;
+      y = margin + row * cellHeight + cellHeight / 2 - settings.size / 2;
+    } else {
+      // Random positions for other modes
+      x = Math.random() * (rect.width - settings.size - margin * 2) + margin;
+      y = Math.random() * (rect.height - settings.size - margin * 2) + margin;
+    }
 
     const newTarget: Target = {
       id: ++targetIdRef.current,
@@ -353,7 +372,7 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
               <CardContent className="p-8 text-center">
                 <h2 className="text-2xl font-bold mb-4 capitalize">{mode}</h2>
                 <p className="text-muted-foreground mb-6">
-                  {mode === 'gridshot' && "Clique nos alvos que aparecem em sequência o mais rápido possível."}
+                  {mode === 'gridshot' && "Clique nos alvos que aparecem em posições de grid. Desenvolva precisão e velocidade!"}
                   {mode === 'flick' && "Clique nos alvos que aparecem aleatoriamente. Teste seus reflexos!"}
                   {mode === 'tracking' && "Acompanhe os alvos em movimento com o cursor."}
                   {mode === 'precision' && "Clique nos alvos pequenos com máxima precisão."}
@@ -385,9 +404,39 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
         ) : (
           <div
             ref={gameAreaRef}
-            className="w-full h-full cursor-crosshair bg-gradient-to-br from-background to-muted/20"
+            className="w-full h-full cursor-crosshair bg-gradient-to-br from-background to-muted/20 relative"
             onClick={handleMiss}
           >
+            {/* Grid overlay for gridshot mode */}
+            {mode === 'gridshot' && (
+              <div className="absolute inset-0 pointer-events-none">
+                <svg className="w-full h-full opacity-10">
+                  {[...Array(7)].map((_, i) => (
+                    <line
+                      key={`v-${i}`}
+                      x1={`${(i / 6) * 100}%`}
+                      y1="0%"
+                      x2={`${(i / 6) * 100}%`}
+                      y2="100%"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                    />
+                  ))}
+                  {[...Array(5)].map((_, i) => (
+                    <line
+                      key={`h-${i}`}
+                      x1="0%"
+                      y1={`${(i / 4) * 100}%`}
+                      x2="100%"
+                      y2={`${(i / 4) * 100}%`}
+                      stroke="currentColor"
+                      strokeWidth="1"
+                    />
+                  ))}
+                </svg>
+              </div>
+            )}
+            
             {target && (
               <div
                 className="absolute"
