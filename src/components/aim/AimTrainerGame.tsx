@@ -36,6 +36,7 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
   const animationFrameRef = useRef<number>();
 
   const getGameSettings = () => {
+    console.log(`[AIM TRAINER] Getting settings for mode: ${mode}`);
     switch (mode) {
       case "gridshot":
         return { 
@@ -46,6 +47,7 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
           isMoving: false
         };
       case "flick":
+        console.log("[AIM TRAINER] Setting up FLICK mode");
         return { 
           targetSize: 50, 
           maxTargets: 1, 
@@ -54,6 +56,7 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
           isMoving: false
         };
       case "tracking":
+        console.log("[AIM TRAINER] Setting up TRACKING mode");
         return { 
           targetSize: 70, 
           maxTargets: 1, 
@@ -70,6 +73,7 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
           isMoving: false
         };
       default:
+        console.warn(`[AIM TRAINER] Unknown mode: ${mode}, using default`);
         return { 
           targetSize: 50, 
           maxTargets: 1, 
@@ -83,13 +87,19 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
   const settings = getGameSettings();
 
   const createTarget = useCallback(() => {
-    if (!gameAreaRef.current) return;
+    console.log(`[AIM TRAINER] Creating target for mode: ${mode}`);
+    if (!gameAreaRef.current) {
+      console.warn("[AIM TRAINER] No game area ref found");
+      return;
+    }
 
     const gameArea = gameAreaRef.current.getBoundingClientRect();
     const margin = settings.targetSize / 2;
     
     const x = Math.random() * (gameArea.width - settings.targetSize - margin * 2) + margin;
     const y = Math.random() * (gameArea.height - settings.targetSize - margin * 2) + margin;
+
+    console.log(`[AIM TRAINER] Target position: x=${x}, y=${y}, size=${settings.targetSize}`);
 
     const newTarget: Target = {
       id: Date.now().toString(),
@@ -104,7 +114,11 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
       } : undefined
     };
 
-    setTargets(prev => [...prev, newTarget]);
+    console.log(`[AIM TRAINER] Created target: ${newTarget.id}, moving: ${newTarget.isMoving}`);
+    setTargets(prev => {
+      console.log(`[AIM TRAINER] Adding target to existing ${prev.length} targets`);
+      return [...prev, newTarget];
+    });
   }, [settings]);
 
   const updateMovingTargets = useCallback(() => {
@@ -153,16 +167,21 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
   };
 
   const saveGameSession = async () => {
-    if (!user) return;
+    if (!user) {
+      console.warn("[AIM TRAINER] No user found, cannot save session");
+      return;
+    }
 
+    console.log(`[AIM TRAINER] Saving session for mode: ${mode}`);
     const accuracy = hits + misses > 0 ? (hits / (hits + misses)) * 100 : 0;
     const avgReactionTime = reactionTimes.length > 0 
       ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
       : 0;
 
     try {
+      console.log("[AIM TRAINER] Inserting session data...");
       // Save session
-      await supabase.from('aim_trainer_sessions').insert({
+      const { data: sessionData, error: sessionError } = await supabase.from('aim_trainer_sessions').insert({
         user_id: user.id,
         game_mode: mode,
         score,
@@ -174,15 +193,28 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
         duration: 60 - timeLeft
       });
 
+      if (sessionError) {
+        console.error("[AIM TRAINER] Session save error:", sessionError);
+        throw sessionError;
+      }
+      console.log("[AIM TRAINER] Session saved successfully");
+
       // Update or create stats
-      const { data: existingStats } = await supabase
+      console.log("[AIM TRAINER] Fetching existing stats...");
+      const { data: existingStats, error: statsError } = await supabase
         .from('aim_trainer_stats')
         .select('*')
         .eq('user_id', user.id)
         .eq('game_mode', mode)
         .maybeSingle();
 
+      if (statsError) {
+        console.error("[AIM TRAINER] Stats fetch error:", statsError);
+        throw statsError;
+      }
+
       if (existingStats) {
+        console.log("[AIM TRAINER] Updating existing stats...");
         const newTotalSessions = existingStats.total_sessions + 1;
         const newTotalHits = existingStats.total_targets_hit + hits;
         const newTotalMisses = existingStats.total_targets_missed + misses;
@@ -193,7 +225,7 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
           (existingStats.avg_reaction_time * existingStats.total_sessions + avgReactionTime) / newTotalSessions
         );
 
-        await supabase
+        const { error: updateError } = await supabase
           .from('aim_trainer_stats')
           .update({
             best_score: Math.max(existingStats.best_score, score),
@@ -207,8 +239,15 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
           })
           .eq('user_id', user.id)
           .eq('game_mode', mode);
+
+        if (updateError) {
+          console.error("[AIM TRAINER] Stats update error:", updateError);
+          throw updateError;
+        }
+        console.log("[AIM TRAINER] Stats updated successfully");
       } else {
-        await supabase.from('aim_trainer_stats').insert({
+        console.log("[AIM TRAINER] Creating new stats record...");
+        const { error: insertError } = await supabase.from('aim_trainer_stats').insert({
           user_id: user.id,
           game_mode: mode,
           best_score: score,
@@ -220,11 +259,18 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
           avg_accuracy: parseFloat(accuracy.toFixed(2)),
           avg_reaction_time: avgReactionTime
         });
+
+        if (insertError) {
+          console.error("[AIM TRAINER] Stats insert error:", insertError);
+          throw insertError;
+        }
+        console.log("[AIM TRAINER] New stats created successfully");
       }
 
+      console.log("[AIM TRAINER] Session and stats saved successfully!");
       toast.success("Sessão salva com sucesso!");
     } catch (error) {
-      console.error('Erro ao salvar sessão:', error);
+      console.error('[AIM TRAINER] Erro ao salvar sessão:', error);
       toast.error("Erro ao salvar sessão");
     }
   };
@@ -255,11 +301,16 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
   }, [gameStarted, isPaused, timeLeft]);
 
   useEffect(() => {
+    console.log(`[AIM TRAINER] Game state changed - Started: ${gameStarted}, Paused: ${isPaused}, Targets: ${targets.length}, Max: ${settings.maxTargets}`);
     if (!gameStarted || isPaused) return;
 
     const spawnTimer = setInterval(() => {
+      console.log(`[AIM TRAINER] Spawn timer tick - Current targets: ${targets.length}, Max targets: ${settings.maxTargets}`);
       if (targets.length < settings.maxTargets) {
+        console.log(`[AIM TRAINER] Creating new target - spawn delay: ${settings.spawnDelay}ms`);
         createTarget();
+      } else {
+        console.log(`[AIM TRAINER] Max targets reached: ${targets.length}/${settings.maxTargets}`);
       }
     }, settings.spawnDelay);
 
@@ -267,6 +318,7 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
   }, [gameStarted, isPaused, targets.length, createTarget, settings]);
 
   useEffect(() => {
+    console.log(`[AIM TRAINER] Movement effect - Started: ${gameStarted}, Paused: ${isPaused}, Moving: ${settings.isMoving}`);
     if (!gameStarted || isPaused || !settings.isMoving) return;
 
     const animate = () => {
@@ -337,7 +389,10 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
                   {mode === 'tracking' && "Acompanhe e clique nos alvos em movimento."}
                   {mode === 'precision' && "Clique nos alvos pequenos com máxima precisão."}
                 </p>
-                <Button onClick={() => setGameStarted(true)} size="lg">
+                <Button onClick={() => {
+                  console.log(`[AIM TRAINER] Starting game in ${mode} mode`);
+                  setGameStarted(true);
+                }} size="lg">
                   Iniciar
                 </Button>
               </CardContent>
