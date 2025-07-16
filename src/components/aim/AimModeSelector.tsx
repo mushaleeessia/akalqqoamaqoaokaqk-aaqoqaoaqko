@@ -122,7 +122,10 @@ export const AimModeSelector = ({ mode, onStart, onBack }: AimModeSelectorProps)
               </div>
 
               <div className="pt-4">
-                <Button onClick={onStart} size="lg" className="w-full">
+                <Button onClick={() => {
+                  console.log(`[AIM MODE SELECTOR] Starting training for mode: ${mode}`);
+                  onStart();
+                }} size="lg" className="w-full">
                   <Play className="w-4 h-4 mr-2" />
                   Iniciar Treino
                 </Button>

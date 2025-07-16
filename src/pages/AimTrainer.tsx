@@ -66,11 +66,13 @@ const AimTrainer = () => {
   ];
 
   if (isPlaying && selectedMode) {
+    console.log(`[AIM TRAINER PAGE] Rendering game component for mode: ${selectedMode}`);
     return (
       <div className="min-h-screen bg-background">
         <AimTrainerGame 
           mode={selectedMode} 
           onGameEnd={() => {
+            console.log("[AIM TRAINER PAGE] Game ended, returning to menu");
             setIsPlaying(false);
             setSelectedMode(null);
           }}
@@ -94,11 +96,20 @@ const AimTrainer = () => {
         </div>
 
         {selectedMode ? (
-          <AimModeSelector
-            mode={selectedMode}
-            onStart={() => setIsPlaying(true)}
-            onBack={() => setSelectedMode(null)}
-          />
+          <>
+            {console.log(`[AIM TRAINER PAGE] Rendering mode selector for: ${selectedMode}`)}
+            <AimModeSelector
+              mode={selectedMode}
+              onStart={() => {
+                console.log(`[AIM TRAINER PAGE] Start button clicked for mode: ${selectedMode}`);
+                setIsPlaying(true);
+              }}
+              onBack={() => {
+                console.log("[AIM TRAINER PAGE] Back button clicked");
+                setSelectedMode(null);
+              }}
+            />
+          </>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -108,7 +119,10 @@ const AimTrainer = () => {
                   <Card 
                     key={mode.id}
                     className="cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg group"
-                    onClick={() => setSelectedMode(mode.id)}
+                    onClick={() => {
+                      console.log(`[AIM TRAINER PAGE] Mode selected: ${mode.id}`);
+                      setSelectedMode(mode.id);
+                    }}
                   >
                     <CardHeader className="text-center">
                       <div className="mx-auto mb-3">
