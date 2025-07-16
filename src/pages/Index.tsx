@@ -9,7 +9,7 @@ import { HelpAssistant } from "@/components/HelpAssistant";
 import { TwitchEmbed } from "@/components/TwitchEmbed";
 
 import { StatsUpdater } from "@/components/StatsUpdater";
-import { Globe, MessageSquare, Video, Gamepad2, HelpCircle } from "lucide-react";
+import { Globe, MessageSquare, Video, Gamepad2, HelpCircle, Target } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLinkClickLogger } from "@/hooks/useLinkClickLogger";
 
@@ -195,6 +195,23 @@ const Index = () => {
               {/* Partículas de fundo */}
               <div className="absolute top-1 right-2 w-1 h-1 bg-purple-400 rounded-full animate-pulse opacity-70" />
               <div className="absolute bottom-2 left-3 w-1.5 h-1.5 bg-blue-300 rounded-full animate-pulse delay-300 opacity-50" />
+            </button>
+          </Link>
+        </div>
+
+        {/* Botão do Aim Trainer */}
+        <div className="mb-4">
+          <Link to="/aim-trainer">
+            <button className="w-full relative overflow-hidden flex items-center justify-center space-x-3 px-6 py-4 text-white rounded-xl border-2 border-orange-500/30 hover:border-orange-400 transition-all duration-300 text-lg font-bold bg-gradient-to-r from-orange-900/80 via-red-800/60 to-orange-900/80 hover:from-orange-800/90 hover:via-red-700/70 hover:to-orange-800/90 group shadow-lg hover:shadow-orange-500/20">
+              {/* Efeito de brilho animado */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-400/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+              
+              <Target className="w-6 h-6 relative z-10 text-orange-300" />
+              <span className="relative z-10 text-orange-100">AIM TRAINER</span>
+              
+              {/* Partículas de fundo */}
+              <div className="absolute top-1 right-2 w-1 h-1 bg-orange-400 rounded-full animate-pulse opacity-70" />
+              <div className="absolute bottom-2 left-3 w-1.5 h-1.5 bg-red-300 rounded-full animate-pulse delay-300 opacity-50" />
             </button>
           </Link>
         </div>

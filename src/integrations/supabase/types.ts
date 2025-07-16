@@ -14,6 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      aim_trainer_sessions: {
+        Row: {
+          accuracy: number
+          avg_reaction_time: number
+          completed_at: string
+          created_at: string
+          duration: number
+          game_mode: string
+          id: string
+          score: number
+          targets_hit: number
+          targets_missed: number
+          total_targets: number
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number
+          avg_reaction_time?: number
+          completed_at?: string
+          created_at?: string
+          duration?: number
+          game_mode: string
+          id?: string
+          score?: number
+          targets_hit?: number
+          targets_missed?: number
+          total_targets?: number
+          user_id: string
+        }
+        Update: {
+          accuracy?: number
+          avg_reaction_time?: number
+          completed_at?: string
+          created_at?: string
+          duration?: number
+          game_mode?: string
+          id?: string
+          score?: number
+          targets_hit?: number
+          targets_missed?: number
+          total_targets?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      aim_trainer_stats: {
+        Row: {
+          avg_accuracy: number
+          avg_reaction_time: number
+          best_accuracy: number
+          best_avg_reaction_time: number
+          best_score: number
+          created_at: string
+          game_mode: string
+          id: string
+          total_sessions: number
+          total_targets_hit: number
+          total_targets_missed: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_accuracy?: number
+          avg_reaction_time?: number
+          best_accuracy?: number
+          best_avg_reaction_time?: number
+          best_score?: number
+          created_at?: string
+          game_mode: string
+          id?: string
+          total_sessions?: number
+          total_targets_hit?: number
+          total_targets_missed?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_accuracy?: number
+          avg_reaction_time?: number
+          best_accuracy?: number
+          best_avg_reaction_time?: number
+          best_score?: number
+          created_at?: string
+          game_mode?: string
+          id?: string
+          total_sessions?: number
+          total_targets_hit?: number
+          total_targets_missed?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       discord_webhooks_sent: {
         Row: {
           created_at: string
