@@ -89,6 +89,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     );
 
     const nowOnTarget = distance <= TARGET_SIZE / 2;
+    console.log('Tracking - Mouse:', mouseX, mouseY, 'Target:', trackingTarget.x, trackingTarget.y, 'Distance:', distance, 'OnTarget:', nowOnTarget);
     setIsOnTarget(nowOnTarget);
   }, [trackingTarget, isPlaying]);
 

@@ -221,6 +221,7 @@ const AimTrainer: React.FC = () => {
   }, []);
 
   const handleStatsUpdate = useCallback((newStats: GameStats) => {
+    console.log('AimTrainer - Stats updated:', newStats);
     setStats(newStats);
   }, []);
 

@@ -82,15 +82,22 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
     const target = targets.find(t => t.id === targetId);
     if (!target || target.isHit) return;
 
+    console.log('Gridshot - Target hit!');
     setTargets(prev => prev.filter(t => t.id !== targetId));
     
     setStats(prev => {
+      const newTargetsHit = prev.targetsHit + 1;
+      const newTotalClicks = prev.totalClicks + 1;
+      const accuracy = newTotalClicks > 0 ? (newTargetsHit / newTotalClicks) * 100 : 0;
+      
+      console.log('Gridshot Hit Stats - Hits:', newTargetsHit, 'Total Clicks:', newTotalClicks, 'Accuracy:', accuracy);
+      
       const newStats = {
         ...prev,
         score: prev.score + 100,
-        targetsHit: prev.targetsHit + 1,
-        totalClicks: prev.totalClicks + 1,
-        accuracy: ((prev.targetsHit + 1) / (prev.totalClicks + 1)) * 100
+        targetsHit: newTargetsHit,
+        totalClicks: newTotalClicks,
+        accuracy
       };
       onStatsUpdate(newStats);
       return newStats;
@@ -102,10 +109,13 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
     const target = event.target as HTMLElement;
     if (target.closest('[data-target]')) return;
     
+    console.log('Gridshot - Miss clicked!');
     setStats(prev => {
       const newTargetsMissed = prev.targetsMissed + 1;
       const newTotalClicks = prev.totalClicks + 1;
       const accuracy = newTotalClicks > 0 ? (prev.targetsHit / newTotalClicks) * 100 : 0;
+      
+      console.log('Gridshot Stats - Hits:', prev.targetsHit, 'Misses:', newTargetsMissed, 'Total Clicks:', newTotalClicks, 'Accuracy:', accuracy);
       
       const newStats = {
         ...prev,
