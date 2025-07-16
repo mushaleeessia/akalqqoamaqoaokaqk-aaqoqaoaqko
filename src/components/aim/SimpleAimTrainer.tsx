@@ -83,20 +83,19 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
     // For tracking mode, start continuous scoring when cursor is on target
     if (mode === 'tracking' && !settings.needsClick) {
       trackingScoreRef.current = setInterval(() => {
-        setTarget(currentTarget => {
-          if (gameAreaRef.current && currentTarget) {
-            const gameRect = gameAreaRef.current.getBoundingClientRect();
-            
-            // Check if mouse is over target using relative coordinates
-            if (mousePos.x >= currentTarget.x && mousePos.x <= currentTarget.x + currentTarget.size &&
-                mousePos.y >= currentTarget.y && mousePos.y <= currentTarget.y + currentTarget.size) {
-              setHits(prev => prev + 1);
-              setScore(prev => prev + 10);
-            }
+        if (target && gameAreaRef.current) {
+          // Check if mouse is over current target using relative coordinates
+          const isMouseOverTarget = mousePos.x >= target.x && 
+                                  mousePos.x <= target.x + target.size &&
+                                  mousePos.y >= target.y && 
+                                  mousePos.y <= target.y + target.size;
+          
+          if (isMouseOverTarget) {
+            setHits(prev => prev + 1);
+            setScore(prev => prev + 10);
           }
-          return currentTarget;
-        });
-      }, 100); // Check every 100ms
+        }
+      }, 50); // Check every 50ms for more responsive tracking
     }
   };
 
