@@ -107,7 +107,9 @@ const AimTrainer: React.FC = () => {
       clearInterval(gameTimerRef.current);
     }
 
+    // Use current stats, not the state variable which might be stale
     const finalStats = { ...stats };
+    console.log('Final stats para salvar:', finalStats);
     setGameEndStats(finalStats);
 
     // Save to Supabase

@@ -164,6 +164,7 @@ export const FlickMode: React.FC<FlickModeProps> = ({ isPlaying, onStatsUpdate, 
             top: target.y - target.size / 2,
             width: target.size,
             height: target.size,
+            zIndex: 10,
           }}
           onClick={(e) => handleTargetClick(target.id, e)}
         />
@@ -173,7 +174,7 @@ export const FlickMode: React.FC<FlickModeProps> = ({ isPlaying, onStatsUpdate, 
       <div
         className="absolute inset-0 w-full h-full"
         onClick={handleContainerClick}
-        style={{ zIndex: -1 }}
+        style={{ zIndex: 1 }}
       />
     </>
   );

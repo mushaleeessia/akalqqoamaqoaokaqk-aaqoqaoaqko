@@ -168,6 +168,7 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
             top: target.y - target.size / 2,
             width: target.size,
             height: target.size,
+            zIndex: 10,
           }}
           onClick={(e) => handleTargetClick(target.id, e)}
         />
@@ -177,7 +178,7 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
       <div
         className="absolute inset-0 w-full h-full"
         onClick={handleContainerClick}
-        style={{ zIndex: -1 }}
+        style={{ zIndex: 1 }}
       />
     </>
   );

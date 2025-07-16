@@ -234,6 +234,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
             top: trackingTarget.y - TARGET_SIZE / 2,
             width: TARGET_SIZE,
             height: TARGET_SIZE,
+            zIndex: 10,
           }}
         />
       )}
@@ -242,7 +243,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
       <div
         className="absolute inset-0 w-full h-full"
         onMouseMove={handleMouseMove}
-        style={{ zIndex: 1, pointerEvents: 'none' }}
+        style={{ zIndex: 5 }}
       />
     </>
   );
