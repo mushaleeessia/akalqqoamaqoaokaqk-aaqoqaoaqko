@@ -180,7 +180,7 @@ export const AimTrainerGame = ({ mode, onGameEnd }: AimTrainerGameProps) => {
         .select('*')
         .eq('user_id', user.id)
         .eq('game_mode', mode)
-        .single();
+        .maybeSingle();
 
       if (existingStats) {
         const newTotalSessions = existingStats.total_sessions + 1;
