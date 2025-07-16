@@ -38,29 +38,66 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
   // Refs
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const targetIdRef = useRef(0);
-  const intervalRefs = useRef<NodeJS.Timeout[]>([]);
-  const trackingInterval = useRef<NodeJS.Timeout>();
-  const mouseOverTarget = useRef(false);
+  const gameTimerRef = useRef<NodeJS.Timeout>();
+  const targetTimerRef = useRef<NodeJS.Timeout>();
+  const trackingTimerRef = useRef<NodeJS.Timeout>();
+  const moveTimerRef = useRef<NodeJS.Timeout>();
 
   // Game settings based on mode
   const gameSettings = {
-    flick: { targetSize: 60, targetLifetime: 2000, maxTargets: 1, spawnDelay: 500 },
-    tracking: { targetSize: 50, targetLifetime: 0, maxTargets: 1, spawnDelay: 0 },
-    gridshot: { targetSize: 50, targetLifetime: 1500, maxTargets: 1, spawnDelay: 300 },
-    precision: { targetSize: 25, targetLifetime: 3000, maxTargets: 1, spawnDelay: 800 }
+    flick: { targetSize: 60, targetLifetime: 2000, spawnDelay: 500 },
+    tracking: { targetSize: 50, targetLifetime: 0, spawnDelay: 0 },
+    gridshot: { targetSize: 50, targetLifetime: 1500, spawnDelay: 300 },
+    precision: { targetSize: 25, targetLifetime: 3000, spawnDelay: 800 }
   };
 
   const settings = gameSettings[mode];
 
   // Clear all timers
   const clearAllTimers = useCallback(() => {
-    intervalRefs.current.forEach(timer => clearTimeout(timer));
-    intervalRefs.current = [];
-    if (trackingInterval.current) {
-      clearInterval(trackingInterval.current);
-      trackingInterval.current = undefined;
-    }
+    if (gameTimerRef.current) clearInterval(gameTimerRef.current);
+    if (targetTimerRef.current) clearTimeout(targetTimerRef.current);
+    if (trackingTimerRef.current) clearInterval(trackingTimerRef.current);
+    if (moveTimerRef.current) clearInterval(moveTimerRef.current);
   }, []);
+
+  // Save session to database
+  const saveSession = useCallback(async () => {
+    if (!user) return;
+
+    let finalAccuracy = 0;
+    let finalScore = score;
+
+    if (mode === 'tracking') {
+      finalAccuracy = trackingTime > 0 ? (trackingScore / trackingTime) * 100 : 0;
+      finalScore = trackingScore;
+    } else {
+      finalAccuracy = hits + misses > 0 ? (hits / (hits + misses)) * 100 : 0;
+    }
+
+    const avgReactionTime = reactionTimes.length > 0 
+      ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
+      : 0;
+
+    try {
+      await supabase.from('aim_trainer_sessions').insert({
+        user_id: user.id,
+        game_mode: mode,
+        score: finalScore,
+        accuracy: parseFloat(finalAccuracy.toFixed(2)),
+        avg_reaction_time: avgReactionTime,
+        targets_hit: mode === 'tracking' ? trackingScore : hits,
+        targets_missed: mode === 'tracking' ? Math.max(0, trackingTime - trackingScore) : misses,
+        total_targets: mode === 'tracking' ? trackingTime : hits + misses,
+        duration: 60 - timeLeft
+      });
+
+      toast({ title: "Sessão salva!", description: "Resultados salvos com sucesso." });
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
+      toast({ title: "Erro", description: "Erro ao salvar resultados", variant: "destructive" });
+    }
+  }, [user, mode, score, trackingTime, trackingScore, hits, misses, reactionTimes, timeLeft]);
 
   // Get random position
   const getRandomPosition = useCallback(() => {
@@ -99,8 +136,8 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
   }, [settings.targetSize]);
 
   // Create new target
-  const createTarget = useCallback(() => {
-    if (!gameStarted || targets.length >= settings.maxTargets) return;
+  const spawnTarget = useCallback(() => {
+    if (!gameStarted) return;
 
     const position = mode === 'gridshot' ? getGridPosition() : getRandomPosition();
     const newTarget: Target = {
@@ -110,25 +147,26 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
       size: settings.targetSize,
       createdAt: Date.now(),
       velocity: mode === 'tracking' ? { 
-        x: (Math.random() - 0.5) * 3, 
-        y: (Math.random() - 0.5) * 3 
+        x: (Math.random() - 0.5) * 2, 
+        y: (Math.random() - 0.5) * 2 
       } : undefined
     };
 
-    console.log(`[${mode.toUpperCase()}] Target created:`, newTarget);
-    setTargets(prev => [...prev, newTarget]);
+    console.log(`[${mode.toUpperCase()}] Target spawned:`, newTarget.id);
+    setTargets([newTarget]);
 
     // Auto-remove target after lifetime (except tracking)
     if (settings.targetLifetime > 0) {
-      const timer = setTimeout(() => {
-        setTargets(prev => prev.filter(t => t.id !== newTarget.id));
+      targetTimerRef.current = setTimeout(() => {
+        setTargets([]);
         setMisses(prev => prev + 1);
-        console.log(`[${mode.toUpperCase()}] Target ${newTarget.id} expired`);
+        console.log(`[${mode.toUpperCase()}] Target ${newTarget.id} expired, spawning new one`);
+        
+        // Spawn next target
+        targetTimerRef.current = setTimeout(spawnTarget, settings.spawnDelay);
       }, settings.targetLifetime);
-      
-      intervalRefs.current.push(timer);
     }
-  }, [gameStarted, targets.length, settings, mode, getGridPosition, getRandomPosition]);
+  }, [gameStarted, settings, mode, getGridPosition, getRandomPosition]);
 
   // Handle target click
   const handleTargetClick = useCallback((targetId: number) => {
@@ -139,16 +177,15 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
     setReactionTimes(prev => [...prev, reactionTime]);
     setHits(prev => prev + 1);
     setScore(prev => prev + 10);
-    setTargets(prev => prev.filter(t => t.id !== targetId));
+    setTargets([]);
 
     console.log(`[${mode.toUpperCase()}] Target ${targetId} hit! Reaction: ${reactionTime}ms`);
 
-    // Create next target after delay
-    if (gameStarted) {
-      const timer = setTimeout(createTarget, settings.spawnDelay);
-      intervalRefs.current.push(timer);
+    // Spawn next target after delay
+    if (gameStarted && mode !== 'tracking') {
+      targetTimerRef.current = setTimeout(spawnTarget, settings.spawnDelay);
     }
-  }, [targets, createTarget, gameStarted, settings.spawnDelay, mode]);
+  }, [targets, spawnTarget, gameStarted, settings.spawnDelay, mode]);
 
   // Update moving targets (tracking mode)
   const updateMovingTargets = useCallback(() => {
@@ -199,6 +236,15 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
     });
   }, [mode, mousePos, targets]);
 
+  // End game
+  const endGame = useCallback(() => {
+    console.log(`[${mode.toUpperCase()}] Ending game`);
+    setGameStarted(false);
+    clearAllTimers();
+    setTargets([]);
+    saveSession();
+  }, [mode, clearAllTimers, saveSession]);
+
   // Start game
   const startGame = useCallback(() => {
     console.log(`[${mode.toUpperCase()}] Starting game`);
@@ -214,62 +260,8 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
     targetIdRef.current = 0;
     clearAllTimers();
 
-    // Create first target
-    setTimeout(() => createTarget(), 500);
-  }, [mode, clearAllTimers, createTarget]);
-
-  // End game
-  const endGame = useCallback(() => {
-    console.log(`[${mode.toUpperCase()}] Ending game`);
-    setGameStarted(false);
-    clearAllTimers();
-    setTargets([]);
-    saveSession();
-  }, [mode, clearAllTimers]);
-
-  // Save session to database
-  const saveSession = async () => {
-    if (!user) return;
-
-    let finalAccuracy = 0;
-    let finalScore = score;
-
-    if (mode === 'tracking') {
-      finalAccuracy = trackingTime > 0 ? (trackingScore / trackingTime) * 100 : 0;
-      finalScore = trackingScore;
-    } else {
-      finalAccuracy = hits + misses > 0 ? (hits / (hits + misses)) * 100 : 0;
-    }
-
-    const avgReactionTime = reactionTimes.length > 0 
-      ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
-      : 0;
-
-    try {
-      await supabase.from('aim_trainer_sessions').insert({
-        user_id: user.id,
-        game_mode: mode,
-        score: finalScore,
-        accuracy: parseFloat(finalAccuracy.toFixed(2)),
-        avg_reaction_time: avgReactionTime,
-        targets_hit: mode === 'tracking' ? trackingScore : hits,
-        targets_missed: mode === 'tracking' ? Math.max(0, trackingTime - trackingScore) : misses,
-        total_targets: mode === 'tracking' ? trackingTime : hits + misses,
-        duration: 60 - timeLeft
-      });
-
-      toast({ title: "Sessão salva!", description: "Resultados salvos com sucesso." });
-    } catch (error) {
-      console.error('Erro ao salvar:', error);
-      toast({ title: "Erro", description: "Erro ao salvar resultados", variant: "destructive" });
-    }
-  };
-
-  // Game timer effect
-  useEffect(() => {
-    if (!gameStarted) return;
-
-    const timer = setInterval(() => {
+    // Start game timer
+    gameTimerRef.current = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
           endGame();
@@ -279,16 +271,26 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
       });
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [gameStarted, endGame]);
+    // Spawn first target immediately
+    spawnTarget();
 
-  // Moving targets animation effect
-  useEffect(() => {
-    if (!gameStarted || mode !== 'tracking') return;
-
-    const timer = setInterval(updateMovingTargets, 16); // ~60fps
-    return () => clearInterval(timer);
-  }, [gameStarted, mode, updateMovingTargets]);
+    // Start tracking mode specific timers
+    if (mode === 'tracking') {
+      // Movement timer
+      moveTimerRef.current = setInterval(updateMovingTargets, 16);
+      
+      // Tracking score timer
+      trackingTimerRef.current = setInterval(() => {
+        const isOver = checkMouseOverTarget();
+        setTrackingTime(prev => prev + 1);
+        
+        if (isOver) {
+          setTrackingScore(prev => prev + 1);
+          console.log('[TRACKING] Mouse over target - score increased');
+        }
+      }, 100);
+    }
+  }, [mode, clearAllTimers, spawnTarget, updateMovingTargets, checkMouseOverTarget, endGame]);
 
   // Mouse tracking effect
   useEffect(() => {
@@ -296,41 +298,11 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
       setMousePos({ x: e.clientX, y: e.clientY });
     };
 
-    if (mode === 'tracking') {
+    if (mode === 'tracking' && gameStarted) {
       window.addEventListener('mousemove', handleMouseMove);
       return () => window.removeEventListener('mousemove', handleMouseMove);
     }
-  }, [mode]);
-
-  // Tracking scoring effect
-  useEffect(() => {
-    if (mode !== 'tracking' || !gameStarted) return;
-
-    trackingInterval.current = setInterval(() => {
-      const isOver = checkMouseOverTarget();
-      setTrackingTime(prev => prev + 1);
-      
-      if (isOver) {
-        setTrackingScore(prev => prev + 1);
-        mouseOverTarget.current = true;
-      } else {
-        mouseOverTarget.current = false;
-      }
-    }, 100);
-
-    return () => {
-      if (trackingInterval.current) {
-        clearInterval(trackingInterval.current);
-      }
-    };
-  }, [mode, gameStarted, checkMouseOverTarget]);
-
-  // Continuous target spawning for tracking
-  useEffect(() => {
-    if (mode === 'tracking' && gameStarted && targets.length === 0) {
-      createTarget();
-    }
-  }, [mode, gameStarted, targets.length, createTarget]);
+  }, [mode, gameStarted]);
 
   // Calculate stats
   const accuracy = mode === 'tracking' 
