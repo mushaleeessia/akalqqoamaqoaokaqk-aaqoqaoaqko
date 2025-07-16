@@ -298,13 +298,12 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
     return () => clearInterval(trackingInterval);
   }, [mode, gameStarted, target, isMouseOverTarget]);
 
-  // Continuous target creation for tracking
+  // Target creation for all modes
   useEffect(() => {
-    if (mode === 'tracking' && gameStarted && !target) {
-      const timeout = setTimeout(createTarget, 1000);
-      return () => clearTimeout(timeout);
+    if (gameStarted && !target) {
+      createTarget();
     }
-  }, [mode, gameStarted, target, createTarget]);
+  }, [gameStarted, target, createTarget]);
 
   const accuracy = hits + misses > 0 ? ((hits / (hits + misses)) * 100).toFixed(1) : "0.0";
   const avgReactionTime = reactionTimes.length > 0 
