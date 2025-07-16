@@ -94,14 +94,15 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
   }, [trackingTarget, isPlaying]);
 
   const handleMouseMove = useCallback((event: React.MouseEvent) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !isPlaying) return;
     
     const rect = containerRef.current.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
     
+    console.log('TrackingMode - Mouse move:', mouseX, mouseY, 'isPlaying:', isPlaying, 'trackingTarget:', trackingTarget);
     checkMousePosition(mouseX, mouseY);
-  }, [checkMousePosition, containerRef]);
+  }, [checkMousePosition, containerRef, isPlaying, trackingTarget]);
 
   // Calculate accuracy and update stats every frame
   useEffect(() => {
@@ -241,9 +242,9 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
       
       {/* Mouse move handler */}
       <div
-        className="absolute inset-0 w-full h-full"
+        className="absolute inset-0 w-full h-full pointer-events-auto"
         onMouseMove={handleMouseMove}
-        style={{ zIndex: 5 }}
+        style={{ zIndex: 1 }}
       />
     </>
   );

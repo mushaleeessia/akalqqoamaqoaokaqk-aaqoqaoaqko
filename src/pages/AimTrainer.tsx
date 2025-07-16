@@ -100,109 +100,116 @@ const AimTrainer: React.FC = () => {
   }, [user, gameMode]);
 
   const endGame = useCallback(async () => {
-    console.log('Finalizando jogo...', stats);
     setIsPlaying(false);
     
     if (gameTimerRef.current) {
       clearInterval(gameTimerRef.current);
     }
 
-    // Use current stats, not the state variable which might be stale
-    const finalStats = { ...stats };
-    console.log('Final stats para salvar:', finalStats);
-    setGameEndStats(finalStats);
+    // Use a ref to get the most current stats instead of stale closure
+    setStats(currentStats => {
+      console.log('Finalizando jogo...', currentStats);
+      const finalStats = { ...currentStats };
+      console.log('Final stats para salvar:', finalStats);
+      setGameEndStats(finalStats);
 
-    // Save to Supabase
-    if (user) {
-      try {
-        console.log('Salvando dados do jogo:', finalStats);
-        
-        const sessionData = {
-          user_id: user.id,
-          game_mode: gameMode,
-          score: finalStats.score,
-          accuracy: Math.round(finalStats.accuracy * 100) / 100,
-          avg_reaction_time: Math.round(finalStats.avgReactionTime || 0),
-          targets_hit: finalStats.targetsHit,
-          targets_missed: finalStats.targetsMissed || 0,
-          total_targets: finalStats.totalTargets || finalStats.targetsHit,
-          duration: 60,
-          completed_at: new Date().toISOString()
-        };
-
-        const { error: sessionError } = await supabase.from('aim_trainer_sessions').insert(sessionData);
-        
-        if (sessionError) {
-          console.error('Erro ao salvar sessão:', sessionError);
-          throw sessionError;
-        }
-
-        // Update or create stats
-        const { data: existingStats, error: fetchError } = await supabase
-          .from('aim_trainer_stats')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('game_mode', gameMode)
-          .maybeSingle();
-
-        if (fetchError) {
-          console.error('Erro ao buscar estatísticas:', fetchError);
-          throw fetchError;
-        }
-
-        if (existingStats) {
-          const newAvgReactionTime = finalStats.avgReactionTime && finalStats.avgReactionTime > 0 
-            ? Math.min(((existingStats.avg_reaction_time * existingStats.total_sessions) + finalStats.avgReactionTime) / (existingStats.total_sessions + 1), 999999)
-            : existingStats.avg_reaction_time;
+      // Save to Supabase with current stats
+      if (user) {
+        (async () => {
+          try {
+            console.log('Salvando dados do jogo:', finalStats);
             
-          const updatedStats = {
-            best_score: Math.max(existingStats.best_score, finalStats.score),
-            best_accuracy: Math.max(existingStats.best_accuracy, finalStats.accuracy),
-            best_avg_reaction_time: finalStats.avgReactionTime && finalStats.avgReactionTime > 0 ? Math.min(existingStats.best_avg_reaction_time, finalStats.avgReactionTime) : existingStats.best_avg_reaction_time,
-            total_sessions: existingStats.total_sessions + 1,
-            total_targets_hit: existingStats.total_targets_hit + finalStats.targetsHit,
-            total_targets_missed: existingStats.total_targets_missed + (finalStats.targetsMissed || 0),
-            avg_accuracy: ((existingStats.avg_accuracy * existingStats.total_sessions) + finalStats.accuracy) / (existingStats.total_sessions + 1),
-            avg_reaction_time: newAvgReactionTime
-          };
+            const sessionData = {
+              user_id: user.id,
+              game_mode: gameMode,
+              score: finalStats.score,
+              accuracy: Math.round(finalStats.accuracy * 100) / 100,
+              avg_reaction_time: Math.round(finalStats.avgReactionTime || 0),
+              targets_hit: finalStats.targetsHit,
+              targets_missed: finalStats.targetsMissed || 0,
+              total_targets: finalStats.totalTargets || finalStats.targetsHit,
+              duration: 60,
+              completed_at: new Date().toISOString()
+            };
 
-          const { error: updateError } = await supabase
-            .from('aim_trainer_stats')
-            .update(updatedStats)
-            .eq('id', existingStats.id);
-          
-          if (updateError) {
-            console.error('Erro ao atualizar estatísticas:', updateError);
-            throw updateError;
-          }
-        } else {
-          const { error: insertError } = await supabase.from('aim_trainer_stats').insert({
-            user_id: user.id,
-            game_mode: gameMode,
-            best_score: finalStats.score,
-            best_accuracy: Math.round(finalStats.accuracy * 100) / 100,
-            best_avg_reaction_time: finalStats.avgReactionTime && finalStats.avgReactionTime > 0 ? Math.round(finalStats.avgReactionTime) : 999999,
-            total_sessions: 1,
-            total_targets_hit: finalStats.targetsHit,
-            total_targets_missed: finalStats.targetsMissed || 0,
-            avg_accuracy: Math.round(finalStats.accuracy * 100) / 100,
-            avg_reaction_time: Math.round(finalStats.avgReactionTime || 0)
-          });
-          
-          if (insertError) {
-            console.error('Erro ao inserir estatísticas:', insertError);
-            throw insertError;
-          }
-        }
+            const { error: sessionError } = await supabase.from('aim_trainer_sessions').insert(sessionData);
+            
+            if (sessionError) {
+              console.error('Erro ao salvar sessão:', sessionError);
+              throw sessionError;
+            }
 
-        console.log('Dados salvos com sucesso!');
-        toast.success('Jogo salvo com sucesso!');
-      } catch (error) {
-        console.error('Erro ao salvar jogo:', error);
-        toast.error('Erro ao salvar jogo: ' + (error as any)?.message);
+            // Update or create stats
+            const { data: existingStats, error: fetchError } = await supabase
+              .from('aim_trainer_stats')
+              .select('*')
+              .eq('user_id', user.id)
+              .eq('game_mode', gameMode)
+              .maybeSingle();
+
+            if (fetchError) {
+              console.error('Erro ao buscar estatísticas:', fetchError);
+              throw fetchError;
+            }
+
+            if (existingStats) {
+              const newAvgReactionTime = finalStats.avgReactionTime && finalStats.avgReactionTime > 0 
+                ? Math.min(((existingStats.avg_reaction_time * existingStats.total_sessions) + finalStats.avgReactionTime) / (existingStats.total_sessions + 1), 999999)
+                : existingStats.avg_reaction_time;
+                
+              const updatedStats = {
+                best_score: Math.max(existingStats.best_score, finalStats.score),
+                best_accuracy: Math.max(existingStats.best_accuracy, finalStats.accuracy),
+                best_avg_reaction_time: finalStats.avgReactionTime && finalStats.avgReactionTime > 0 ? Math.min(existingStats.best_avg_reaction_time, finalStats.avgReactionTime) : existingStats.best_avg_reaction_time,
+                total_sessions: existingStats.total_sessions + 1,
+                total_targets_hit: existingStats.total_targets_hit + finalStats.targetsHit,
+                total_targets_missed: existingStats.total_targets_missed + (finalStats.targetsMissed || 0),
+                avg_accuracy: ((existingStats.avg_accuracy * existingStats.total_sessions) + finalStats.accuracy) / (existingStats.total_sessions + 1),
+                avg_reaction_time: newAvgReactionTime
+              };
+
+              const { error: updateError } = await supabase
+                .from('aim_trainer_stats')
+                .update(updatedStats)
+                .eq('id', existingStats.id);
+              
+              if (updateError) {
+                console.error('Erro ao atualizar estatísticas:', updateError);
+                throw updateError;
+              }
+            } else {
+              const { error: insertError } = await supabase.from('aim_trainer_stats').insert({
+                user_id: user.id,
+                game_mode: gameMode,
+                best_score: finalStats.score,
+                best_accuracy: Math.round(finalStats.accuracy * 100) / 100,
+                best_avg_reaction_time: finalStats.avgReactionTime && finalStats.avgReactionTime > 0 ? Math.round(finalStats.avgReactionTime) : 999999,
+                total_sessions: 1,
+                total_targets_hit: finalStats.targetsHit,
+                total_targets_missed: finalStats.targetsMissed || 0,
+                avg_accuracy: Math.round(finalStats.accuracy * 100) / 100,
+                avg_reaction_time: Math.round(finalStats.avgReactionTime || 0)
+              });
+              
+              if (insertError) {
+                console.error('Erro ao inserir estatísticas:', insertError);
+                throw insertError;
+              }
+            }
+
+            console.log('Dados salvos com sucesso!');
+            toast.success('Jogo salvo com sucesso!');
+          } catch (error) {
+            console.error('Erro ao salvar jogo:', error);
+            toast.error('Erro ao salvar jogo: ' + (error as any)?.message);
+          }
+        })();
       }
-    }
-  }, [stats, gameMode, user]);
+
+      return currentStats;
+    });
+
+  }, [gameMode, user]);
 
   const resetGame = useCallback(() => {
     setIsPlaying(false);
