@@ -212,13 +212,13 @@ body::-webkit-scrollbar {
 
 /* Target Timer Animation */
 .target-timer {
-  background: conic-gradient(from 270deg, hsl(var(--muted-foreground)) 0deg, transparent 0deg);
+  background: transparent;
   animation: timer-deplete var(--timer-duration) linear forwards;
 }
 
 @keyframes timer-deplete {
   0% {
-    background: conic-gradient(from 270deg, transparent 0deg, transparent 0deg);
+    background: conic-gradient(from 270deg, transparent 0deg, transparent 360deg);
   }
   100% {
     background: conic-gradient(from 270deg, hsl(var(--muted-foreground)) 360deg, transparent 360deg);

@@ -49,7 +49,7 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
   const settings = modeSettings[mode as keyof typeof modeSettings] || modeSettings.gridshot;
 
   const createTarget = () => {
-    if (!gameAreaRef.current || target) return; // Don't create if one already exists
+    if (!gameAreaRef.current) return;
 
     const rect = gameAreaRef.current.getBoundingClientRect();
     const margin = settings.size / 2;
@@ -83,22 +83,19 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
     // For tracking mode, start continuous scoring when cursor is on target
     if (mode === 'tracking' && !settings.needsClick) {
       trackingScoreRef.current = setInterval(() => {
-        if (gameAreaRef.current && newTarget) {
-          const gameRect = gameAreaRef.current.getBoundingClientRect();
-          const targetRect = {
-            left: gameRect.left + newTarget.x,
-            top: gameRect.top + newTarget.y,
-            right: gameRect.left + newTarget.x + newTarget.size,
-            bottom: gameRect.top + newTarget.y + newTarget.size
-          };
-          
-          // Check if mouse is over target
-          if (mousePos.x >= targetRect.left && mousePos.x <= targetRect.right &&
-              mousePos.y >= targetRect.top && mousePos.y <= targetRect.bottom) {
-            setHits(prev => prev + 1);
-            setScore(prev => prev + 10);
+        setTarget(currentTarget => {
+          if (gameAreaRef.current && currentTarget) {
+            const gameRect = gameAreaRef.current.getBoundingClientRect();
+            
+            // Check if mouse is over target using relative coordinates
+            if (mousePos.x >= currentTarget.x && mousePos.x <= currentTarget.x + currentTarget.size &&
+                mousePos.y >= currentTarget.y && mousePos.y <= currentTarget.y + currentTarget.size) {
+              setHits(prev => prev + 1);
+              setScore(prev => prev + 10);
+            }
           }
-        }
+          return currentTarget;
+        });
       }, 100); // Check every 100ms
     }
   };
@@ -376,7 +373,13 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
             className="w-full h-full cursor-crosshair bg-gradient-to-br from-background to-muted/20"
             onClick={handleMiss}
             onMouseMove={(e) => {
-              setMousePos({ x: e.clientX, y: e.clientY });
+              const rect = gameAreaRef.current?.getBoundingClientRect();
+              if (rect) {
+                setMousePos({ 
+                  x: e.clientX - rect.left, 
+                  y: e.clientY - rect.top 
+                });
+              }
             }}
           >
             {target && (
