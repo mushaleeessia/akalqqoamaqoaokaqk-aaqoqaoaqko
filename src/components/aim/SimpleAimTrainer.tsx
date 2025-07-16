@@ -31,11 +31,13 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
   const [isPaused, setIsPaused] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const targetIdRef = useRef(0);
   const animationRef = useRef<number>();
   const targetTimeoutRef = useRef<NodeJS.Timeout>();
   const trackingScoreRef = useRef<NodeJS.Timeout>();
+  const createTargetTimeoutRef = useRef<NodeJS.Timeout>();
 
   const modeSettings = {
     gridshot: { size: 60, spawnDelay: 800, isMoving: false, targetLifetime: 0, needsClick: true },
@@ -47,7 +49,7 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
   const settings = modeSettings[mode as keyof typeof modeSettings] || modeSettings.gridshot;
 
   const createTarget = () => {
-    if (!gameAreaRef.current || target) return; // Don't create if one already exists
+    if (!gameAreaRef.current) return;
 
     const rect = gameAreaRef.current.getBoundingClientRect();
     const margin = settings.size / 2;
@@ -74,16 +76,32 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
       targetTimeoutRef.current = setTimeout(() => {
         setMisses(prev => prev + 1);
         setTarget(null);
-        setTimeout(createTarget, settings.spawnDelay);
+        createTargetTimeoutRef.current = setTimeout(() => {
+          createTarget();
+        }, settings.spawnDelay);
       }, settings.targetLifetime);
     }
 
-    // For tracking mode, start continuous scoring
+    // For tracking mode, start continuous scoring when cursor is on target
     if (mode === 'tracking' && !settings.needsClick) {
       trackingScoreRef.current = setInterval(() => {
-        setHits(prev => prev + 1);
-        setScore(prev => prev + 10);
-      }, 100); // 10 points every 100ms
+        if (gameAreaRef.current && target) {
+          const rect = gameAreaRef.current.getBoundingClientRect();
+          const targetRect = {
+            left: target.x + rect.left,
+            top: target.y + rect.top,
+            right: target.x + target.size + rect.left,
+            bottom: target.y + target.size + rect.top
+          };
+          
+          // Check if mouse is over target
+          if (mousePos.x >= targetRect.left && mousePos.x <= targetRect.right &&
+              mousePos.y >= targetRect.top && mousePos.y <= targetRect.bottom) {
+            setHits(prev => prev + 1);
+            setScore(prev => prev + 10);
+          }
+        }
+      }, 100); // Check every 100ms
     }
   };
 
@@ -128,8 +146,10 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
     
     setTarget(null);
     
-    // Create next target after delay
-    setTimeout(createTarget, settings.spawnDelay);
+    // Create next target after delay - use proper async scheduling
+    createTargetTimeoutRef.current = setTimeout(() => {
+      createTarget();
+    }, settings.spawnDelay);
   };
 
   const handleMiss = () => {
@@ -226,6 +246,9 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
     }
     if (trackingScoreRef.current) {
       clearInterval(trackingScoreRef.current);
+    }
+    if (createTargetTimeoutRef.current) {
+      clearTimeout(createTargetTimeoutRef.current);
     }
     
     saveGameSession();
@@ -356,6 +379,9 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
             ref={gameAreaRef}
             className="w-full h-full cursor-crosshair bg-gradient-to-br from-background to-muted/20"
             onClick={handleMiss}
+            onMouseMove={(e) => {
+              setMousePos({ x: e.clientX, y: e.clientY });
+            }}
           >
             {target && (
               <div
