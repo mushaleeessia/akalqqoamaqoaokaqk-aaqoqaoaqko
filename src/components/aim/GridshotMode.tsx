@@ -103,11 +103,15 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
     if (target.closest('[data-target]')) return;
     
     setStats(prev => {
+      const newTargetsMissed = prev.targetsMissed + 1;
+      const newTotalClicks = prev.totalClicks + 1;
+      const accuracy = newTotalClicks > 0 ? (prev.targetsHit / newTotalClicks) * 100 : 0;
+      
       const newStats = {
         ...prev,
-        targetsMissed: prev.targetsMissed + 1,
-        totalClicks: prev.totalClicks + 1,
-        accuracy: prev.totalClicks > 0 ? (prev.targetsHit / (prev.totalClicks + 1)) * 100 : 0
+        targetsMissed: newTargetsMissed,
+        totalClicks: newTotalClicks,
+        accuracy
       };
       onStatsUpdate(newStats);
       return newStats;

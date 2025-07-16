@@ -81,41 +81,47 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     });
   }, [trackingTarget, isPlaying, getContainerBounds, speed, speedDirection]);
 
-  const handleMouseMove = useCallback((event: React.MouseEvent) => {
+  const checkMousePosition = useCallback((mouseX: number, mouseY: number) => {
     if (!trackingTarget || !isPlaying) return;
-
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
-    const size = TARGET_SIZE;
 
     const distance = Math.sqrt(
       Math.pow(mouseX - trackingTarget.x, 2) + Math.pow(mouseY - trackingTarget.y, 2)
     );
 
-    const nowOnTarget = distance <= size / 2;
+    const nowOnTarget = distance <= TARGET_SIZE / 2;
     setIsOnTarget(nowOnTarget);
-  }, [trackingTarget, isPlaying, containerRef]);
+  }, [trackingTarget, isPlaying]);
+
+  const handleMouseMove = useCallback((event: React.MouseEvent) => {
+    if (!containerRef.current) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const mouseY = event.clientY - rect.top;
+    
+    checkMousePosition(mouseX, mouseY);
+  }, [checkMousePosition, containerRef]);
 
   // Calculate accuracy and update stats every frame
   useEffect(() => {
     if (isPlaying) {
       statsTimerRef.current = setInterval(() => {
-        setTotalTime(prev => prev + 1);
-        setStats(prev => {
-          const newTimeOnTarget = isOnTarget ? prev.timeOnTarget + 1 : prev.timeOnTarget;
-          const accuracy = totalTime > 0 ? (newTimeOnTarget / (totalTime + 1)) * 100 : 0;
-          const newStats = { 
-            ...prev, 
-            timeOnTarget: newTimeOnTarget,
-            accuracy, 
-            targetsHit: Math.floor(newTimeOnTarget / 60), // Score based on time on target
-            score: Math.floor(newTimeOnTarget / 60) * 10
-          };
-          onStatsUpdate(newStats);
-          return newStats;
+        setTotalTime(prev => {
+          const newTotalTime = prev + 1;
+          setStats(prevStats => {
+            const newTimeOnTarget = isOnTarget ? prevStats.timeOnTarget + 1 : prevStats.timeOnTarget;
+            const accuracy = newTotalTime > 0 ? (newTimeOnTarget / newTotalTime) * 100 : 0;
+            const newStats = { 
+              ...prevStats, 
+              timeOnTarget: newTimeOnTarget,
+              accuracy, 
+              targetsHit: Math.floor(newTimeOnTarget / 60),
+              score: Math.floor(newTimeOnTarget / 60) * 10
+            };
+            onStatsUpdate(newStats);
+            return newStats;
+          });
+          return newTotalTime;
         });
       }, 16); // 60 FPS
     }
@@ -123,7 +129,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     return () => {
       if (statsTimerRef.current) clearInterval(statsTimerRef.current);
     };
-  }, [isPlaying, onStatsUpdate, isOnTarget, totalTime]);
+  }, [isPlaying, onStatsUpdate, isOnTarget]);
 
   // Initialize and cleanup
   useEffect(() => {
@@ -235,7 +241,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
       <div
         className="absolute inset-0 w-full h-full"
         onMouseMove={handleMouseMove}
-        style={{ zIndex: -1 }}
+        style={{ zIndex: 1, pointerEvents: 'none' }}
       />
     </>
   );
