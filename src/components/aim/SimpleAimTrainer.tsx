@@ -79,8 +79,16 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
 
   // Create new target
   const createTarget = useCallback(() => {
-    if (!gameAreaRef.current || !gameStarted || isPaused) return;
+    if (!gameAreaRef.current || !gameStarted || isPaused) {
+      console.log('Cannot create target:', { 
+        hasGameArea: !!gameAreaRef.current, 
+        gameStarted, 
+        isPaused 
+      });
+      return;
+    }
 
+    console.log('Creating new target for mode:', mode);
     const rect = gameAreaRef.current.getBoundingClientRect();
     const margin = settings.size / 2;
     
@@ -106,6 +114,7 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
       } : undefined
     };
 
+    console.log('Target created:', newTarget);
     setTarget(newTarget);
 
     // Auto-remove target after lifetime (except for tracking mode)
@@ -115,9 +124,11 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
       }
       
       targetTimeoutRef.current = setTimeout(() => {
+        console.log('Target timeout reached, creating new target');
         setTarget(null);
         setMisses(prev => prev + 1);
-        createTarget(); // Create next target
+        // Create next target immediately
+        setTimeout(() => createTarget(), 100);
       }, settings.targetLifetime);
     }
   }, [gameStarted, isPaused, mode, settings, getGridPosition]);
@@ -158,6 +169,7 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
   const handleTargetClick = useCallback(() => {
     if (!target || !settings.needsClick) return;
 
+    console.log('Target clicked!');
     const reactionTime = Date.now() - target.createdAt;
     setReactionTimes(prev => [...prev, reactionTime]);
     setHits(prev => prev + 1);
@@ -170,7 +182,7 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
     setTarget(null);
     
     // Create next target immediately
-    setTimeout(createTarget, 100);
+    setTimeout(() => createTarget(), 200);
   }, [target, settings.needsClick, createTarget]);
 
   // Handle miss click
@@ -198,6 +210,7 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
 
   // Start game
   const startGame = useCallback(() => {
+    console.log('Starting game for mode:', mode);
     setGameStarted(true);
     setIsPaused(false);
     setTimeLeft(60);
@@ -209,8 +222,11 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
     targetIdRef.current = 0;
     
     // Start first target after small delay
-    setTimeout(createTarget, 500);
-  }, [createTarget]);
+    setTimeout(() => {
+      console.log('Creating first target...');
+      createTarget();
+    }, 1000);
+  }, [createTarget, mode]);
 
   // End game
   const endGame = useCallback(() => {
@@ -382,13 +398,14 @@ export const SimpleAimTrainer: React.FC<SimpleAimTrainerProps> = ({ mode, onGame
     };
   }, [mode, gameStarted, isPaused, target, isMouseOverTarget]);
 
-  // Create new targets for tracking mode
+  // Create new targets for tracking mode and when no target exists
   useEffect(() => {
-    if (mode === 'tracking' && gameStarted && !isPaused && !target) {
-      const timeout = setTimeout(createTarget, 1000);
+    if (gameStarted && !isPaused && !target) {
+      console.log('No target exists, creating one...');
+      const timeout = setTimeout(() => createTarget(), 500);
       return () => clearTimeout(timeout);
     }
-  }, [mode, gameStarted, isPaused, target, createTarget]);
+  }, [gameStarted, isPaused, target, createTarget]);
 
   const accuracy = hits + misses > 0 ? ((hits / (hits + misses)) * 100).toFixed(1) : "0.0";
   const avgReactionTime = reactionTimes.length > 0 
