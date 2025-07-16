@@ -209,3 +209,18 @@ body::-webkit-scrollbar {
     stroke-dashoffset: calc(2 * 3.14159 * var(--radius, 20));
   }
 }
+
+/* Target Timer Animation */
+.target-timer {
+  background: conic-gradient(from 270deg, hsl(var(--muted-foreground)) 0deg, transparent 0deg);
+  animation: timer-deplete var(--timer-duration) linear forwards;
+}
+
+@keyframes timer-deplete {
+  0% {
+    background: conic-gradient(from 270deg, transparent 0deg, transparent 0deg);
+  }
+  100% {
+    background: conic-gradient(from 270deg, hsl(var(--muted-foreground)) 360deg, transparent 360deg);
+  }
+}

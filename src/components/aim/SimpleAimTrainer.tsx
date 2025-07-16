@@ -49,7 +49,7 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
   const settings = modeSettings[mode as keyof typeof modeSettings] || modeSettings.gridshot;
 
   const createTarget = () => {
-    if (!gameAreaRef.current) return;
+    if (!gameAreaRef.current || target) return; // Don't create if one already exists
 
     const rect = gameAreaRef.current.getBoundingClientRect();
     const margin = settings.size / 2;
@@ -76,22 +76,20 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
       targetTimeoutRef.current = setTimeout(() => {
         setMisses(prev => prev + 1);
         setTarget(null);
-        createTargetTimeoutRef.current = setTimeout(() => {
-          createTarget();
-        }, settings.spawnDelay);
+        createTarget(); // Create immediately after expiry
       }, settings.targetLifetime);
     }
 
     // For tracking mode, start continuous scoring when cursor is on target
     if (mode === 'tracking' && !settings.needsClick) {
       trackingScoreRef.current = setInterval(() => {
-        if (gameAreaRef.current && target) {
-          const rect = gameAreaRef.current.getBoundingClientRect();
+        if (gameAreaRef.current && newTarget) {
+          const gameRect = gameAreaRef.current.getBoundingClientRect();
           const targetRect = {
-            left: target.x + rect.left,
-            top: target.y + rect.top,
-            right: target.x + target.size + rect.left,
-            bottom: target.y + target.size + rect.top
+            left: gameRect.left + newTarget.x,
+            top: gameRect.top + newTarget.y,
+            right: gameRect.left + newTarget.x + newTarget.size,
+            bottom: gameRect.top + newTarget.y + newTarget.size
           };
           
           // Check if mouse is over target
@@ -146,10 +144,8 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
     
     setTarget(null);
     
-    // Create next target after delay - use proper async scheduling
-    createTargetTimeoutRef.current = setTimeout(() => {
-      createTarget();
-    }, settings.spawnDelay);
+    // Create next target immediately
+    createTarget();
   };
 
   const handleMiss = () => {
@@ -396,14 +392,14 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
                 {/* Timer circle for flick mode only */}
                 {mode === 'flick' && settings.targetLifetime > 0 && (
                   <div 
-                    className="absolute bg-muted-foreground/20 rounded-full border-2 border-muted-foreground/40"
+                    className="absolute rounded-full border-2 border-muted-foreground/40 target-timer"
                     style={{
                       left: -4,
                       top: -4,
                       width: target.size + 8,
                       height: target.size + 8,
-                      background: `conic-gradient(from 270deg, hsl(var(--muted-foreground)) ${((Date.now() - target.createdAt) / settings.targetLifetime) * 360}deg, transparent 0deg)`
-                    }}
+                      '--timer-duration': `${settings.targetLifetime}ms`
+                    } as React.CSSProperties & { '--timer-duration': string }}
                   />
                 )}
                 
