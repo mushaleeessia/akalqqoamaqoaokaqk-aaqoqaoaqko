@@ -271,6 +271,18 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
     };
   }, [gameStarted, isPaused, target, settings.isMoving]);
 
+  // Force re-render for timer circle animation
+  useEffect(() => {
+    if (!target || settings.targetLifetime === 0) return;
+
+    const interval = setInterval(() => {
+      // Force re-render by updating target
+      setTarget(prev => prev ? { ...prev } : null);
+    }, 50); // Update every 50ms for smooth animation
+
+    return () => clearInterval(interval);
+  }, [target, settings.targetLifetime]);
+
   const accuracy = hits + misses > 0 ? ((hits / (hits + misses)) * 100).toFixed(1) : "0.0";
   const avgReactionTime = reactionTimes.length > 0 
     ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
@@ -365,19 +377,40 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
                   height: target.size,
                 }}
               >
-                {/* Timer circle for flick mode */}
-                {mode === 'flick' && settings.targetLifetime > 0 && (
-                  <div
-                    className="absolute rounded-full border-2 border-muted-foreground/30"
-                    style={{
-                      left: -4,
-                      top: -4,
-                      width: target.size + 8,
-                      height: target.size + 8,
-                      background: `conic-gradient(transparent ${((Date.now() - target.createdAt) / settings.targetLifetime) * 360}deg, hsl(var(--muted-foreground)) 0deg)`
-                    }}
-                  />
-                )}
+                {/* Timer circle for modes with lifetime */}
+                {settings.targetLifetime > 0 && (() => {
+                  const radius = (target.size + 4) / 2;
+                  const circumference = 2 * Math.PI * radius;
+                  const elapsed = Date.now() - target.createdAt;
+                  const progress = Math.min(elapsed / settings.targetLifetime, 1);
+                  const strokeDashoffset = circumference * progress;
+                  
+                  return (
+                    <svg
+                      className="absolute"
+                      style={{
+                        left: -4,
+                        top: -4,
+                        width: target.size + 8,
+                        height: target.size + 8,
+                        transform: 'rotate(-90deg)'
+                      }}
+                    >
+                      <circle
+                        cx={(target.size + 8) / 2}
+                        cy={(target.size + 8) / 2}
+                        r={radius}
+                        fill="none"
+                        stroke="hsl(var(--muted-foreground))"
+                        strokeWidth="2"
+                        strokeOpacity={0.6}
+                        strokeDasharray={circumference}
+                        strokeDashoffset={strokeDashoffset}
+                        className="transition-all duration-75 ease-linear"
+                      />
+                    </svg>
+                  );
+                })()}
                 
                 {/* Main target */}
                 <div

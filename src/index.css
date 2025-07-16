@@ -200,3 +200,12 @@ body::-webkit-scrollbar {
     transform: scale(1.02);
   }
 }
+
+@keyframes countdown {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: calc(2 * 3.14159 * var(--radius, 20));
+  }
+}
