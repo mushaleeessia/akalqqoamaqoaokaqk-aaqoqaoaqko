@@ -240,16 +240,9 @@ const AimTrainer: React.FC = () => {
     const nowOnTarget = distance <= size / 2;
     
     setIsOnTarget(nowOnTarget);
-
+    
     if (nowOnTarget) {
       setTrackingScore(prev => prev + 1);
-      
-      if (!wasOnTarget) {
-        setStats(prev => ({
-          ...prev,
-          targetsHit: prev.targetsHit + 1
-        }));
-      }
     }
   }, [gameMode, trackingTarget, isOnTarget]);
 
@@ -294,13 +287,20 @@ const AimTrainer: React.FC = () => {
       createGridTargets();
     } else if (gameMode === 'tracking') {
       const bounds = getContainerBounds();
-      const position = generateRandomPosition(TARGET_SIZE.tracking);
+      const topBarHeight = 60;
+      const size = TARGET_SIZE.tracking;
+      const x = Math.random() * (bounds.width - 2 * size) + size;
+      const y = Math.random() * (bounds.height - topBarHeight - 2 * size) + size + topBarHeight;
+      
       setTrackingTarget({
-        x: position.x,
-        y: position.y,
+        x,
+        y,
         vx: Math.random() > 0.5 ? 1 : -1,
         vy: Math.random() > 0.5 ? 1 : -1
       });
+      
+      setTargetSpeed(2);
+      setSpeedDirection(1);
       
       trackingTimerRef.current = setInterval(updateTrackingTarget, 16); // 60 FPS
     } else {
@@ -324,8 +324,9 @@ const AimTrainer: React.FC = () => {
       gameEndTime: Date.now(),
       score: gameMode === 'tracking' ? trackingScore : stats.score,
       accuracy: gameMode === 'tracking' 
-        ? (trackingScore / (GAME_DURATION / 100)) * 100 
-        : stats.totalTargets > 0 ? (stats.targetsHit / stats.totalTargets) * 100 : 0
+        ? trackingScore > 0 ? (trackingScore / (GAME_DURATION / 16)) * 100 : 0
+        : stats.totalTargets > 0 ? (stats.targetsHit / stats.totalTargets) * 100 : 0,
+      targetsHit: gameMode === 'tracking' ? trackingScore : stats.targetsHit
     };
 
     setStats(finalStats);
@@ -333,66 +334,92 @@ const AimTrainer: React.FC = () => {
     // Save to Supabase
     if (user) {
       try {
+        console.log('Salvando dados do jogo:', finalStats);
+        
         const sessionData = {
           user_id: user.id,
           game_mode: gameMode,
           score: finalStats.score,
-          accuracy: finalStats.accuracy,
-          avg_reaction_time: finalStats.avgReactionTime,
+          accuracy: Math.round(finalStats.accuracy * 100) / 100,
+          avg_reaction_time: Math.round(finalStats.avgReactionTime || 0),
           targets_hit: finalStats.targetsHit,
           targets_missed: finalStats.targetsMissed,
-          total_targets: finalStats.totalTargets,
+          total_targets: gameMode === 'tracking' ? Math.floor(GAME_DURATION / 16) : finalStats.totalTargets,
           duration: 60,
           completed_at: new Date().toISOString()
         };
 
-        await supabase.from('aim_trainer_sessions').insert(sessionData);
+        const { error: sessionError } = await supabase.from('aim_trainer_sessions').insert(sessionData);
+
+        
+        if (sessionError) {
+          console.error('Erro ao salvar sessão:', sessionError);
+          throw sessionError;
+        }
 
         // Update or create stats
-        const { data: existingStats } = await supabase
+        const { data: existingStats, error: fetchError } = await supabase
           .from('aim_trainer_stats')
           .select('*')
           .eq('user_id', user.id)
           .eq('game_mode', gameMode)
-          .single();
+          .maybeSingle();
+
+        if (fetchError) {
+          console.error('Erro ao buscar estatísticas:', fetchError);
+          throw fetchError;
+        }
 
         if (existingStats) {
+          const newAvgReactionTime = finalStats.avgReactionTime > 0 
+            ? Math.min(((existingStats.avg_reaction_time * existingStats.total_sessions) + finalStats.avgReactionTime) / (existingStats.total_sessions + 1), 999999)
+            : existingStats.avg_reaction_time;
+            
           const updatedStats = {
             best_score: Math.max(existingStats.best_score, finalStats.score),
             best_accuracy: Math.max(existingStats.best_accuracy, finalStats.accuracy),
-            best_avg_reaction_time: Math.min(existingStats.best_avg_reaction_time, finalStats.avgReactionTime || 999999),
+            best_avg_reaction_time: finalStats.avgReactionTime > 0 ? Math.min(existingStats.best_avg_reaction_time, finalStats.avgReactionTime) : existingStats.best_avg_reaction_time,
             total_sessions: existingStats.total_sessions + 1,
             total_targets_hit: existingStats.total_targets_hit + finalStats.targetsHit,
             total_targets_missed: existingStats.total_targets_missed + finalStats.targetsMissed,
             avg_accuracy: ((existingStats.avg_accuracy * existingStats.total_sessions) + finalStats.accuracy) / (existingStats.total_sessions + 1),
-            avg_reaction_time: finalStats.avgReactionTime > 0 
-              ? ((existingStats.avg_reaction_time * existingStats.total_sessions) + finalStats.avgReactionTime) / (existingStats.total_sessions + 1)
-              : existingStats.avg_reaction_time
+            avg_reaction_time: newAvgReactionTime
           };
 
-          await supabase
+          const { error: updateError } = await supabase
             .from('aim_trainer_stats')
             .update(updatedStats)
             .eq('id', existingStats.id);
+          
+          if (updateError) {
+            console.error('Erro ao atualizar estatísticas:', updateError);
+            throw updateError;
+          }
         } else {
-          await supabase.from('aim_trainer_stats').insert({
+          const { error: insertError } = await supabase.from('aim_trainer_stats').insert({
             user_id: user.id,
             game_mode: gameMode,
             best_score: finalStats.score,
-            best_accuracy: finalStats.accuracy,
-            best_avg_reaction_time: finalStats.avgReactionTime || 999999,
+            best_accuracy: Math.round(finalStats.accuracy * 100) / 100,
+            best_avg_reaction_time: finalStats.avgReactionTime > 0 ? Math.round(finalStats.avgReactionTime) : 999999,
             total_sessions: 1,
             total_targets_hit: finalStats.targetsHit,
             total_targets_missed: finalStats.targetsMissed,
-            avg_accuracy: finalStats.accuracy,
-            avg_reaction_time: finalStats.avgReactionTime
+            avg_accuracy: Math.round(finalStats.accuracy * 100) / 100,
+            avg_reaction_time: Math.round(finalStats.avgReactionTime || 0)
           });
+          
+          if (insertError) {
+            console.error('Erro ao inserir estatísticas:', insertError);
+            throw insertError;
+          }
         }
 
+        console.log('Dados salvos com sucesso!');
         toast.success('Jogo salvo com sucesso!');
       } catch (error) {
         console.error('Erro ao salvar jogo:', error);
-        toast.error('Erro ao salvar jogo');
+        toast.error('Erro ao salvar jogo: ' + (error as any)?.message);
       }
     }
   }, [stats, gameMode, trackingScore, user]);
