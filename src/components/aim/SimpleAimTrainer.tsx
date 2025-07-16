@@ -34,12 +34,13 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const targetIdRef = useRef(0);
   const animationRef = useRef<number>();
+  const targetTimeoutRef = useRef<NodeJS.Timeout>();
 
   const modeSettings = {
-    gridshot: { size: 60, spawnDelay: 800, isMoving: false },
-    flick: { size: 50, spawnDelay: 1200, isMoving: false },
-    tracking: { size: 70, spawnDelay: 3000, isMoving: true },
-    precision: { size: 30, spawnDelay: 1000, isMoving: false }
+    gridshot: { size: 60, spawnDelay: 800, isMoving: false, targetLifetime: 0, needsClick: true },
+    flick: { size: 50, spawnDelay: 1200, isMoving: false, targetLifetime: 2500, needsClick: true },
+    tracking: { size: 70, spawnDelay: 3000, isMoving: true, targetLifetime: 5000, needsClick: false },
+    precision: { size: 30, spawnDelay: 1000, isMoving: false, targetLifetime: 0, needsClick: true }
   };
 
   const settings = modeSettings[mode as keyof typeof modeSettings] || modeSettings.gridshot;
@@ -66,6 +67,20 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
     };
 
     setTarget(newTarget);
+
+    // Auto-expire target if it has a lifetime
+    if (settings.targetLifetime > 0) {
+      targetTimeoutRef.current = setTimeout(() => {
+        if (settings.needsClick) {
+          setMisses(prev => prev + 1);
+        } else {
+          setHits(prev => prev + 1);
+          setScore(prev => prev + 50);
+        }
+        setTarget(null);
+        setTimeout(createTarget, settings.spawnDelay);
+      }, settings.targetLifetime);
+    }
   };
 
   const updateMovingTarget = () => {
@@ -95,15 +110,19 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
   };
 
   const handleTargetClick = () => {
-    if (!target) return;
+    if (!target || !settings.needsClick) return;
 
     const reactionTime = Date.now() - target.createdAt;
     setReactionTimes(prev => [...prev, reactionTime]);
     setHits(prev => prev + 1);
     setScore(prev => prev + Math.max(100 - Math.floor(reactionTime / 10), 10));
+    
+    // Clear timeout if target was clicked
+    if (targetTimeoutRef.current) {
+      clearTimeout(targetTimeoutRef.current);
+    }
+    
     setTarget(null);
-
-    // Criar próximo alvo após delay
     setTimeout(createTarget, settings.spawnDelay);
   };
 
@@ -290,7 +309,7 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
                 <p className="text-muted-foreground mb-6">
                   {mode === 'gridshot' && "Clique nos alvos que aparecem em sequência o mais rápido possível."}
                   {mode === 'flick' && "Clique nos alvos que aparecem aleatoriamente. Teste seus reflexos!"}
-                  {mode === 'tracking' && "Acompanhe e clique nos alvos em movimento."}
+                  {mode === 'tracking' && "Acompanhe os alvos em movimento com o cursor."}
                   {mode === 'precision' && "Clique nos alvos pequenos com máxima precisão."}
                 </p>
                 <Button onClick={() => setGameStarted(true)} size="lg">
@@ -325,18 +344,41 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
           >
             {target && (
               <div
-                className="absolute bg-primary hover:bg-primary-glow rounded-full cursor-pointer transition-colors duration-150 border-2 border-primary-foreground shadow-lg hover:shadow-xl"
+                className="absolute"
                 style={{
                   left: target.x,
                   top: target.y,
                   width: target.size,
                   height: target.size,
                 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleTargetClick();
-                }}
-              />
+              >
+                {/* Timer circle for flick mode */}
+                {mode === 'flick' && settings.targetLifetime > 0 && (
+                  <div
+                    className="absolute rounded-full border-2 border-muted-foreground/30"
+                    style={{
+                      left: -4,
+                      top: -4,
+                      width: target.size + 8,
+                      height: target.size + 8,
+                      background: `conic-gradient(transparent ${((Date.now() - target.createdAt) / settings.targetLifetime) * 360}deg, hsl(var(--muted-foreground)) 0deg)`
+                    }}
+                  />
+                )}
+                
+                {/* Main target */}
+                <div
+                  className="absolute bg-primary hover:bg-primary-glow rounded-full cursor-pointer transition-colors duration-150 border-2 border-primary-foreground shadow-lg hover:shadow-xl"
+                  style={{
+                    width: target.size,
+                    height: target.size,
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleTargetClick();
+                  }}
+                />
+              </div>
             )}
             
             {isPaused && (
