@@ -47,7 +47,7 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
   const settings = modeSettings[mode as keyof typeof modeSettings] || modeSettings.gridshot;
 
   const createTarget = () => {
-    if (!gameAreaRef.current) return;
+    if (!gameAreaRef.current || target) return; // Don't create if one already exists
 
     const rect = gameAreaRef.current.getBoundingClientRect();
     const margin = settings.size / 2;
@@ -127,6 +127,8 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
     }
     
     setTarget(null);
+    
+    // Create next target after delay
     setTimeout(createTarget, settings.spawnDelay);
   };
 
@@ -246,16 +248,16 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
     return () => clearInterval(timer);
   }, [gameStarted, isPaused, timeLeft]);
 
-  // Start first target
+  // Start first target only once when game starts
   useEffect(() => {
     if (gameStarted && !isPaused && !target) {
       createTarget();
     }
-  }, [gameStarted, isPaused, target]);
+  }, [gameStarted, isPaused]);
 
   // Moving target animation
   useEffect(() => {
-    if (!gameStarted || isPaused || !settings.isMoving) return;
+    if (!gameStarted || isPaused || !settings.isMoving || !target) return;
 
     const animate = () => {
       updateMovingTarget();
@@ -270,18 +272,6 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
       }
     };
   }, [gameStarted, isPaused, target, settings.isMoving]);
-
-  // Force re-render for timer circle animation
-  useEffect(() => {
-    if (!target || settings.targetLifetime === 0) return;
-
-    const interval = setInterval(() => {
-      // Force re-render by updating target
-      setTarget(prev => prev ? { ...prev } : null);
-    }, 50); // Update every 50ms for smooth animation
-
-    return () => clearInterval(interval);
-  }, [target, settings.targetLifetime]);
 
   const accuracy = hits + misses > 0 ? ((hits / (hits + misses)) * 100).toFixed(1) : "0.0";
   const avgReactionTime = reactionTimes.length > 0 
@@ -377,40 +367,19 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
                   height: target.size,
                 }}
               >
-                {/* Timer circle for modes with lifetime */}
-                {settings.targetLifetime > 0 && (() => {
-                  const radius = (target.size + 4) / 2;
-                  const circumference = 2 * Math.PI * radius;
-                  const elapsed = Date.now() - target.createdAt;
-                  const progress = Math.min(elapsed / settings.targetLifetime, 1);
-                  const strokeDashoffset = circumference * progress;
-                  
-                  return (
-                    <svg
-                      className="absolute"
-                      style={{
-                        left: -4,
-                        top: -4,
-                        width: target.size + 8,
-                        height: target.size + 8,
-                        transform: 'rotate(-90deg)'
-                      }}
-                    >
-                      <circle
-                        cx={(target.size + 8) / 2}
-                        cy={(target.size + 8) / 2}
-                        r={radius}
-                        fill="none"
-                        stroke="hsl(var(--muted-foreground))"
-                        strokeWidth="2"
-                        strokeOpacity={0.6}
-                        strokeDasharray={circumference}
-                        strokeDashoffset={strokeDashoffset}
-                        className="transition-all duration-75 ease-linear"
-                      />
-                    </svg>
-                  );
-                })()}
+                {/* Timer circle for flick mode only */}
+                {mode === 'flick' && settings.targetLifetime > 0 && (
+                  <div 
+                    className="absolute bg-muted-foreground/20 rounded-full border-2 border-muted-foreground/40"
+                    style={{
+                      left: -4,
+                      top: -4,
+                      width: target.size + 8,
+                      height: target.size + 8,
+                      background: `conic-gradient(from 270deg, hsl(var(--muted-foreground)) ${((Date.now() - target.createdAt) / settings.targetLifetime) * 360}deg, transparent 0deg)`
+                    }}
+                  />
+                )}
                 
                 {/* Main target */}
                 <div
