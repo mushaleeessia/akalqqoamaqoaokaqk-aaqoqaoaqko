@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { AimTrainerGame } from "@/components/aim/AimTrainerGame";
+import { AimTrainerTest } from "@/components/aim/AimTrainerTest";
 import { AimTrainerStats } from "@/components/aim/AimTrainerStats";
 import { AimModeSelector } from "@/components/aim/AimModeSelector";
 import { Header } from "@/components/Header";
@@ -69,7 +69,7 @@ const AimTrainer = () => {
     console.log(`[AIM TRAINER PAGE] Rendering game component for mode: ${selectedMode}`);
     return (
       <div className="min-h-screen bg-background">
-        <AimTrainerGame 
+        <AimTrainerTest 
           mode={selectedMode} 
           onGameEnd={() => {
             console.log("[AIM TRAINER PAGE] Game ended, returning to menu");
@@ -96,20 +96,17 @@ const AimTrainer = () => {
         </div>
 
         {selectedMode ? (
-          <>
-            {console.log(`[AIM TRAINER PAGE] Rendering mode selector for: ${selectedMode}`)}
-            <AimModeSelector
-              mode={selectedMode}
-              onStart={() => {
-                console.log(`[AIM TRAINER PAGE] Start button clicked for mode: ${selectedMode}`);
-                setIsPlaying(true);
-              }}
-              onBack={() => {
-                console.log("[AIM TRAINER PAGE] Back button clicked");
-                setSelectedMode(null);
-              }}
-            />
-          </>
+          <AimModeSelector
+            mode={selectedMode}
+            onStart={() => {
+              console.log(`[AIM TRAINER PAGE] Start button clicked for mode: ${selectedMode}`);
+              setIsPlaying(true);
+            }}
+            onBack={() => {
+              console.log("[AIM TRAINER PAGE] Back button clicked");
+              setSelectedMode(null);
+            }}
+          />
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
