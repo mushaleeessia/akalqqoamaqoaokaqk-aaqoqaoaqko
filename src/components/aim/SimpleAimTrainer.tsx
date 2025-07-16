@@ -35,11 +35,12 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
   const targetIdRef = useRef(0);
   const animationRef = useRef<number>();
   const targetTimeoutRef = useRef<NodeJS.Timeout>();
+  const trackingScoreRef = useRef<NodeJS.Timeout>();
 
   const modeSettings = {
     gridshot: { size: 60, spawnDelay: 800, isMoving: false, targetLifetime: 0, needsClick: true },
     flick: { size: 50, spawnDelay: 1200, isMoving: false, targetLifetime: 2500, needsClick: true },
-    tracking: { size: 70, spawnDelay: 3000, isMoving: true, targetLifetime: 5000, needsClick: false },
+    tracking: { size: 70, spawnDelay: 0, isMoving: true, targetLifetime: 0, needsClick: false },
     precision: { size: 30, spawnDelay: 1000, isMoving: false, targetLifetime: 0, needsClick: true }
   };
 
@@ -68,18 +69,21 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
 
     setTarget(newTarget);
 
-    // Auto-expire target if it has a lifetime
-    if (settings.targetLifetime > 0) {
+    // Auto-expire target if it has a lifetime (only for flick mode)
+    if (settings.targetLifetime > 0 && mode === 'flick') {
       targetTimeoutRef.current = setTimeout(() => {
-        if (settings.needsClick) {
-          setMisses(prev => prev + 1);
-        } else {
-          setHits(prev => prev + 1);
-          setScore(prev => prev + 50);
-        }
+        setMisses(prev => prev + 1);
         setTarget(null);
         setTimeout(createTarget, settings.spawnDelay);
       }, settings.targetLifetime);
+    }
+
+    // For tracking mode, start continuous scoring
+    if (mode === 'tracking' && !settings.needsClick) {
+      trackingScoreRef.current = setInterval(() => {
+        setHits(prev => prev + 1);
+        setScore(prev => prev + 10);
+      }, 100); // 10 points every 100ms
     }
   };
 
@@ -210,9 +214,18 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
   const endGame = () => {
     setGameStarted(false);
     setIsPaused(true);
+    
+    // Clean up all timeouts and intervals
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
+    if (targetTimeoutRef.current) {
+      clearTimeout(targetTimeoutRef.current);
+    }
+    if (trackingScoreRef.current) {
+      clearInterval(trackingScoreRef.current);
+    }
+    
     saveGameSession();
   };
 
