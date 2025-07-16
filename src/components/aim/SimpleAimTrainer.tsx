@@ -31,7 +31,7 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
   const [isPaused, setIsPaused] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [reactionTimes, setReactionTimes] = useState<number[]>([]);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [globalMousePos, setGlobalMousePos] = useState({ x: 0, y: 0 });
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const targetIdRef = useRef(0);
   const animationRef = useRef<number>();
@@ -83,19 +83,23 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
     // For tracking mode, start continuous scoring when cursor is on target
     if (mode === 'tracking' && !settings.needsClick) {
       trackingScoreRef.current = setInterval(() => {
-        if (target && gameAreaRef.current) {
-          // Check if mouse is over current target using relative coordinates
-          const isMouseOverTarget = mousePos.x >= target.x && 
-                                  mousePos.x <= target.x + target.size &&
-                                  mousePos.y >= target.y && 
-                                  mousePos.y <= target.y + target.size;
+        if (gameAreaRef.current && newTarget) {
+          const rect = gameAreaRef.current.getBoundingClientRect();
           
-          if (isMouseOverTarget) {
+          // Calculate target absolute position
+          const targetLeft = rect.left + newTarget.x;
+          const targetTop = rect.top + newTarget.y;
+          const targetRight = targetLeft + newTarget.size;
+          const targetBottom = targetTop + newTarget.size;
+          
+          // Check if global mouse position is over target
+          if (globalMousePos.x >= targetLeft && globalMousePos.x <= targetRight &&
+              globalMousePos.y >= targetTop && globalMousePos.y <= targetBottom) {
             setHits(prev => prev + 1);
             setScore(prev => prev + 10);
           }
         }
-      }, 50); // Check every 50ms for more responsive tracking
+      }, 50);
     }
   };
 
@@ -263,6 +267,18 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
     return () => clearInterval(timer);
   }, [gameStarted, isPaused, timeLeft]);
 
+  // Global mouse tracking for tracking mode
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      setGlobalMousePos({ x: e.clientX, y: e.clientY });
+    };
+
+    if (mode === 'tracking') {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      return () => document.removeEventListener('mousemove', handleGlobalMouseMove);
+    }
+  }, [mode]);
+
   // Start first target only once when game starts
   useEffect(() => {
     if (gameStarted && !isPaused && !target) {
@@ -371,15 +387,6 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
             ref={gameAreaRef}
             className="w-full h-full cursor-crosshair bg-gradient-to-br from-background to-muted/20"
             onClick={handleMiss}
-            onMouseMove={(e) => {
-              const rect = gameAreaRef.current?.getBoundingClientRect();
-              if (rect) {
-                setMousePos({ 
-                  x: e.clientX - rect.left, 
-                  y: e.clientY - rect.top 
-                });
-              }
-            }}
           >
             {target && (
               <div
@@ -391,18 +398,32 @@ export const SimpleAimTrainer = ({ mode, onGameEnd }: SimpleAimTrainerProps) => 
                   height: target.size,
                 }}
               >
-                {/* Timer circle for flick mode only */}
+                {/* Timer circle for flick mode only - SVG version */}
                 {mode === 'flick' && settings.targetLifetime > 0 && (
-                  <div 
-                    className="absolute rounded-full border-2 border-muted-foreground/40 target-timer"
+                  <svg 
+                    className="absolute"
                     style={{
                       left: -4,
                       top: -4,
                       width: target.size + 8,
                       height: target.size + 8,
-                      '--timer-duration': `${settings.targetLifetime}ms`
-                    } as React.CSSProperties & { '--timer-duration': string }}
-                  />
+                    }}
+                  >
+                    <circle
+                      cx={target.size / 2 + 4}
+                      cy={target.size / 2 + 4}
+                      r={target.size / 2 + 2}
+                      fill="transparent"
+                      stroke="hsl(var(--muted-foreground))"
+                      strokeWidth="2"
+                      strokeDasharray={`${2 * Math.PI * (target.size / 2 + 2)}`}
+                      strokeDashoffset={`${2 * Math.PI * (target.size / 2 + 2)}`}
+                      transform={`rotate(-90 ${target.size / 2 + 4} ${target.size / 2 + 4})`}
+                      style={{
+                        animation: `circle-deplete ${settings.targetLifetime}ms linear forwards`
+                      }}
+                    />
+                  </svg>
                 )}
                 
                 {/* Main target */}

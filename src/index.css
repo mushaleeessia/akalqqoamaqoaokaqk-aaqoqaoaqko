@@ -210,30 +210,12 @@ body::-webkit-scrollbar {
   }
 }
 
-/* Target Timer Animation - Smooth circle depletion */
-.target-timer {
-  background: transparent;
-  position: relative;
-  overflow: hidden;
-}
-
-.target-timer::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: conic-gradient(from 270deg, hsl(var(--muted-foreground)) 0deg, transparent 0deg);
-  border-radius: 50%;
-  animation: timer-deplete var(--timer-duration) linear forwards;
-}
-
-@keyframes timer-deplete {
+/* SVG Circle Timer Animation - Smooth and precise */
+@keyframes circle-deplete {
   0% {
-    background: conic-gradient(from 270deg, transparent 0deg, transparent 360deg);
+    stroke-dashoffset: 0;
   }
   100% {
-    background: conic-gradient(from 270deg, hsl(var(--muted-foreground)) 360deg, transparent 360deg);
+    stroke-dashoffset: calc(2 * 3.14159 * var(--radius, 32));
   }
 }
