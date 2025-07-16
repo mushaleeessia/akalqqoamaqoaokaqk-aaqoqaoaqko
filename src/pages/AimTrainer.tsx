@@ -8,37 +8,25 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { Target, Clock, Crosshair, MousePointer2, RotateCcw, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { GridshotMode } from '@/components/aim/GridshotMode';
+import { TrackingMode } from '@/components/aim/TrackingMode';
+import { FlickMode } from '@/components/aim/FlickMode';
+import { PrecisionMode } from '@/components/aim/PrecisionMode';
 
-interface Target {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  isHit: boolean;
-  createdAt: number;
-}
+type GameMode = 'gridshot' | 'flick' | 'tracking' | 'precision';
+
+const GAME_DURATION = 60000; // 60 seconds
 
 interface GameStats {
   score: number;
   accuracy: number;
   targetsHit: number;
-  targetsMissed: number;
-  totalTargets: number;
-  avgReactionTime: number;
-  reactionTimes: number[];
-  gameStartTime: number;
-  gameEndTime?: number;
+  targetsMissed?: number;
+  totalTargets?: number;
+  avgReactionTime?: number;
+  timeOnTarget?: number;
+  totalClicks?: number;
 }
-
-type GameMode = 'gridshot' | 'flick' | 'tracking' | 'precision';
-
-const GAME_DURATION = 60000; // 60 seconds
-const TARGET_SIZE = {
-  gridshot: 40,
-  flick: 35,
-  tracking: 30,
-  precision: 20
-};
 
 const AimTrainer: React.FC = () => {
   const { user } = useAuth();
@@ -46,9 +34,7 @@ const AimTrainer: React.FC = () => {
   const [userProfile, setUserProfile] = useState<{ nickname: string } | null>(null);
   const [gameMode, setGameMode] = useState<GameMode>('gridshot');
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
-  const [targets, setTargets] = useState<Target[]>([]);
   const [stats, setStats] = useState<GameStats>({
     score: 0,
     accuracy: 0,
@@ -56,195 +42,29 @@ const AimTrainer: React.FC = () => {
     targetsMissed: 0,
     totalTargets: 0,
     avgReactionTime: 0,
-    reactionTimes: [],
-    gameStartTime: 0
+    timeOnTarget: 0,
+    totalClicks: 0
   });
-  const [trackingTarget, setTrackingTarget] = useState<{ x: number; y: number; vx: number; vy: number } | null>(null);
-  const [isOnTarget, setIsOnTarget] = useState(false);
-  const [trackingScore, setTrackingScore] = useState(0);
+  const [gameEndStats, setGameEndStats] = useState<GameStats | null>(null);
 
   const gameTimerRef = useRef<NodeJS.Timeout>();
-  const targetTimerRef = useRef<NodeJS.Timeout>();
-  const trackingTimerRef = useRef<NodeJS.Timeout>();
-  const nextTargetIdRef = useRef(1);
 
-  const getContainerBounds = useCallback(() => {
-    if (!containerRef.current) return { width: 800, height: 600 };
-    const rect = containerRef.current.getBoundingClientRect();
-    return { width: rect.width, height: rect.height };
-  }, []);
-
-  const generateRandomPosition = useCallback((size: number) => {
-    const bounds = getContainerBounds();
-    const margin = size / 2 + 10;
-    return {
-      x: Math.random() * (bounds.width - 2 * margin) + margin,
-      y: Math.random() * (bounds.height - 2 * margin) + margin
-    };
-  }, [getContainerBounds]);
-
-  const createTarget = useCallback(() => {
-    const size = TARGET_SIZE[gameMode];
-    const position = generateRandomPosition(size);
-    
-    const newTarget: Target = {
-      id: nextTargetIdRef.current++,
-      x: position.x,
-      y: position.y,
-      size,
-      isHit: false,
-      createdAt: Date.now()
-    };
-
-    setTargets(prev => {
-      if (gameMode === 'gridshot') {
-        return [...prev, newTarget];
-      } else {
-        return [newTarget]; // Only one target for other modes
-      }
-    });
-
-    setStats(prev => ({
-      ...prev,
-      totalTargets: prev.totalTargets + 1
-    }));
-  }, [gameMode, generateRandomPosition]);
-
-  const createGridTargets = useCallback(() => {
-    const bounds = getContainerBounds();
-    const size = TARGET_SIZE.gridshot;
-    const cols = 4;
-    const rows = 3;
-    const marginX = (bounds.width - cols * size * 2) / (cols + 1);
-    const marginY = (bounds.height - rows * size * 2) / (rows + 1);
-
-    const newTargets: Target[] = [];
-    
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        newTargets.push({
-          id: nextTargetIdRef.current++,
-          x: marginX + col * (size * 2 + marginX) + size,
-          y: marginY + row * (size * 2 + marginY) + size,
-          size,
-          isHit: false,
-          createdAt: Date.now()
-        });
-      }
+  // Load user profile
+  useEffect(() => {
+    if (user) {
+      const loadProfile = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('nickname')
+          .eq('id', user.id)
+          .single();
+        if (data) {
+          setUserProfile(data);
+        }
+      };
+      loadProfile();
     }
-
-    setTargets(newTargets);
-    setStats(prev => ({
-      ...prev,
-      totalTargets: prev.totalTargets + newTargets.length
-    }));
-  }, [getContainerBounds]);
-
-  const [targetSpeed, setTargetSpeed] = useState(2);
-  const [speedDirection, setSpeedDirection] = useState(1);
-
-  const updateTrackingTarget = useCallback(() => {
-    if (!trackingTarget) return;
-
-    const bounds = getContainerBounds();
-    const size = TARGET_SIZE.tracking;
-    const topBarHeight = 60; // Height of time progress bar area
-
-    setTrackingTarget(prev => {
-      if (!prev) return null;
-
-      let newX = prev.x + prev.vx * targetSpeed;
-      let newY = prev.y + prev.vy * targetSpeed;
-      let newVx = prev.vx;
-      let newVy = prev.vy;
-
-      // Bounce off walls
-      if (newX <= size / 2 || newX >= bounds.width - size / 2) {
-        newVx = -newVx;
-        newX = Math.max(size / 2, Math.min(bounds.width - size / 2, newX));
-      }
-      // Avoid going under the time bar
-      if (newY <= size / 2 + topBarHeight || newY >= bounds.height - size / 2) {
-        newVy = -newVy;
-        newY = Math.max(size / 2 + topBarHeight, Math.min(bounds.height - size / 2, newY));
-      }
-
-      return { x: newX, y: newY, vx: newVx, vy: newVy };
-    });
-
-    // Update speed gradually
-    setTargetSpeed(prev => {
-      const newSpeed = prev + speedDirection * 0.02;
-      if (newSpeed >= 4) {
-        setSpeedDirection(-1);
-        return 4;
-      } else if (newSpeed <= 1) {
-        setSpeedDirection(1);
-        return 1;
-      }
-      return newSpeed;
-    });
-  }, [trackingTarget, getContainerBounds, targetSpeed, speedDirection]);
-
-  const handleTargetClick = useCallback((targetId: number, event: React.MouseEvent) => {
-    event.stopPropagation();
-    
-    const target = targets.find(t => t.id === targetId);
-    if (!target || target.isHit) return;
-
-    const reactionTime = Date.now() - target.createdAt;
-    
-    setTargets(prev => prev.filter(t => t.id !== targetId));
-    
-    setStats(prev => ({
-      ...prev,
-      score: prev.score + 100,
-      targetsHit: prev.targetsHit + 1,
-      reactionTimes: [...prev.reactionTimes, reactionTime],
-      avgReactionTime: [...prev.reactionTimes, reactionTime].reduce((a, b) => a + b, 0) / (prev.reactionTimes.length + 1),
-      accuracy: ((prev.targetsHit + 1) / prev.totalTargets) * 100
-    }));
-
-    // Create new target for certain modes
-    if (gameMode === 'flick' || gameMode === 'precision') {
-      setTimeout(createTarget, gameMode === 'precision' ? 500 : 200);
-    }
-  }, [targets, gameMode, createTarget]);
-
-  const handleContainerClick = useCallback((event: React.MouseEvent) => {
-    if (gameMode === 'tracking') return;
-    
-    // Clicked outside targets
-    setStats(prev => ({
-      ...prev,
-      targetsMissed: prev.targetsMissed + 1,
-      accuracy: prev.totalTargets > 0 ? (prev.targetsHit / prev.totalTargets) * 100 : 0
-    }));
-  }, [gameMode]);
-
-  const handleMouseMove = useCallback((event: React.MouseEvent) => {
-    if (gameMode !== 'tracking' || !trackingTarget) return;
-
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
-    const size = TARGET_SIZE.tracking;
-
-    const distance = Math.sqrt(
-      Math.pow(mouseX - trackingTarget.x, 2) + Math.pow(mouseY - trackingTarget.y, 2)
-    );
-
-    const wasOnTarget = isOnTarget;
-    const nowOnTarget = distance <= size / 2;
-    
-    setIsOnTarget(nowOnTarget);
-    
-    if (nowOnTarget) {
-      setTrackingScore(prev => prev + 1);
-    }
-  }, [gameMode, trackingTarget, isOnTarget]);
+  }, [user]);
 
   const startGame = useCallback(() => {
     if (!user) {
@@ -252,13 +72,9 @@ const AimTrainer: React.FC = () => {
       return;
     }
 
+    console.log(`Iniciando jogo no modo: ${gameMode}`);
     setIsPlaying(true);
-    setIsPaused(false);
     setTimeLeft(GAME_DURATION);
-    setTargets([]);
-    setTrackingTarget(null);
-    setIsOnTarget(false);
-    setTrackingScore(0);
     setStats({
       score: 0,
       accuracy: 0,
@@ -266,70 +82,33 @@ const AimTrainer: React.FC = () => {
       targetsMissed: 0,
       totalTargets: 0,
       avgReactionTime: 0,
-      reactionTimes: [],
-      gameStartTime: Date.now()
+      timeOnTarget: 0,
+      totalClicks: 0
     });
-    nextTargetIdRef.current = 1;
+    setGameEndStats(null);
 
     // Start game timer
     gameTimerRef.current = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev <= 1000) {
+        if (prev <= 100) {
           endGame();
           return 0;
         }
         return prev - 100;
       });
     }, 100);
-
-    // Initialize based on game mode
-    if (gameMode === 'gridshot') {
-      createGridTargets();
-    } else if (gameMode === 'tracking') {
-      const bounds = getContainerBounds();
-      const topBarHeight = 60;
-      const size = TARGET_SIZE.tracking;
-      const x = Math.random() * (bounds.width - 2 * size) + size;
-      const y = Math.random() * (bounds.height - topBarHeight - 2 * size) + size + topBarHeight;
-      
-      setTrackingTarget({
-        x,
-        y,
-        vx: Math.random() > 0.5 ? 1 : -1,
-        vy: Math.random() > 0.5 ? 1 : -1
-      });
-      
-      setTargetSpeed(2);
-      setSpeedDirection(1);
-      
-      trackingTimerRef.current = setInterval(updateTrackingTarget, 16); // 60 FPS
-    } else {
-      createTarget();
-    }
-  }, [user, gameMode, createGridTargets, createTarget, generateRandomPosition, getContainerBounds, updateTrackingTarget]);
+  }, [user, gameMode]);
 
   const endGame = useCallback(async () => {
+    console.log('Finalizando jogo...', stats);
     setIsPlaying(false);
     
-    if (gameTimerRef.current) clearInterval(gameTimerRef.current);
-    if (targetTimerRef.current) clearTimeout(targetTimerRef.current);
-    if (trackingTimerRef.current) clearInterval(trackingTimerRef.current);
-    
-    // Clear targets when game ends
-    setTargets([]);
-    setTrackingTarget(null);
+    if (gameTimerRef.current) {
+      clearInterval(gameTimerRef.current);
+    }
 
-    const finalStats = {
-      ...stats,
-      gameEndTime: Date.now(),
-      score: gameMode === 'tracking' ? trackingScore : stats.score,
-      accuracy: gameMode === 'tracking' 
-        ? trackingScore > 0 ? (trackingScore / (GAME_DURATION / 16)) * 100 : 0
-        : stats.totalTargets > 0 ? (stats.targetsHit / stats.totalTargets) * 100 : 0,
-      targetsHit: gameMode === 'tracking' ? trackingScore : stats.targetsHit
-    };
-
-    setStats(finalStats);
+    const finalStats = { ...stats };
+    setGameEndStats(finalStats);
 
     // Save to Supabase
     if (user) {
@@ -343,14 +122,13 @@ const AimTrainer: React.FC = () => {
           accuracy: Math.round(finalStats.accuracy * 100) / 100,
           avg_reaction_time: Math.round(finalStats.avgReactionTime || 0),
           targets_hit: finalStats.targetsHit,
-          targets_missed: finalStats.targetsMissed,
-          total_targets: gameMode === 'tracking' ? Math.floor(GAME_DURATION / 16) : finalStats.totalTargets,
+          targets_missed: finalStats.targetsMissed || 0,
+          total_targets: finalStats.totalTargets || finalStats.targetsHit,
           duration: 60,
           completed_at: new Date().toISOString()
         };
 
         const { error: sessionError } = await supabase.from('aim_trainer_sessions').insert(sessionData);
-
         
         if (sessionError) {
           console.error('Erro ao salvar sessão:', sessionError);
@@ -371,17 +149,17 @@ const AimTrainer: React.FC = () => {
         }
 
         if (existingStats) {
-          const newAvgReactionTime = finalStats.avgReactionTime > 0 
+          const newAvgReactionTime = finalStats.avgReactionTime && finalStats.avgReactionTime > 0 
             ? Math.min(((existingStats.avg_reaction_time * existingStats.total_sessions) + finalStats.avgReactionTime) / (existingStats.total_sessions + 1), 999999)
             : existingStats.avg_reaction_time;
             
           const updatedStats = {
             best_score: Math.max(existingStats.best_score, finalStats.score),
             best_accuracy: Math.max(existingStats.best_accuracy, finalStats.accuracy),
-            best_avg_reaction_time: finalStats.avgReactionTime > 0 ? Math.min(existingStats.best_avg_reaction_time, finalStats.avgReactionTime) : existingStats.best_avg_reaction_time,
+            best_avg_reaction_time: finalStats.avgReactionTime && finalStats.avgReactionTime > 0 ? Math.min(existingStats.best_avg_reaction_time, finalStats.avgReactionTime) : existingStats.best_avg_reaction_time,
             total_sessions: existingStats.total_sessions + 1,
             total_targets_hit: existingStats.total_targets_hit + finalStats.targetsHit,
-            total_targets_missed: existingStats.total_targets_missed + finalStats.targetsMissed,
+            total_targets_missed: existingStats.total_targets_missed + (finalStats.targetsMissed || 0),
             avg_accuracy: ((existingStats.avg_accuracy * existingStats.total_sessions) + finalStats.accuracy) / (existingStats.total_sessions + 1),
             avg_reaction_time: newAvgReactionTime
           };
@@ -401,10 +179,10 @@ const AimTrainer: React.FC = () => {
             game_mode: gameMode,
             best_score: finalStats.score,
             best_accuracy: Math.round(finalStats.accuracy * 100) / 100,
-            best_avg_reaction_time: finalStats.avgReactionTime > 0 ? Math.round(finalStats.avgReactionTime) : 999999,
+            best_avg_reaction_time: finalStats.avgReactionTime && finalStats.avgReactionTime > 0 ? Math.round(finalStats.avgReactionTime) : 999999,
             total_sessions: 1,
             total_targets_hit: finalStats.targetsHit,
-            total_targets_missed: finalStats.targetsMissed,
+            total_targets_missed: finalStats.targetsMissed || 0,
             avg_accuracy: Math.round(finalStats.accuracy * 100) / 100,
             avg_reaction_time: Math.round(finalStats.avgReactionTime || 0)
           });
@@ -422,16 +200,11 @@ const AimTrainer: React.FC = () => {
         toast.error('Erro ao salvar jogo: ' + (error as any)?.message);
       }
     }
-  }, [stats, gameMode, trackingScore, user]);
+  }, [stats, gameMode, user]);
 
   const resetGame = useCallback(() => {
     setIsPlaying(false);
-    setIsPaused(false);
     setTimeLeft(GAME_DURATION);
-    setTargets([]);
-    setTrackingTarget(null);
-    setIsOnTarget(false);
-    setTrackingScore(0);
     setStats({
       score: 0,
       accuracy: 0,
@@ -439,47 +212,24 @@ const AimTrainer: React.FC = () => {
       targetsMissed: 0,
       totalTargets: 0,
       avgReactionTime: 0,
-      reactionTimes: [],
-      gameStartTime: 0
+      timeOnTarget: 0,
+      totalClicks: 0
     });
+    setGameEndStats(null);
     
     if (gameTimerRef.current) clearInterval(gameTimerRef.current);
-    if (targetTimerRef.current) clearTimeout(targetTimerRef.current);
-    if (trackingTimerRef.current) clearInterval(trackingTimerRef.current);
   }, []);
 
-  // Load user profile
-  useEffect(() => {
-    if (user) {
-      const loadProfile = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('nickname')
-          .eq('id', user.id)
-          .single();
-        if (data) {
-          setUserProfile(data);
-        }
-      };
-      loadProfile();
-    }
-  }, [user]);
+  const handleStatsUpdate = useCallback((newStats: GameStats) => {
+    setStats(newStats);
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (gameTimerRef.current) clearInterval(gameTimerRef.current);
-      if (targetTimerRef.current) clearTimeout(targetTimerRef.current);
-      if (trackingTimerRef.current) clearInterval(trackingTimerRef.current);
     };
   }, []);
-
-  // Auto-restart gridshot when all targets are hit
-  useEffect(() => {
-    if (gameMode === 'gridshot' && isPlaying && targets.length === 0 && stats.totalTargets > 0) {
-      setTimeout(createGridTargets, 500);
-    }
-  }, [gameMode, isPlaying, targets.length, stats.totalTargets, createGridTargets]);
 
   const gameModeDescriptions = {
     gridshot: 'Acerte todos os alvos em uma grade. Novos alvos aparecerão automaticamente.',
@@ -487,6 +237,23 @@ const AimTrainer: React.FC = () => {
     tracking: 'Mantenha o mouse sobre o alvo em movimento. Ganhe pontos por tempo no alvo.',
     precision: 'Acerte alvos pequenos que aparecem lentamente. Teste sua precisão.'
   };
+
+  const renderGameMode = () => {
+    switch (gameMode) {
+      case 'gridshot':
+        return <GridshotMode isPlaying={isPlaying} onStatsUpdate={handleStatsUpdate} containerRef={containerRef} />;
+      case 'tracking':
+        return <TrackingMode isPlaying={isPlaying} onStatsUpdate={handleStatsUpdate} containerRef={containerRef} />;
+      case 'flick':
+        return <FlickMode isPlaying={isPlaying} onStatsUpdate={handleStatsUpdate} containerRef={containerRef} />;
+      case 'precision':
+        return <PrecisionMode isPlaying={isPlaying} onStatsUpdate={handleStatsUpdate} containerRef={containerRef} />;
+      default:
+        return null;
+    }
+  };
+
+  const displayStats = gameEndStats || stats;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted p-4">
@@ -565,7 +332,7 @@ const AimTrainer: React.FC = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="text-2xl font-bold text-green-600">
-                  {gameMode === 'tracking' ? trackingScore : stats.score}
+                  {displayStats.score}
                 </div>
                 <div className="text-sm text-muted-foreground">Pontos</div>
               </CardContent>
@@ -573,7 +340,7 @@ const AimTrainer: React.FC = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="text-2xl font-bold text-blue-600">
-                  {stats.targetsHit}
+                  {displayStats.targetsHit}
                 </div>
                 <div className="text-sm text-muted-foreground">Acertos</div>
               </CardContent>
@@ -581,7 +348,7 @@ const AimTrainer: React.FC = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="text-2xl font-bold text-purple-600">
-                  {stats.accuracy.toFixed(1)}%
+                  {displayStats.accuracy.toFixed(1)}%
                 </div>
                 <div className="text-sm text-muted-foreground">Precisão</div>
               </CardContent>
@@ -589,7 +356,7 @@ const AimTrainer: React.FC = () => {
             <Card>
               <CardContent className="p-4">
                 <div className="text-2xl font-bold text-orange-600">
-                  {stats.avgReactionTime.toFixed(0)}ms
+                  {(displayStats.avgReactionTime || 0).toFixed(0)}ms
                 </div>
                 <div className="text-sm text-muted-foreground">Reação Média</div>
               </CardContent>
@@ -603,40 +370,19 @@ const AimTrainer: React.FC = () => {
             <div
               ref={containerRef}
               className="relative w-full h-[500px] bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 overflow-hidden cursor-crosshair"
-              onClick={handleContainerClick}
-              onMouseMove={handleMouseMove}
             >
-              {/* Static Targets */}
-              {targets.map((target) => (
-                <div
-                  key={target.id}
-                  className="absolute rounded-full bg-gradient-to-br from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 border-2 border-white shadow-lg cursor-pointer transition-all duration-150 hover:scale-110"
-                  style={{
-                    left: target.x - target.size / 2,
-                    top: target.y - target.size / 2,
-                    width: target.size,
-                    height: target.size,
-                  }}
-                  onClick={(e) => handleTargetClick(target.id, e)}
-                />
-              ))}
-
-              {/* Tracking Target */}
-              {trackingTarget && (
-                <div
-                  className={`absolute rounded-full border-4 border-white shadow-lg transition-all duration-150 ${
-                    isOnTarget 
-                      ? 'bg-gradient-to-br from-green-500 to-green-600' 
-                      : 'bg-gradient-to-br from-blue-500 to-blue-600'
-                  }`}
-                  style={{
-                    left: trackingTarget.x - TARGET_SIZE.tracking / 2,
-                    top: trackingTarget.y - TARGET_SIZE.tracking / 2,
-                    width: TARGET_SIZE.tracking,
-                    height: TARGET_SIZE.tracking,
-                  }}
-                />
+              {/* Time Progress Bar */}
+              {isPlaying && (
+                <div className="absolute top-4 left-4 right-4 z-10">
+                  <Progress 
+                    value={(timeLeft / GAME_DURATION) * 100} 
+                    className="h-2"
+                  />
+                </div>
               )}
+
+              {/* Game Mode Component */}
+              {renderGameMode()}
 
               {/* Game Instructions */}
               {!isPlaying && (
@@ -646,16 +392,6 @@ const AimTrainer: React.FC = () => {
                     <p className="text-lg">Clique em "Iniciar Jogo" para começar</p>
                     <p className="text-sm">Modo: {gameMode.toUpperCase()}</p>
                   </div>
-                </div>
-              )}
-
-              {/* Time Progress Bar */}
-              {isPlaying && (
-                <div className="absolute top-4 left-4 right-4">
-                  <Progress 
-                    value={(timeLeft / GAME_DURATION) * 100} 
-                    className="h-2"
-                  />
                 </div>
               )}
             </div>
@@ -673,7 +409,7 @@ const AimTrainer: React.FC = () => {
         )}
 
         {/* Results */}
-        {!isPlaying && stats.gameEndTime && (
+        {!isPlaying && gameEndStats && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -685,25 +421,25 @@ const AimTrainer: React.FC = () => {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-primary">
-                    {gameMode === 'tracking' ? trackingScore : stats.score}
+                    {gameEndStats.score}
                   </div>
                   <div className="text-sm text-muted-foreground">Pontuação Final</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-green-600">
-                    {stats.targetsHit}
+                    {gameEndStats.targetsHit}
                   </div>
                   <div className="text-sm text-muted-foreground">Alvos Acertados</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600">
-                    {stats.accuracy.toFixed(1)}%
+                    {gameEndStats.accuracy.toFixed(1)}%
                   </div>
                   <div className="text-sm text-muted-foreground">Precisão</div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-purple-600">
-                    {stats.avgReactionTime.toFixed(0)}ms
+                    {(gameEndStats.avgReactionTime || 0).toFixed(0)}ms
                   </div>
                   <div className="text-sm text-muted-foreground">Tempo de Reação</div>
                 </div>
