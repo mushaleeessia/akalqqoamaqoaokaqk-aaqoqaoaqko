@@ -49,8 +49,10 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
     const size = TARGET_SIZE;
     const cols = 4;
     const rows = 3;
-    const marginX = (bounds.width - cols * size * 2) / (cols + 1);
-    const marginY = (bounds.height - rows * size * 2) / (rows + 1);
+    const totalWidth = cols * size;
+    const totalHeight = rows * size;
+    const marginX = (bounds.width - totalWidth) / (cols + 1);
+    const marginY = (bounds.height - 60 - totalHeight) / (rows + 1);
 
     const newTargets: Target[] = [];
     
@@ -58,8 +60,8 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
       for (let col = 0; col < cols; col++) {
         newTargets.push({
           id: nextTargetIdRef.current++,
-          x: marginX + col * (size * 2 + marginX) + size,
-          y: marginY + row * (size * 2 + marginY) + size + 60, // Add 60px for top bar
+          x: marginX + col * (marginX + size) + size / 2,
+          y: marginY + row * (marginY + size) + size / 2 + 60, // Add 60px for top bar
           size,
           isHit: false,
           createdAt: Date.now()

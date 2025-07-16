@@ -26,6 +26,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
   });
   const [speed, setSpeed] = useState(2);
   const [speedDirection, setSpeedDirection] = useState(1);
+  const [totalTime, setTotalTime] = useState(0);
   
   const trackingTimerRef = useRef<NodeJS.Timeout>();
   const statsTimerRef = useRef<NodeJS.Timeout>();
@@ -96,39 +97,33 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
 
     const nowOnTarget = distance <= size / 2;
     setIsOnTarget(nowOnTarget);
+  }, [trackingTarget, isPlaying, containerRef]);
 
-    if (nowOnTarget) {
-      setStats(prev => {
-        const newStats = {
-          ...prev,
-          score: prev.score + 1,
-          timeOnTarget: prev.timeOnTarget + 1,
-          targetsHit: prev.score + 1 // Use score as targetsHit for tracking
-        };
-        onStatsUpdate(newStats);
-        return newStats;
-      });
-    }
-  }, [trackingTarget, isPlaying, containerRef, onStatsUpdate]);
-
-  // Calculate accuracy every second
+  // Calculate accuracy and update stats every frame
   useEffect(() => {
     if (isPlaying) {
       statsTimerRef.current = setInterval(() => {
+        setTotalTime(prev => prev + 1);
         setStats(prev => {
-          const totalTime = 60 * 60; // 60 seconds * 60 FPS
-          const accuracy = prev.timeOnTarget > 0 ? (prev.timeOnTarget / totalTime) * 100 : 0;
-          const newStats = { ...prev, accuracy, targetsHit: prev.score };
+          const newTimeOnTarget = isOnTarget ? prev.timeOnTarget + 1 : prev.timeOnTarget;
+          const accuracy = totalTime > 0 ? (newTimeOnTarget / (totalTime + 1)) * 100 : 0;
+          const newStats = { 
+            ...prev, 
+            timeOnTarget: newTimeOnTarget,
+            accuracy, 
+            targetsHit: Math.floor(newTimeOnTarget / 60), // Score based on time on target
+            score: Math.floor(newTimeOnTarget / 60) * 10
+          };
           onStatsUpdate(newStats);
           return newStats;
         });
-      }, 1000);
+      }, 16); // 60 FPS
     }
 
     return () => {
       if (statsTimerRef.current) clearInterval(statsTimerRef.current);
     };
-  }, [isPlaying, onStatsUpdate]);
+  }, [isPlaying, onStatsUpdate, isOnTarget, totalTime]);
 
   // Initialize and cleanup
   useEffect(() => {
@@ -151,6 +146,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
       setSpeed(2);
       setSpeedDirection(1);
       setIsOnTarget(false);
+      setTotalTime(0);
       setStats({
         score: 0,
         accuracy: 0,
@@ -159,7 +155,47 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
       });
       
       // Start movement timer
-      trackingTimerRef.current = setInterval(updateTrackingTarget, 16); // 60 FPS
+      trackingTimerRef.current = setInterval(() => {
+        setTrackingTarget(prev => {
+          if (!prev || !isPlaying) return prev;
+
+          const bounds = getContainerBounds();
+          const size = TARGET_SIZE;
+          const topBarHeight = 60;
+
+          let newX = prev.x + prev.vx * speed;
+          let newY = prev.y + prev.vy * speed;
+          let newVx = prev.vx;
+          let newVy = prev.vy;
+
+          // Bounce off walls
+          if (newX <= size / 2 || newX >= bounds.width - size / 2) {
+            newVx = -newVx;
+            newX = Math.max(size / 2, Math.min(bounds.width - size / 2, newX));
+          }
+          
+          // Bounce off top/bottom, avoiding time bar
+          if (newY <= size / 2 + topBarHeight || newY >= bounds.height - size / 2) {
+            newVy = -newVy;
+            newY = Math.max(size / 2 + topBarHeight, Math.min(bounds.height - size / 2, newY));
+          }
+
+          return { x: newX, y: newY, vx: newVx, vy: newVy };
+        });
+
+        // Update speed gradually
+        setSpeed(prev => {
+          const newSpeed = prev + speedDirection * 0.03;
+          if (newSpeed >= 4) {
+            setSpeedDirection(-1);
+            return 4;
+          } else if (newSpeed <= 1) {
+            setSpeedDirection(1);
+            return 1;
+          }
+          return newSpeed;
+        });
+      }, 16); // 60 FPS
       
       console.log('Tracking target criado e timer iniciado');
     } else {
@@ -174,7 +210,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
       if (trackingTimerRef.current) clearInterval(trackingTimerRef.current);
       if (statsTimerRef.current) clearInterval(statsTimerRef.current);
     };
-  }, [isPlaying, getContainerBounds, updateTrackingTarget]);
+  }, [isPlaying, getContainerBounds]);
 
   return (
     <>
