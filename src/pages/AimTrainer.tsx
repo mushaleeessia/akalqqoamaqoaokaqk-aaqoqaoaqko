@@ -43,6 +43,7 @@ const TARGET_SIZE = {
 const AimTrainer: React.FC = () => {
   const { user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [userProfile, setUserProfile] = useState<{ nickname: string } | null>(null);
   const [gameMode, setGameMode] = useState<GameMode>('gridshot');
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -139,18 +140,21 @@ const AimTrainer: React.FC = () => {
     }));
   }, [getContainerBounds]);
 
+  const [targetSpeed, setTargetSpeed] = useState(2);
+  const [speedDirection, setSpeedDirection] = useState(1);
+
   const updateTrackingTarget = useCallback(() => {
     if (!trackingTarget) return;
 
     const bounds = getContainerBounds();
     const size = TARGET_SIZE.tracking;
-    const speed = 2;
+    const topBarHeight = 60; // Height of time progress bar area
 
     setTrackingTarget(prev => {
       if (!prev) return null;
 
-      let newX = prev.x + prev.vx * speed;
-      let newY = prev.y + prev.vy * speed;
+      let newX = prev.x + prev.vx * targetSpeed;
+      let newY = prev.y + prev.vy * targetSpeed;
       let newVx = prev.vx;
       let newVy = prev.vy;
 
@@ -159,14 +163,28 @@ const AimTrainer: React.FC = () => {
         newVx = -newVx;
         newX = Math.max(size / 2, Math.min(bounds.width - size / 2, newX));
       }
-      if (newY <= size / 2 || newY >= bounds.height - size / 2) {
+      // Avoid going under the time bar
+      if (newY <= size / 2 + topBarHeight || newY >= bounds.height - size / 2) {
         newVy = -newVy;
-        newY = Math.max(size / 2, Math.min(bounds.height - size / 2, newY));
+        newY = Math.max(size / 2 + topBarHeight, Math.min(bounds.height - size / 2, newY));
       }
 
       return { x: newX, y: newY, vx: newVx, vy: newVy };
     });
-  }, [trackingTarget, getContainerBounds]);
+
+    // Update speed gradually
+    setTargetSpeed(prev => {
+      const newSpeed = prev + speedDirection * 0.02;
+      if (newSpeed >= 4) {
+        setSpeedDirection(-1);
+        return 4;
+      } else if (newSpeed <= 1) {
+        setSpeedDirection(1);
+        return 1;
+      }
+      return newSpeed;
+    });
+  }, [trackingTarget, getContainerBounds, targetSpeed, speedDirection]);
 
   const handleTargetClick = useCallback((targetId: number, event: React.MouseEvent) => {
     event.stopPropagation();
@@ -296,6 +314,10 @@ const AimTrainer: React.FC = () => {
     if (gameTimerRef.current) clearInterval(gameTimerRef.current);
     if (targetTimerRef.current) clearTimeout(targetTimerRef.current);
     if (trackingTimerRef.current) clearInterval(trackingTimerRef.current);
+    
+    // Clear targets when game ends
+    setTargets([]);
+    setTrackingTarget(null);
 
     const finalStats = {
       ...stats,
@@ -399,6 +421,23 @@ const AimTrainer: React.FC = () => {
     if (trackingTimerRef.current) clearInterval(trackingTimerRef.current);
   }, []);
 
+  // Load user profile
+  useEffect(() => {
+    if (user) {
+      const loadProfile = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('nickname')
+          .eq('id', user.id)
+          .single();
+        if (data) {
+          setUserProfile(data);
+        }
+      };
+      loadProfile();
+    }
+  }, [user]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -440,12 +479,9 @@ const AimTrainer: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={isPlaying ? "default" : "secondary"}>
-              {isPlaying ? "Jogando" : "Parado"}
-            </Badge>
             {user && (
               <Badge variant="outline">
-                {user.email}
+                {userProfile?.nickname || 'Usuário'}
               </Badge>
             )}
           </div>
@@ -604,7 +640,7 @@ const AimTrainer: React.FC = () => {
           <div className="flex justify-center gap-4">
             <Button onClick={resetGame} variant="outline">
               <RotateCcw className="w-4 h-4 mr-2" />
-              Reiniciar
+              Sair
             </Button>
           </div>
         )}
