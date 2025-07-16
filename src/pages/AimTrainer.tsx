@@ -10,7 +10,7 @@ import { Target, Zap, Focus, Crosshair } from "lucide-react";
 
 const AimTrainer = () => {
   const { user } = useAuth();
-  const [selectedMode, setSelectedMode] = useState<string | null>(null);
+  const [selectedMode, setSelectedMode] = useState<'flick' | 'tracking' | 'gridshot' | 'precision' | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   if (!user) {
@@ -118,7 +118,7 @@ const AimTrainer = () => {
                     className="cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg group"
                     onClick={() => {
                       console.log(`[AIM TRAINER PAGE] Mode selected: ${mode.id}`);
-                      setSelectedMode(mode.id);
+                      setSelectedMode(mode.id as 'flick' | 'tracking' | 'gridshot' | 'precision');
                     }}
                   >
                     <CardHeader className="text-center">
