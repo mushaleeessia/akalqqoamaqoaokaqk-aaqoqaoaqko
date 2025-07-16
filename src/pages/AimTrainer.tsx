@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { AimTrainerTest } from "@/components/aim/AimTrainerTest";
+import { SimpleAimTrainer } from "@/components/aim/SimpleAimTrainer";
 import { AimTrainerStats } from "@/components/aim/AimTrainerStats";
 import { AimModeSelector } from "@/components/aim/AimModeSelector";
 import { Header } from "@/components/Header";
@@ -69,7 +69,7 @@ const AimTrainer = () => {
     console.log(`[AIM TRAINER PAGE] Rendering game component for mode: ${selectedMode}`);
     return (
       <div className="min-h-screen bg-background">
-        <AimTrainerTest 
+        <SimpleAimTrainer 
           mode={selectedMode} 
           onGameEnd={() => {
             console.log("[AIM TRAINER PAGE] Game ended, returning to menu");
