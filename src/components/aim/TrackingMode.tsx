@@ -39,50 +39,6 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     return { width: rect.width, height: rect.height };
   }, [containerRef]);
 
-  const updateTrackingTarget = useCallback(() => {
-    if (!trackingTarget || !isPlaying) return;
-
-    const bounds = getContainerBounds();
-    const size = TARGET_SIZE;
-    const topBarHeight = 60;
-
-    setTrackingTarget(prev => {
-      if (!prev) return null;
-
-      let newX = prev.x + prev.vx * speed;
-      let newY = prev.y + prev.vy * speed;
-      let newVx = prev.vx;
-      let newVy = prev.vy;
-
-      // Bounce off walls
-      if (newX <= size / 2 || newX >= bounds.width - size / 2) {
-        newVx = -newVx;
-        newX = Math.max(size / 2, Math.min(bounds.width - size / 2, newX));
-      }
-      
-      // Bounce off top/bottom, avoiding time bar
-      if (newY <= size / 2 + topBarHeight || newY >= bounds.height - size / 2) {
-        newVy = -newVy;
-        newY = Math.max(size / 2 + topBarHeight, Math.min(bounds.height - size / 2, newY));
-      }
-
-      return { x: newX, y: newY, vx: newVx, vy: newVy };
-    });
-
-    // Update speed gradually - mais rápido
-    setSpeed(prev => {
-      const newSpeed = prev + speedDirection * 0.05; // Incremento maior
-      if (newSpeed >= 6) { // Velocidade máxima maior
-        setSpeedDirection(-1);
-        return 6;
-      } else if (newSpeed <= 2) { // Velocidade mínima maior
-        setSpeedDirection(1);
-        return 2;
-      }
-      return newSpeed;
-    });
-  }, [trackingTarget, isPlaying, getContainerBounds, speed, speedDirection]);
-
   // Sistema de hitbox: verifica constantemente se o mouse está dentro do alvo
   const checkHitbox = useCallback(() => {
     if (!trackingTarget || !isPlaying || !containerRef.current) return;
@@ -190,7 +146,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
         targetsHit: 0
       });
       
-      // Start movement timer
+      // Start movement timer - ÚNICO sistema de movimento
       trackingTimerRef.current = setInterval(() => {
         setTrackingTarget(prev => {
           if (!prev || !isPlaying) return prev;
@@ -231,7 +187,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
           }
           return newSpeed;
         });
-      }, 16); // 60 FPS
+      }, 16); // 60 FPS - MESMA FREQUÊNCIA
       
       console.log('Tracking target criado e timer iniciado');
     } else {
