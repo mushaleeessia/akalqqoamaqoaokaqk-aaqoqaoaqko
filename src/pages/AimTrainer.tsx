@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { Target, Clock, Crosshair, MousePointer2, RotateCcw, Home } from 'lucide-react';
+import { Target, Clock, Crosshair, MousePointer2, LogOut, Home } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { GridshotMode } from '@/components/aim/GridshotMode';
 import { TrackingMode } from '@/components/aim/TrackingMode';
@@ -15,7 +15,8 @@ import { PrecisionMode } from '@/components/aim/PrecisionMode';
 
 type GameMode = 'gridshot' | 'flick' | 'tracking' | 'precision';
 
-const GAME_DURATION = 60000; // 60 seconds
+const DURATION_OPTIONS = [15, 30, 60, 120]; // segundos
+const DEFAULT_DURATION = 60;
 
 interface GameStats {
   score: number;
@@ -33,8 +34,9 @@ const AimTrainer: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [userProfile, setUserProfile] = useState<{ nickname: string } | null>(null);
   const [gameMode, setGameMode] = useState<GameMode>('gridshot');
+  const [gameDuration, setGameDuration] = useState(DEFAULT_DURATION);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
+  const [timeLeft, setTimeLeft] = useState(DEFAULT_DURATION * 1000);
   const [stats, setStats] = useState<GameStats>({
     score: 0,
     accuracy: 0,
@@ -74,7 +76,7 @@ const AimTrainer: React.FC = () => {
 
     console.log(`Iniciando jogo no modo: ${gameMode}`);
     setIsPlaying(true);
-    setTimeLeft(GAME_DURATION);
+    setTimeLeft(gameDuration * 1000);
     setStats({
       score: 0,
       accuracy: 0,
@@ -127,9 +129,9 @@ const AimTrainer: React.FC = () => {
               avg_reaction_time: Math.round(finalStats.avgReactionTime || 0),
               targets_hit: finalStats.targetsHit,
               targets_missed: finalStats.targetsMissed || 0,
-              total_targets: finalStats.totalTargets || finalStats.targetsHit,
-              duration: 60,
-              completed_at: new Date().toISOString()
+                total_targets: finalStats.totalTargets || finalStats.targetsHit,
+                duration: gameDuration,
+                completed_at: new Date().toISOString()
             };
 
             const { error: sessionError } = await supabase.from('aim_trainer_sessions').insert(sessionData);
@@ -213,7 +215,7 @@ const AimTrainer: React.FC = () => {
 
   const resetGame = useCallback(() => {
     setIsPlaying(false);
-    setTimeLeft(GAME_DURATION);
+    setTimeLeft(gameDuration * 1000);
     setStats({
       score: 0,
       accuracy: 0,
@@ -322,9 +324,27 @@ const AimTrainer: React.FC = () => {
               <p className="text-sm text-muted-foreground mb-4">
                 {gameModeDescriptions[gameMode]}
               </p>
+              
+              {/* Duration Selection */}
+              <div className="mb-4">
+                <label className="text-sm font-medium mb-2 block">Duração do Desafio</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {DURATION_OPTIONS.map((duration) => (
+                    <Button
+                      key={duration}
+                      variant={gameDuration === duration ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setGameDuration(duration)}
+                    >
+                      {duration}s
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              
               <Button onClick={startGame} size="lg" className="w-full">
                 <Crosshair className="w-5 h-5 mr-2" />
-                Iniciar Jogo
+                Iniciar Jogo ({gameDuration}s)
               </Button>
             </CardContent>
           </Card>
@@ -399,7 +419,7 @@ const AimTrainer: React.FC = () => {
               {isPlaying && (
                 <div className="absolute top-4 left-4 right-4 z-10">
                   <Progress 
-                    value={(timeLeft / GAME_DURATION) * 100} 
+                    value={(timeLeft / (gameDuration * 1000)) * 100} 
                     className="h-2"
                   />
                 </div>
@@ -426,7 +446,7 @@ const AimTrainer: React.FC = () => {
         {isPlaying && (
           <div className="flex justify-center gap-4">
             <Button onClick={resetGame} variant="outline">
-              <RotateCcw className="w-4 h-4 mr-2" />
+              <LogOut className="w-4 h-4 mr-2" />
               Sair
             </Button>
           </div>
