@@ -88,13 +88,17 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     if (!trackingTarget || !isPlaying || !containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
+    // Mouse relativo ao container
+    const mouseRelativeX = mousePosition.x - rect.left;
+    const mouseRelativeY = mousePosition.y - rect.top;
+    
     const distance = Math.sqrt(
-      Math.pow(mousePosition.x - (rect.left + trackingTarget.x), 2) + 
-      Math.pow(mousePosition.y - (rect.top + trackingTarget.y), 2)
+      Math.pow(mouseRelativeX - trackingTarget.x, 2) + 
+      Math.pow(mouseRelativeY - trackingTarget.y, 2)
     );
 
     const nowOnTarget = distance <= TARGET_SIZE / 2;
-    console.log('Hitbox Check - Mouse Global:', mousePosition.x, mousePosition.y, 'Target Screen:', rect.left + trackingTarget.x, rect.top + trackingTarget.y, 'Distance:', distance, 'OnTarget:', nowOnTarget);
+    console.log('Hitbox Check - Mouse Relativo:', mouseRelativeX, mouseRelativeY, 'Target:', trackingTarget.x, trackingTarget.y, 'Distance:', distance, 'OnTarget:', nowOnTarget);
     
     if (isOnTarget !== nowOnTarget) {
       setIsOnTarget(nowOnTarget);
