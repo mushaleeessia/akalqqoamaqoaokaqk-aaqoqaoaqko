@@ -347,14 +347,16 @@ const AimTrainer: React.FC = () => {
                 <div className="text-sm text-muted-foreground">Pontos</div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold text-blue-600">
-                  {displayStats.targetsHit}
-                </div>
-                <div className="text-sm text-muted-foreground">Acertos</div>
-              </CardContent>
-            </Card>
+            {gameMode !== 'tracking' && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {displayStats.targetsHit}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Acertos</div>
+                </CardContent>
+              </Card>
+            )}
             <Card>
               <CardContent className="p-4">
                 <div className="text-2xl font-bold text-purple-600">
@@ -363,14 +365,16 @@ const AimTrainer: React.FC = () => {
                 <div className="text-sm text-muted-foreground">Precisão</div>
               </CardContent>
             </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-2xl font-bold text-orange-600">
-                  {(displayStats.avgReactionTime || 0).toFixed(0)}ms
-                </div>
-                <div className="text-sm text-muted-foreground">Reação Média</div>
-              </CardContent>
-            </Card>
+            {(gameMode === 'flick' || gameMode === 'precision') && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-2xl font-bold text-orange-600">
+                    {(displayStats.avgReactionTime || 0).toFixed(0)}ms
+                  </div>
+                  <div className="text-sm text-muted-foreground">Reação Média</div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
 
@@ -435,31 +439,32 @@ const AimTrainer: React.FC = () => {
                   </div>
                   <div className="text-sm text-muted-foreground">Pontuação Final</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">
-                    {gameEndStats.targetsHit}
+                {gameMode !== 'tracking' && (
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-green-600">
+                      {gameEndStats.targetsHit}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Alvos Acertados</div>
                   </div>
-                  <div className="text-sm text-muted-foreground">Alvos Acertados</div>
-                </div>
+                )}
                 <div className="text-center">
                   <div className="text-3xl font-bold text-blue-600">
                     {gameEndStats.accuracy.toFixed(1)}%
                   </div>
                   <div className="text-sm text-muted-foreground">Precisão</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600">
-                    {(gameEndStats.avgReactionTime || 0).toFixed(0)}ms
+                {(gameMode === 'flick' || gameMode === 'precision') && (
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-purple-600">
+                      {(gameEndStats.avgReactionTime || 0).toFixed(0)}ms
+                    </div>
+                    <div className="text-sm text-muted-foreground">Tempo de Reação</div>
                   </div>
-                  <div className="text-sm text-muted-foreground">Tempo de Reação</div>
-                </div>
+                )}
               </div>
-              <div className="mt-6 flex justify-center gap-4">
+              <div className="mt-6 flex justify-center">
                 <Button onClick={startGame}>
                   Jogar Novamente
-                </Button>
-                <Button onClick={resetGame} variant="outline">
-                  Novo Jogo
                 </Button>
               </div>
             </CardContent>

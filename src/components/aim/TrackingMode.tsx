@@ -123,6 +123,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
               targetsHit: Math.floor(newTimeOnTarget / 30), // Mais fácil conseguir pontos
               score: Math.floor(newTimeOnTarget / 10) // Score mais generoso
             };
+            console.log('Tracking - Atualizando stats:', newStats, 'isOnTarget:', isOnTarget);
             onStatsUpdate(newStats);
             return newStats;
           });
