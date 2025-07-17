@@ -24,12 +24,14 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     timeOnTarget: 0,
     targetsHit: 0
   });
-  const [speed, setSpeed] = useState(3); // Velocidade inicial maior
+  const [speed, setSpeed] = useState(3);
   const [speedDirection, setSpeedDirection] = useState(1);
   const [totalTime, setTotalTime] = useState(0);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   
   const trackingTimerRef = useRef<NodeJS.Timeout>();
   const statsTimerRef = useRef<NodeJS.Timeout>();
+  const mouseCheckRef = useRef<NodeJS.Timeout>();
 
   const getContainerBounds = useCallback(() => {
     if (!containerRef.current) return { width: 800, height: 600 };
@@ -81,36 +83,49 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     });
   }, [trackingTarget, isPlaying, getContainerBounds, speed, speedDirection]);
 
-  const checkMousePosition = useCallback((mouseX: number, mouseY: number) => {
-    if (!trackingTarget || !isPlaying) {
-      console.log('TrackingMode - Não pode checar posição:', 'target:', !!trackingTarget, 'isPlaying:', isPlaying);
-      return;
+  // Sistema de hitbox: verifica constantemente se o mouse está dentro do alvo
+  const checkHitbox = useCallback(() => {
+    if (!trackingTarget || !isPlaying || !containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const distance = Math.sqrt(
+      Math.pow(mousePosition.x - (rect.left + trackingTarget.x), 2) + 
+      Math.pow(mousePosition.y - (rect.top + trackingTarget.y), 2)
+    );
+
+    const nowOnTarget = distance <= TARGET_SIZE / 2;
+    console.log('Hitbox Check - Mouse Global:', mousePosition.x, mousePosition.y, 'Target Screen:', rect.left + trackingTarget.x, rect.top + trackingTarget.y, 'Distance:', distance, 'OnTarget:', nowOnTarget);
+    
+    if (isOnTarget !== nowOnTarget) {
+      setIsOnTarget(nowOnTarget);
+    }
+  }, [trackingTarget, isPlaying, mousePosition, containerRef, isOnTarget]);
+
+  // Atualiza posição global do mouse
+  useEffect(() => {
+    const handleGlobalMouseMove = (event: MouseEvent) => {
+      setMousePosition({ x: event.clientX, y: event.clientY });
+    };
+
+    if (isPlaying) {
+      document.addEventListener('mousemove', handleGlobalMouseMove);
     }
 
-    const distance = Math.sqrt(
-      Math.pow(mouseX - trackingTarget.x, 2) + Math.pow(mouseY - trackingTarget.y, 2)
-    );
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+    };
+  }, [isPlaying]);
 
-    const nowOnTarget = distance <= TARGET_SIZE / 2;
-    console.log('TrackingMode - Mouse:', mouseX, mouseY, 'Target:', trackingTarget.x, trackingTarget.y, 'Distance:', distance, 'SIZE/2:', TARGET_SIZE/2, 'OnTarget:', nowOnTarget);
-    setIsOnTarget(nowOnTarget);
-  }, [trackingTarget, isPlaying]);
+  // Timer para verificar hitbox constantemente
+  useEffect(() => {
+    if (isPlaying) {
+      mouseCheckRef.current = setInterval(checkHitbox, 16); // 60 FPS
+    }
 
-  const handleMouseMove = useCallback((event: React.MouseEvent) => {
-    if (!containerRef.current || !isPlaying || !trackingTarget) return;
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;
-    const mouseY = event.clientY - rect.top;
-    
-    const distance = Math.sqrt(
-      Math.pow(mouseX - trackingTarget.x, 2) + Math.pow(mouseY - trackingTarget.y, 2)
-    );
-    
-    const nowOnTarget = distance <= TARGET_SIZE / 2;
-    console.log('TrackingMode - Mouse direto:', mouseX, mouseY, 'Target:', trackingTarget.x, trackingTarget.y, 'Distance:', distance, 'SIZE/2:', TARGET_SIZE/2, 'OnTarget:', nowOnTarget);
-    setIsOnTarget(nowOnTarget);
-  }, [containerRef, isPlaying, trackingTarget]);
+    return () => {
+      if (mouseCheckRef.current) clearInterval(mouseCheckRef.current);
+    };
+  }, [isPlaying, checkHitbox]);
 
   // Calculate accuracy and update stats every frame
   useEffect(() => {
@@ -226,6 +241,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     return () => {
       if (trackingTimerRef.current) clearInterval(trackingTimerRef.current);
       if (statsTimerRef.current) clearInterval(statsTimerRef.current);
+      if (mouseCheckRef.current) clearInterval(mouseCheckRef.current);
     };
   }, [isPlaying, getContainerBounds]);
 
@@ -249,16 +265,20 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
         />
       )}
       
-      {/* Mouse move handler */}
-      {isPlaying && (
+      {/* Hitbox invisível que acompanha o alvo */}
+      {isPlaying && trackingTarget && (
         <div
-          className="absolute inset-0 w-full h-full pointer-events-auto"
-          onMouseMove={handleMouseMove}
-          onMouseLeave={() => {
-            console.log('Mouse saiu da área de detecção');
-            setIsOnTarget(false);
+          className="absolute pointer-events-none"
+          style={{
+            left: trackingTarget.x - TARGET_SIZE / 2,
+            top: trackingTarget.y - TARGET_SIZE / 2,
+            width: TARGET_SIZE,
+            height: TARGET_SIZE,
+            borderRadius: '50%',
+            backgroundColor: isOnTarget ? 'rgba(0, 255, 0, 0.2)' : 'rgba(255, 0, 0, 0.1)', // Debug visual
+            border: '2px dashed rgba(255, 255, 255, 0.3)',
+            zIndex: 5,
           }}
-          style={{ zIndex: 1 }}
         />
       )}
     </>
