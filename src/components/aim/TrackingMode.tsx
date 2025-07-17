@@ -13,7 +13,7 @@ interface TrackingModeProps {
   containerRef: React.RefObject<HTMLDivElement>;
 }
 
-const TARGET_SIZE = 60; // Aumentando o tamanho do alvo
+const TARGET_SIZE = 30;
 
 export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUpdate, containerRef }) => {
   const [trackingTarget, setTrackingTarget] = useState<{ x: number; y: number; vx: number; vy: number } | null>(null);
@@ -24,7 +24,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     timeOnTarget: 0,
     targetsHit: 0
   });
-  const [speed, setSpeed] = useState(1); // Velocidade menor
+  const [speed, setSpeed] = useState(2);
   const [speedDirection, setSpeedDirection] = useState(1);
   const [totalTime, setTotalTime] = useState(0);
   
@@ -67,15 +67,15 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
       return { x: newX, y: newY, vx: newVx, vy: newVy };
     });
 
-    // Update speed gradually (mais devagar)
+    // Update speed gradually
     setSpeed(prev => {
-      const newSpeed = prev + speedDirection * 0.01; // Menor incremento
-      if (newSpeed >= 2) { // Velocidade máxima menor
+      const newSpeed = prev + speedDirection * 0.03;
+      if (newSpeed >= 4) {
         setSpeedDirection(-1);
-        return 2;
-      } else if (newSpeed <= 0.5) { // Velocidade mínima
+        return 4;
+      } else if (newSpeed <= 1) {
         setSpeedDirection(1);
-        return 0.5;
+        return 1;
       }
       return newSpeed;
     });
@@ -120,8 +120,8 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
               ...prevStats, 
               timeOnTarget: newTimeOnTarget,
               accuracy, 
-              targetsHit: Math.floor(newTimeOnTarget / 30), // Mais fácil conseguir pontos
-              score: Math.floor(newTimeOnTarget / 10) // Score mais generoso
+              targetsHit: Math.floor(newTimeOnTarget / 60),
+              score: Math.floor(newTimeOnTarget / 60) * 10
             };
             console.log('Tracking - Atualizando stats:', newStats, 'isOnTarget:', isOnTarget);
             onStatsUpdate(newStats);
@@ -155,7 +155,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
         vy: Math.random() > 0.5 ? 1 : -1
       });
       
-      setSpeed(1); // Velocidade inicial menor
+      setSpeed(2);
       setSpeedDirection(1);
       setIsOnTarget(false);
       setTotalTime(0);
@@ -195,15 +195,15 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
           return { x: newX, y: newY, vx: newVx, vy: newVy };
         });
 
-        // Update speed gradually (mais devagar)
+        // Update speed gradually
         setSpeed(prev => {
-          const newSpeed = prev + speedDirection * 0.01; // Menor incremento
-          if (newSpeed >= 2) { // Velocidade máxima menor
+          const newSpeed = prev + speedDirection * 0.03;
+          if (newSpeed >= 4) {
             setSpeedDirection(-1);
-            return 2;
-          } else if (newSpeed <= 0.5) { // Velocidade mínima
+            return 4;
+          } else if (newSpeed <= 1) {
             setSpeedDirection(1);
-            return 0.5;
+            return 1;
           }
           return newSpeed;
         });
@@ -246,11 +246,15 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
       
       {/* Mouse move handler */}
       {isPlaying && (
-      <div
-        className="absolute inset-0 w-full h-full pointer-events-auto"
-        onMouseMove={handleMouseMove}
-        style={{ zIndex: 1 }}
-      />
+        <div
+          className="absolute inset-0 w-full h-full pointer-events-auto"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => {
+            console.log('Mouse saiu da área de detecção');
+            setIsOnTarget(false);
+          }}
+          style={{ zIndex: 1 }}
+        />
       )}
     </>
   );
