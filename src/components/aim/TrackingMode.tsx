@@ -97,15 +97,20 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
   }, [trackingTarget, isPlaying]);
 
   const handleMouseMove = useCallback((event: React.MouseEvent) => {
-    if (!containerRef.current || !isPlaying) return;
+    if (!containerRef.current || !isPlaying || !trackingTarget) return;
     
     const rect = containerRef.current.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
     const mouseY = event.clientY - rect.top;
     
-    console.log('TrackingMode - Mouse move detectado:', mouseX, mouseY, 'Target existe:', !!trackingTarget);
-    checkMousePosition(mouseX, mouseY);
-  }, [checkMousePosition, containerRef, isPlaying, trackingTarget]);
+    const distance = Math.sqrt(
+      Math.pow(mouseX - trackingTarget.x, 2) + Math.pow(mouseY - trackingTarget.y, 2)
+    );
+    
+    const nowOnTarget = distance <= TARGET_SIZE / 2;
+    console.log('TrackingMode - Mouse direto:', mouseX, mouseY, 'Target:', trackingTarget.x, trackingTarget.y, 'Distance:', distance, 'SIZE/2:', TARGET_SIZE/2, 'OnTarget:', nowOnTarget);
+    setIsOnTarget(nowOnTarget);
+  }, [containerRef, isPlaying, trackingTarget]);
 
   // Calculate accuracy and update stats every frame
   useEffect(() => {

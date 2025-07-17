@@ -365,6 +365,16 @@ const AimTrainer: React.FC = () => {
                 <div className="text-sm text-muted-foreground">Precisão</div>
               </CardContent>
             </Card>
+            {gameMode === 'gridshot' && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="text-2xl font-bold text-red-600">
+                    {displayStats.targetsMissed || 0}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Erros</div>
+                </CardContent>
+              </Card>
+            )}
             {(gameMode === 'flick' || gameMode === 'precision') && (
               <Card>
                 <CardContent className="p-4">
@@ -453,6 +463,14 @@ const AimTrainer: React.FC = () => {
                   </div>
                   <div className="text-sm text-muted-foreground">Precisão</div>
                 </div>
+                {gameMode === 'gridshot' && (
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-red-600">
+                      {gameEndStats.targetsMissed || 0}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Erros</div>
+                  </div>
+                )}
                 {(gameMode === 'flick' || gameMode === 'precision') && (
                   <div className="text-center">
                     <div className="text-3xl font-bold text-purple-600">
