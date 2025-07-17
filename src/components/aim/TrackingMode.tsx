@@ -26,6 +26,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
   });
   const [speed] = useState(3);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [totalFrames, setTotalFrames] = useState(0);
   
   const gameLoopRef = useRef<NodeJS.Timeout>();
   const statsLoopRef = useRef<NodeJS.Timeout>();
@@ -82,6 +83,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
       vy: (Math.random() > 0.5 ? 1 : -1)
     };
     setTarget(initialTarget);
+    setTotalFrames(0); // Reset contador de frames
 
     // Loop de movimento
     gameLoopRef.current = setInterval(() => {
@@ -119,19 +121,17 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
   // Loop de estatísticas
   useEffect(() => {
     if (!isPlaying) return;
-
-    let totalFrames = 0;
     
     statsLoopRef.current = setInterval(() => {
-      totalFrames++;
+      setTotalFrames(prev => prev + 1);
       
       setStats(prev => {
         const newTimeOnTarget = isOnTarget ? prev.timeOnTarget + 1 : prev.timeOnTarget;
-        const accuracy = totalFrames > 0 ? (newTimeOnTarget / totalFrames) * 100 : 0;
+        const accuracy = totalFrames > 0 ? Math.min((newTimeOnTarget / totalFrames) * 100, 100) : 0; // Máximo 100%
         const newStats = {
           ...prev,
           timeOnTarget: newTimeOnTarget,
-          accuracy,
+          accuracy: Math.round(accuracy * 10) / 10, // Arredonda para 1 casa decimal
           targetsHit: Math.floor(newTimeOnTarget / 30),
           score: Math.floor(newTimeOnTarget / 30) * 15
         };
@@ -144,7 +144,7 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     return () => {
       if (statsLoopRef.current) clearInterval(statsLoopRef.current);
     };
-  }, [isPlaying, isOnTarget, onStatsUpdate]);
+  }, [isPlaying, isOnTarget, onStatsUpdate, totalFrames]);
 
   return (
     <>
