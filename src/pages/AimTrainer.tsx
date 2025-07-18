@@ -74,7 +74,7 @@ const AimTrainer: React.FC = () => {
       return;
     }
 
-    console.log(`Iniciando jogo no modo: ${gameMode}`);
+    
     setIsPlaying(true);
     setTimeLeft(gameDuration * 1000);
     setStats({
@@ -119,7 +119,7 @@ const AimTrainer: React.FC = () => {
       if (user) {
         (async () => {
           try {
-            console.log('Salvando dados do jogo:', finalStats);
+            
             
             const sessionData = {
               user_id: user.id,
@@ -199,7 +199,7 @@ const AimTrainer: React.FC = () => {
               }
             }
 
-            console.log('Dados salvos com sucesso!');
+            
             toast.success('Jogo salvo com sucesso!');
           } catch (error) {
             console.error('Erro ao salvar jogo:', error);
@@ -229,10 +229,17 @@ const AimTrainer: React.FC = () => {
     setGameEndStats(null);
     
     if (gameTimerRef.current) clearInterval(gameTimerRef.current);
-  }, []);
+  }, [gameDuration]);
+
+  // Update timeLeft when gameDuration changes and game is not running
+  useEffect(() => {
+    if (!isPlaying) {
+      setTimeLeft(gameDuration * 1000);
+    }
+  }, [gameDuration, isPlaying]);
 
   const handleStatsUpdate = useCallback((newStats: GameStats) => {
-    console.log('AimTrainer - Stats updated:', newStats);
+    
     setStats(newStats);
   }, []);
 

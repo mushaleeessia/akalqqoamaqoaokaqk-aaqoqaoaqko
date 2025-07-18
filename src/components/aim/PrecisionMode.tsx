@@ -132,7 +132,7 @@ export const PrecisionMode: React.FC<PrecisionModeProps> = ({ isPlaying, onStats
   // Initialize game
   useEffect(() => {
     if (isPlaying) {
-      console.log('Iniciando Precision Mode');
+      
       setTargets([]);
       setStats({
         score: 0,

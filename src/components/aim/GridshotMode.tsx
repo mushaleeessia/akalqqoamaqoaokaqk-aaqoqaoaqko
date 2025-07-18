@@ -82,7 +82,7 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
     const target = targets.find(t => t.id === targetId);
     if (!target || target.isHit) return;
 
-    console.log('Gridshot - Target hit!');
+    
     setTargets(prev => prev.filter(t => t.id !== targetId));
     
     setStats(prev => {
@@ -90,7 +90,7 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
       const newTotalClicks = prev.totalClicks + 1;
       const accuracy = newTotalClicks > 0 ? (newTargetsHit / newTotalClicks) * 100 : 0;
       
-      console.log('Gridshot Hit Stats - Hits:', newTargetsHit, 'Total Clicks:', newTotalClicks, 'Accuracy:', accuracy);
+      
       
       const newStats = {
         ...prev,
@@ -109,13 +109,13 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
     const target = event.target as HTMLElement;
     if (target.closest('[data-target]')) return;
     
-    console.log('Gridshot - Miss clicked!');
+    
     setStats(prev => {
       const newTargetsMissed = prev.targetsMissed + 1;
       const newTotalClicks = prev.totalClicks + 1;
       const accuracy = newTotalClicks > 0 ? (prev.targetsHit / newTotalClicks) * 100 : 0;
       
-      console.log('Gridshot Stats - Hits:', prev.targetsHit, 'Misses:', newTargetsMissed, 'Total Clicks:', newTotalClicks, 'Accuracy:', accuracy);
+      
       
       const newStats = {
         ...prev,
@@ -138,7 +138,7 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
   // Initialize game
   useEffect(() => {
     if (isPlaying) {
-      console.log('Iniciando Gridshot Mode');
+      
       setTargets([]);
       setStats({
         score: 0,

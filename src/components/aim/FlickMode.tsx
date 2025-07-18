@@ -132,7 +132,7 @@ export const FlickMode: React.FC<FlickModeProps> = ({ isPlaying, onStatsUpdate, 
   // Initialize game
   useEffect(() => {
     if (isPlaying) {
-      console.log('Iniciando Flick Mode');
+      
       setTargets([]);
       setStats({
         score: 0,
