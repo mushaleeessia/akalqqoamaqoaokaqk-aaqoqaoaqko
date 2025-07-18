@@ -12,6 +12,8 @@ import { GridshotMode } from '@/components/aim/GridshotMode';
 import { TrackingMode } from '@/components/aim/TrackingMode';
 import { FlickMode } from '@/components/aim/FlickMode';
 import { PrecisionMode } from '@/components/aim/PrecisionMode';
+import { TermoLogin } from '@/components/TermoLogin';
+import { NameSetup } from '@/components/NameSetup';
 
 type GameMode = 'gridshot' | 'flick' | 'tracking' | 'precision';
 
@@ -30,9 +32,11 @@ interface GameStats {
 }
 
 const AimTrainer: React.FC = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   const [userProfile, setUserProfile] = useState<{ nickname: string } | null>(null);
+  const [needsNameSetup, setNeedsNameSetup] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [gameMode, setGameMode] = useState<GameMode>('gridshot');
   const [gameDuration, setGameDuration] = useState(DEFAULT_DURATION);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -53,20 +57,53 @@ const AimTrainer: React.FC = () => {
 
   // Load user profile
   useEffect(() => {
-    if (user) {
-      const loadProfile = async () => {
-        const { data } = await supabase
+    const fetchUserProfile = async () => {
+      if (!user) {
+        setProfileLoading(false);
+        return;
+      }
+
+      try {
+        const { data: profile, error } = await supabase
           .from('profiles')
-          .select('nickname')
+          .select('*')
           .eq('id', user.id)
           .single();
-        if (data) {
-          setUserProfile(data);
+
+        if (error) {
+          setNeedsNameSetup(true);
+        } else if (!profile?.nickname || profile.nickname.startsWith('User')) {
+          setNeedsNameSetup(true);
+        } else {
+          setUserProfile(profile);
         }
-      };
-      loadProfile();
+      } catch (error) {
+        setNeedsNameSetup(true);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    if (!authLoading) {
+      fetchUserProfile();
     }
-  }, [user]);
+  }, [user, authLoading]);
+
+  const handleNameSetupComplete = async () => {
+    setNeedsNameSetup(false);
+    // Refetch profile
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (profile) {
+        setUserProfile(profile);
+      }
+    }
+  };
 
   const startGame = useCallback(() => {
     if (!user) {
@@ -274,8 +311,27 @@ const AimTrainer: React.FC = () => {
 
   const displayStats = gameEndStats || stats;
 
+  // Show loading while checking auth or profile
+  if (authLoading || profileLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center">
+        <div className="text-white text-xl">Carregando...</div>
+      </div>
+    );
+  }
+
+  // Show login if not authenticated
+  if (!user) {
+    return <TermoLogin />;
+  }
+
+  // Show name setup if needed
+  if (needsNameSetup) {
+    return <NameSetup onComplete={handleNameSetupComplete} />;
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-muted p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -287,13 +343,13 @@ const AimTrainer: React.FC = () => {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Aim Trainer</h1>
-              <p className="text-muted-foreground">Treine sua mira e precisão</p>
+              <h1 className="text-3xl font-bold text-white">Aim Trainer</h1>
+              <p className="text-white/70">Treine sua mira e precisão</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {user && (
-              <Badge variant="outline">
+              <Badge variant="outline" className="text-white border-white/20">
                 {userProfile?.nickname || 'Usuário'}
               </Badge>
             )}
@@ -420,7 +476,7 @@ const AimTrainer: React.FC = () => {
           <CardContent className="p-0">
             <div
               ref={containerRef}
-              className="relative w-full h-[500px] bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 overflow-hidden cursor-crosshair"
+              className="relative w-full h-[500px] bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden cursor-crosshair"
             >
               {/* Time Progress Bar */}
               {isPlaying && (
@@ -438,7 +494,7 @@ const AimTrainer: React.FC = () => {
               {/* Game Instructions */}
               {!isPlaying && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center text-muted-foreground">
+                  <div className="text-center text-white/70">
                     <MousePointer2 className="w-16 h-16 mx-auto mb-4 opacity-50" />
                     <p className="text-lg">Clique em "Iniciar Jogo" para começar</p>
                     <p className="text-sm">Modo: {gameMode.toUpperCase()}</p>
