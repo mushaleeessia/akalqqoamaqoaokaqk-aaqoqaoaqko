@@ -27,9 +27,12 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
   const [speed] = useState(3);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [totalFrames, setTotalFrames] = useState(0);
+  const [graceCountdown, setGraceCountdown] = useState(3);
+  const [isGracePeriod, setIsGracePeriod] = useState(true);
   
   const gameLoopRef = useRef<NodeJS.Timeout>();
   const statsLoopRef = useRef<NodeJS.Timeout>();
+  const graceTimerRef = useRef<NodeJS.Timeout>();
 
   // Atualiza posição do mouse
   useEffect(() => {
@@ -49,9 +52,9 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     return () => document.removeEventListener('mousemove', handleMouseMove);
   }, [isPlaying, containerRef]);
 
-  // Verifica se mouse está no alvo
+  // Verifica se mouse está no alvo (só conta depois do período de graça)
   useEffect(() => {
-    if (!target || !isPlaying) {
+    if (!target || !isPlaying || isGracePeriod) {
       setIsOnTarget(false);
       return;
     }
@@ -62,13 +65,16 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     
     const onTarget = distance <= TARGET_SIZE / 2;
     setIsOnTarget(onTarget);
-  }, [mousePos, target, isPlaying]);
+  }, [mousePos, target, isPlaying, isGracePeriod]);
 
   // Loop principal do jogo
   useEffect(() => {
     if (!isPlaying) {
       setTarget(null);
       setIsOnTarget(false);
+      setIsGracePeriod(true);
+      setGraceCountdown(3);
+      if (graceTimerRef.current) clearTimeout(graceTimerRef.current);
       return;
     }
 
@@ -83,7 +89,22 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
       vy: (Math.random() > 0.5 ? 1 : -1)
     };
     setTarget(initialTarget);
-    setTotalFrames(0); // Reset contador de frames
+    setTotalFrames(0);
+    setIsGracePeriod(true);
+    setGraceCountdown(3);
+
+    // Countdown de 3 segundos
+    const countdown = () => {
+      setGraceCountdown(prev => {
+        if (prev <= 1) {
+          setIsGracePeriod(false);
+          return 0;
+        }
+        graceTimerRef.current = setTimeout(countdown, 1000);
+        return prev - 1;
+      });
+    };
+    graceTimerRef.current = setTimeout(countdown, 1000);
 
     // Loop de movimento
     gameLoopRef.current = setInterval(() => {
@@ -115,23 +136,24 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
 
     return () => {
       if (gameLoopRef.current) clearInterval(gameLoopRef.current);
+      if (graceTimerRef.current) clearTimeout(graceTimerRef.current);
     };
   }, [isPlaying, speed, containerRef]);
 
-  // Loop de estatísticas
+  // Loop de estatísticas (só conta depois do período de graça)
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || isGracePeriod) return;
     
     statsLoopRef.current = setInterval(() => {
       setTotalFrames(prev => prev + 1);
       
       setStats(prev => {
         const newTimeOnTarget = isOnTarget ? prev.timeOnTarget + 1 : prev.timeOnTarget;
-        const accuracy = totalFrames > 0 ? Math.min((newTimeOnTarget / totalFrames) * 100, 100) : 0; // Máximo 100%
+        const accuracy = totalFrames > 0 ? Math.min((newTimeOnTarget / totalFrames) * 100, 100) : 0;
         const newStats = {
           ...prev,
           timeOnTarget: newTimeOnTarget,
-          accuracy: Math.round(accuracy * 10) / 10, // Arredonda para 1 casa decimal
+          accuracy: Math.round(accuracy * 10) / 10,
           targetsHit: Math.floor(newTimeOnTarget / 30),
           score: Math.floor(newTimeOnTarget / 30) * 15
         };
@@ -144,15 +166,24 @@ export const TrackingMode: React.FC<TrackingModeProps> = ({ isPlaying, onStatsUp
     return () => {
       if (statsLoopRef.current) clearInterval(statsLoopRef.current);
     };
-  }, [isPlaying, isOnTarget, onStatsUpdate, totalFrames]);
+  }, [isPlaying, isGracePeriod, isOnTarget, onStatsUpdate, totalFrames]);
 
   return (
     <>
+      {/* Countdown durante período de graça */}
+      {isPlaying && isGracePeriod && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 20 }}>
+          <div className="text-8xl font-bold text-white drop-shadow-lg animate-pulse">
+            {graceCountdown}
+          </div>
+        </div>
+      )}
+      
       {/* Alvo principal */}
       {isPlaying && target && (
         <div
           className={`absolute rounded-full border-4 border-white shadow-lg transition-colors duration-150 ${
-            isOnTarget 
+            isOnTarget && !isGracePeriod
               ? 'bg-gradient-to-br from-green-500 to-green-600' 
               : 'bg-gradient-to-br from-blue-500 to-blue-600'
           }`}

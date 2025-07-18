@@ -76,21 +76,59 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
     }));
   }, [getContainerBounds]);
 
+  const createSingleTarget = useCallback((excludePositions: { x: number; y: number }[] = []) => {
+    const bounds = getContainerBounds();
+    const size = TARGET_SIZE;
+    const margin = 50;
+    
+    let attempts = 0;
+    let position;
+    
+    do {
+      position = {
+        x: margin + Math.random() * (bounds.width - 2 * margin),
+        y: margin + 60 + Math.random() * (bounds.height - 2 * margin - 60)
+      };
+      attempts++;
+    } while (
+      attempts < 50 && 
+      excludePositions.some(pos => 
+        Math.sqrt(Math.pow(pos.x - position.x, 2) + Math.pow(pos.y - position.y, 2)) < size * 1.5
+      )
+    );
+
+    return {
+      id: nextTargetIdRef.current++,
+      x: position.x,
+      y: position.y,
+      size,
+      isHit: false,
+      createdAt: Date.now()
+    };
+  }, [getContainerBounds]);
+
   const handleTargetClick = useCallback((targetId: number, event: React.MouseEvent) => {
     event.stopPropagation();
     
     const target = targets.find(t => t.id === targetId);
     if (!target || target.isHit) return;
 
-    
+    // Remove o alvo clicado
     setTargets(prev => prev.filter(t => t.id !== targetId));
+    
+    // Cria um novo alvo após 2 segundos
+    setTimeout(() => {
+      setTargets(prev => {
+        const excludePositions = prev.map(t => ({ x: t.x, y: t.y }));
+        const newTarget = createSingleTarget(excludePositions);
+        return [...prev, newTarget];
+      });
+    }, 2000);
     
     setStats(prev => {
       const newTargetsHit = prev.targetsHit + 1;
       const newTotalClicks = prev.totalClicks + 1;
       const accuracy = newTotalClicks > 0 ? (newTargetsHit / newTotalClicks) * 100 : 0;
-      
-      
       
       const newStats = {
         ...prev,
@@ -102,7 +140,7 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
       onStatsUpdate(newStats);
       return newStats;
     });
-  }, [targets, onStatsUpdate]);
+  }, [targets, onStatsUpdate, createSingleTarget]);
 
   const handleContainerClick = useCallback((event: React.MouseEvent) => {
     // Only count missed clicks, not clicks on targets
@@ -128,12 +166,7 @@ export const GridshotMode: React.FC<GridshotModeProps> = ({ isPlaying, onStatsUp
     });
   }, [onStatsUpdate]);
 
-  // Auto-restart gridshot when all targets are hit
-  useEffect(() => {
-    if (isPlaying && targets.length === 0 && stats.totalTargets > 0) {
-      setTimeout(createGridTargets, 500);
-    }
-  }, [isPlaying, targets.length, stats.totalTargets, createGridTargets]);
+  // Auto-restart gridshot when all targets are hit (removed since targets now respawn individually)
 
   // Initialize game
   useEffect(() => {
