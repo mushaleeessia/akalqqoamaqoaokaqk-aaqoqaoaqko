@@ -99,7 +99,7 @@ const AimTrainer: React.FC = () => {
         return prev - 100;
       });
     }, 100);
-  }, [user, gameMode]);
+  }, [user, gameMode, gameDuration]);
 
   const endGame = useCallback(async () => {
     setIsPlaying(false);
@@ -211,7 +211,7 @@ const AimTrainer: React.FC = () => {
       return currentStats;
     });
 
-  }, [gameMode, user]);
+  }, [gameMode, user, gameDuration]);
 
   const resetGame = useCallback(() => {
     setIsPlaying(false);
