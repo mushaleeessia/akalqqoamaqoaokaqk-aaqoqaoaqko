@@ -84,7 +84,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       provider: 'discord',
       options: {
         redirectTo: redirectUrl,
-        scopes: 'identify'
+        scopes: 'identify',
+        skipBrowserRedirect: false
       }
     });
   };
