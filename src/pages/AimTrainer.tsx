@@ -192,19 +192,19 @@ const AimTrainer: React.FC = () => {
             }
 
             if (existingStats) {
-              const newAvgReactionTime = finalStats.avgReactionTime && finalStats.avgReactionTime > 0 
-                ? Math.min(((existingStats.avg_reaction_time * existingStats.total_sessions) + finalStats.avgReactionTime) / (existingStats.total_sessions + 1), 999999)
-                : existingStats.avg_reaction_time;
+            const newAvgReactionTime = finalStats.avgReactionTime && finalStats.avgReactionTime > 0 
+              ? Math.min(Math.round(((existingStats.avg_reaction_time * existingStats.total_sessions) + finalStats.avgReactionTime) / (existingStats.total_sessions + 1)), 999999)
+              : existingStats.avg_reaction_time;
                 
               const updatedStats = {
                 best_score: Math.max(existingStats.best_score, finalStats.score),
                 best_accuracy: Math.max(existingStats.best_accuracy, finalStats.accuracy),
-                best_avg_reaction_time: finalStats.avgReactionTime && finalStats.avgReactionTime > 0 ? Math.min(existingStats.best_avg_reaction_time, finalStats.avgReactionTime) : existingStats.best_avg_reaction_time,
+                best_avg_reaction_time: finalStats.avgReactionTime && finalStats.avgReactionTime > 0 ? Math.min(existingStats.best_avg_reaction_time, Math.round(finalStats.avgReactionTime)) : existingStats.best_avg_reaction_time,
                 total_sessions: existingStats.total_sessions + 1,
                 total_targets_hit: existingStats.total_targets_hit + finalStats.targetsHit,
                 total_targets_missed: existingStats.total_targets_missed + (finalStats.targetsMissed || 0),
                 avg_accuracy: ((existingStats.avg_accuracy * existingStats.total_sessions) + finalStats.accuracy) / (existingStats.total_sessions + 1),
-                avg_reaction_time: newAvgReactionTime
+                avg_reaction_time: Math.round(newAvgReactionTime)
               };
 
               const { error: updateError } = await supabase
