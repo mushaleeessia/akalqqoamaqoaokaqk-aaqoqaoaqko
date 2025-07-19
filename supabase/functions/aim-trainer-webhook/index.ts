@@ -71,10 +71,56 @@ const handler = async (req: Request): Promise<Response> => {
       title: "🎯 Aim Trainer - Jogo Completado!",
       description: `**${nickname}** completou um jogo no modo **${game_mode.toUpperCase()}**`,
       color: 0x00ff00,
-      fields: [
+      fields: [],
+      timestamp: new Date().toISOString(),
+      footer: {
+        text: "Aim Trainer Stats"
+      }
+    };
+
+    // Configure fields based on game mode
+    if (game_mode === 'gridshot') {
+      embed.fields = [
         {
           name: "📊 Estatísticas",
-          value: `**Pontuação:** ${score}\n**Precisão:** ${accuracy.toFixed(1)}%\n**Alvos Acertados:** ${targets_hit}/${total_targets}\n**Alvos Perdidos:** ${targets_missed}`,
+          value: `**Pontuação:** ${score}\n**Precisão:** ${accuracy.toFixed(1)}%\n**Alvos Acertados:** ${targets_hit}\n**Erros:** ${targets_missed}`,
+          inline: true
+        },
+        {
+          name: "⏱️ Tempo",
+          value: `**Duração:** ${duration}s`,
+          inline: true
+        },
+        {
+          name: "🎮 Modo de Jogo",
+          value: game_mode.charAt(0).toUpperCase() + game_mode.slice(1),
+          inline: true
+        }
+      ];
+    } else if (game_mode === 'tracking') {
+      embed.fields = [
+        {
+          name: "📊 Estatísticas",
+          value: `**Pontuação:** ${score}\n**Precisão:** ${accuracy.toFixed(1)}%`,
+          inline: true
+        },
+        {
+          name: "⏱️ Tempo",
+          value: `**Duração:** ${duration}s`,
+          inline: true
+        },
+        {
+          name: "🎮 Modo de Jogo",
+          value: game_mode.charAt(0).toUpperCase() + game_mode.slice(1),
+          inline: true
+        }
+      ];
+    } else {
+      // For other modes (flick, precision)
+      embed.fields = [
+        {
+          name: "📊 Estatísticas",
+          value: `**Pontuação:** ${score}\n**Precisão:** ${accuracy.toFixed(1)}%\n**Alvos Acertados:** ${targets_hit}/${total_targets}\n**Erros:** ${targets_missed}`,
           inline: true
         },
         {
@@ -87,12 +133,8 @@ const handler = async (req: Request): Promise<Response> => {
           value: game_mode.charAt(0).toUpperCase() + game_mode.slice(1),
           inline: true
         }
-      ],
-      timestamp: new Date().toISOString(),
-      footer: {
-        text: "Aim Trainer Stats"
-      }
-    };
+      ];
+    }
 
     const webhookPayload = {
       embeds: [embed]
