@@ -83,7 +83,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await supabase.auth.signInWithOAuth({
       provider: 'discord',
       options: {
-        redirectTo: redirectUrl
+        redirectTo: redirectUrl,
+        scopes: 'identify'
       }
     });
   };
