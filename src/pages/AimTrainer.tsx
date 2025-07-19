@@ -12,7 +12,7 @@ import { GridshotMode } from '@/components/aim/GridshotMode';
 import { TrackingMode } from '@/components/aim/TrackingMode';
 import { FlickMode } from '@/components/aim/FlickMode';
 import { PrecisionMode } from '@/components/aim/PrecisionMode';
-import { TermoLogin } from '@/components/TermoLogin';
+import { AimTrainerLogin } from '@/components/AimTrainerLogin';
 import { NameSetup } from '@/components/NameSetup';
 
 type GameMode = 'gridshot' | 'flick' | 'tracking' | 'precision';
@@ -236,6 +236,32 @@ const AimTrainer: React.FC = () => {
               }
             }
 
+            // Send Discord webhook
+            try {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('nickname')
+                .eq('id', user.id)
+                .single();
+
+              await supabase.functions.invoke('aim-trainer-webhook', {
+                body: {
+                  user_id: user.id,
+                  nickname: profile?.nickname || 'Usuário',
+                  game_mode: gameMode,
+                  score: finalStats.score,
+                  accuracy: finalStats.accuracy,
+                  targets_hit: finalStats.targetsHit,
+                  targets_missed: finalStats.targetsMissed || 0,
+                  total_targets: finalStats.totalTargets || finalStats.targetsHit,
+                  avg_reaction_time: finalStats.avgReactionTime || 0,
+                  duration: gameDuration
+                }
+              });
+            } catch (webhookError) {
+              console.error('Erro ao enviar webhook:', webhookError);
+              // Don't show error to user, webhook is not critical
+            }
             
             toast.success('Jogo salvo com sucesso!');
           } catch (error) {
@@ -322,7 +348,7 @@ const AimTrainer: React.FC = () => {
 
   // Show login if not authenticated
   if (!user) {
-    return <TermoLogin />;
+    return <AimTrainerLogin />;
   }
 
   // Show name setup if needed
